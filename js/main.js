@@ -143,12 +143,12 @@ function logoutUser() {
 // ==========================================
 function renderNavbar(activePage, currentUser) {
     const page = activePage || document.body.getAttribute('data-page') || 'index';
-    const user = currentUser || (typeof auth !== 'undefined' ? auth.currentUser : null);
+    const user = currentUser || (typeof auth !== 'undefined' ? auth.currentUser : null) || (typeof SSO !== 'undefined' ? SSO.getSSOUser() : null);
     const adminActive = isAdmin();
 
     const defaultAvatarSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2338bdf8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.04-4.83-2.61.03-1.6 3.22-2.47 4.83-2.47 1.61 0 4.8 1.87 4.83 2.47C15.8 18.96 14.03 20 12 20z"/></svg>`;
     const userAvatar = (user && user.photoURL) ? user.photoURL : defaultAvatarSvg;
-    const userName = user ? (user.displayName || user.email.split('@')[0]) : '';
+    const userName = user ? (user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı')) : '';
 
     // HEADER AUTH SAĞ ALAN İÇERİĞİ
     let authHeaderRightHTML = "";
@@ -428,14 +428,17 @@ let isSignUpMode = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    const user = typeof auth !== 'undefined' ? auth.currentUser : null;
+    const user = (typeof auth !== 'undefined' ? auth.currentUser : null) || (typeof SSO !== 'undefined' ? SSO.getSSOUser() : null);
     renderNavbar(currentPath.replace('.html', ''), user);
 });
 
 if (typeof auth !== 'undefined') {
     auth.onAuthStateChanged(async (user) => {
-        if (user && user.email) {
-            _cachedUserEmailHash = await computeSHA256(user.email.toLowerCase().trim());
+        if (user) {
+            if (user.email) {
+                _cachedUserEmailHash = await computeSHA256(user.email.toLowerCase().trim());
+            }
+            if (typeof SSO !== 'undefined') SSO.onLogin(user);
         } else {
             _cachedUserEmailHash = null;
         }
@@ -675,6 +678,7 @@ function loginWithGoogle() {
 }
 
 function logoutUser() {
+    if (typeof SSO !== 'undefined') SSO.onLogout();
     localStorage.removeItem('_mali_adm_token');
     sessionStorage.removeItem('_mali_adm_token');
     localStorage.removeItem('is_admin');
