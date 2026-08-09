@@ -107,7 +107,7 @@ const SYSTEMVERILOG_TOPICS = [
 
 // Firestore Veritabanına Otomatik Tohumlama (Seed)
 function autoSeedSystemVerilogCourse() {
-    if (typeof db === 'undefined') return;
+    if (typeof db === 'undefined' || !db) return;
 
     const courseRef = db.collection("courses").doc("systemverilog-kursu");
     
