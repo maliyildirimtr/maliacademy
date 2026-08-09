@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İlan Panosu | Mali Academy</title>
+    <meta name="description" content="Mali Academy Akademik & Mühendislik İlan Panosu. Bitirme projesi takım arkadaşı, yarışma ekipleri, özel çalışma grupları ve staj ilanları.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📢</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body data-page="ilan-panosu" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <div id="navbar-container"></div>
+
+    <main class="max-w-6xl mx-auto px-4 py-10 flex-grow w-full space-y-8">
+        
+        <!-- HEADER SECTION -->
+        <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
+            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-bold w-fit">
+                        <span>📢</span> Topluluk Panosu
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Akademik & Proje İlan Panosu</h1>
+                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        TEKNOFEST ekipleri, Bitirme Projesi (Capstone) takım arkadaşı arayanlar, sınav çalışma grupları ve mühendislik yarışma duyuruları.
+                    </p>
+                </div>
+
+                <div>
+                    <a href="proje-gruplari.html" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-lg shadow-tsBordo/20 hover:opacity-90 transition-all inline-flex items-center gap-2">
+                        <span>＋</span> Yeni İlan Oluştur
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- İLAN KARTLARI GRİDİ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- 1. İLAN: TEKNOFEST İHA TAKIMI -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/20 text-xs font-bold">TEKNOFEST 2026</span>
+                    <span class="text-[11px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded font-mono">Aranıyor</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Döner Kanat İHA - Gömülü Yazılım & Otonom Kontrol</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">Sürü İHA ve görüntü işleme entegrasyonu için STM32 & C++ bilen takım arkadaşı arıyoruz. Bütçe ve sponsorluk hazır.</p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-mono">Ankara / Gazi Üni</span>
+                    <a href="proje-gruplari.html" class="font-bold text-tsMavi hover:underline">İletişime Geç →</a>
+                </div>
+            </div>
+
+            <!-- 2. İLAN: BITIRME PROJESI -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold">Bitirme Projesi</span>
+                    <span class="text-[11px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded font-mono">Aranıyor</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">FPGA Tabanlı RISC-V İşlemci Tasarımı</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">SystemVerilog ve Vivado tecrübesi olan bitirme projesi ekip arkadaşı aranıyor. Donanım doğrulama ve testbench hazırlığı üzerine çalışılacak.</p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-mono">Online / Hibrit</span>
+                    <a href="proje-gruplari.html" class="font-bold text-tsMavi hover:underline">İletişime Geç →</a>
+                </div>
+            </div>
+
+            <!-- 3. İLAN: ÇALIŞMA GRUBU -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-bold">Çalışma Grubu</span>
+                    <span class="text-[11px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded font-mono">Aktif</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">İşaretler ve Sistemler Final Sınav Kampı</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">Haftalık 2 oturum Discord soru çözüm grubu. Laplace & Fourier dönüşümleri çıkmış vize final soru çözümü yapılacaktır.</p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-mono">Discord Lab</span>
+                    <a href="proje-gruplari.html" class="font-bold text-tsMavi hover:underline">Kampa Katıl →</a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

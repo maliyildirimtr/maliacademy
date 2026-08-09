@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sınav & Vize Hazırlık | Mali Academy</title>
+    <meta name="description" content="Mali Academy Sınav & Vize Hazırlık Arşivi. Mantık Devreleri, Mikroişlemciler, Devre Analizi çıkmış vize/final soruları ve çözümlü çalışma kağıtları.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body data-page="sinav-hazirlik" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <div id="navbar-container"></div>
+
+    <main class="max-w-6xl mx-auto px-4 py-10 flex-grow w-full space-y-8">
+        
+        <!-- HEADER SECTION -->
+        <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
+            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tsBordo/10 text-tsBordo dark:text-rose-400 border border-tsBordo/20 text-xs font-bold w-fit">
+                        <span>🎓</span> Akademik Arşiv
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Sınav & Vize Hazırlık Arşivi</h1>
+                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Elektrik-Elektronik ve Bilgisayar Mühendisliği derslerine ait çıkmış vize-final soruları, çözümlü çalışma belgeleri ve özet sınav kılavuzları.
+                    </p>
+                </div>
+            </div>
+
+            <!-- FİLTRE BADGE'LERİ -->
+            <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-xs font-semibold">
+                <button class="px-3.5 py-1.5 rounded-xl bg-tsMavi text-white shadow-sm">Tüm Belgeler</button>
+                <button class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 transition-colors">Vize Soruları</button>
+                <button class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 transition-colors">Final Soruları</button>
+                <button class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 transition-colors">Çözümlü Problemler</button>
+                <button class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 transition-colors">Özet Kılavuzlar</button>
+            </div>
+        </div>
+
+        <!-- DERS SINAV KARTLARI İZGARA ALANI -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- 1. MANTIK DEVRELERİ TASARIMI -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold">Mantık Devreleri</span>
+                    <span class="text-xs text-slate-400 font-mono">12 Dosya</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Karnaugh Haritaları & Flip-Flop Vize Çözümleri</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-2">Bileşimsel ve ardışıl devre tasarımları, durum diyagramları azaltma vize sınavı çözümlü çalışma seti.</p>
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">PDF • 4.2 MB</span>
+                    <a href="dersler.html" class="font-bold text-tsMavi hover:underline">Soruları İncele →</a>
+                </div>
+            </div>
+
+            <!-- 2. MİKROİŞLEMCİLER -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-500 border border-sky-500/20 text-xs font-bold">Mikroişlemciler</span>
+                    <span class="text-xs text-slate-400 font-mono">8 Dosya</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Assembly Kod Örnekleri & Interrupt Final Seti</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-2">8086 / ARM mimarisi komut setleri, kesme (Interrupt) rutinleri ve bellek haritalama soru çözümleri.</p>
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">PDF • 6.8 MB</span>
+                    <a href="dersler.html" class="font-bold text-tsMavi hover:underline">Soruları İncele →</a>
+                </div>
+            </div>
+
+            <!-- 3. İŞARETLER VE SİSTEMLER -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold">İşaretler & Sistemler</span>
+                    <span class="text-xs text-slate-400 font-mono">15 Dosya</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Fourier & Laplace Dönüşümü Örnek Çözümler</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-2">Sürekli ve ayrık zamanlı LTI sistemler, Konvolüsyon integrali ve Z-Dönüşümü vize/final hazırlık notları.</p>
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">PDF • 8.1 MB</span>
+                    <a href="dersler.html" class="font-bold text-tsMavi hover:underline">Soruları İncele →</a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mühendislik Araçları | Mali Academy</title>
+    <meta name="description" content="Mali Academy İnteraktif Mühendislik Araçları. AGNO/GANO Ortalama Hesaplayıcı, Bilimsel Hesap Makinesi ve 4-Bant Direnç/Devre Hesaplama araçları.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body data-page="araclar" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <div id="navbar-container"></div>
+
+    <main class="max-w-6xl mx-auto px-4 py-10 flex-grow w-full space-y-12">
+        
+        <!-- HEADER SECTION -->
+        <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
+            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold w-fit">
+                        <span>🛠️</span> Etkileşimli Araçlar
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mühendislik Hesaplama Araçları</h1>
+                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Üniversite ders ortalaması (GANO/AGNO) hesaplama, canlı bilimsel modlu hesap makinesi ve elektronik devre direnç renk kodu analiz aracı.
+                    </p>
+                </div>
+            </div>
+
+            <!-- ANKOR NAVIGATION -->
+            <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-xs font-semibold">
+                <a href="#gano" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-tsMavi hover:text-white transition-all flex items-center gap-1.5">
+                    <span>📊</span> AGNO / GANO Ortalama
+                </a>
+                <a href="#hesap-makinesi" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-tsMavi hover:text-white transition-all flex items-center gap-1.5">
+                    <span>🧮</span> Bilimsel Hesap Makinesi
+                </a>
+                <a href="#direnc-hesaplayici" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-tsMavi hover:text-white transition-all flex items-center gap-1.5">
+                    <span>⚡</span> Direnç / Devre Hesaplama
+                </a>
+            </div>
+        </div>
+
+        <!-- 1. ARAÇ: GANO / AGNO HESAPLAYICI (#gano) -->
+        <section id="gano" class="p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xl space-y-6 scroll-mt-24">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">📊</span>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">AGNO / GANO Ortalama Hesaplayıcı</h2>
+                    </div>
+                    <p class="text-xs text-slate-500">Derslerin kredi ve harf notlarını girerek Dönem ve Genel Ağırlıklı Not Ortalamanızı hesaplayın.</p>
+                </div>
+
+                <div class="bg-gradient-to-r from-tsBordo to-tsMavi p-0.5 rounded-2xl shrink-0">
+                    <div class="bg-white dark:bg-slate-900 px-6 py-2 rounded-[14px] text-center">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Hesaplanan GANO</span>
+                        <span id="gano-result" class="text-2xl font-extrabold text-tsMavi">0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DERS GİRİŞ FORMU -->
+            <div id="course-rows-container" class="space-y-3">
+                <!-- ROW 1 -->
+                <div class="course-row flex flex-col md:flex-row items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+                    <input type="text" placeholder="Ders Adı (Örn: Mantık Devreleri)" class="course-name w-full md:w-1/2 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
+                    
+                    <select class="course-credit w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
+                        <option value="4">4 Kredi / AKTS</option>
+                        <option value="3" selected>3 Kredi / AKTS</option>
+                        <option value="2">2 Kredi / AKTS</option>
+                        <option value="5">5 Kredi / AKTS</option>
+                        <option value="6">6 Kredi / AKTS</option>
+                    </select>
+
+                    <select class="course-grade w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi font-bold">
+                        <option value="4.0">AA (4.0)</option>
+                        <option value="3.5">BA (3.5)</option>
+                        <option value="3.0">BB (3.0)</option>
+                        <option value="2.5">CB (2.5)</option>
+                        <option value="2.0">CC (2.0)</option>
+                        <option value="1.5">DC (1.5)</option>
+                        <option value="1.0">DD (1.0)</option>
+                        <option value="0.0">FF (0.0)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="button" onclick="addCourseRow()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-300 transition-colors">
+                    ＋ Ders Ekle
+                </button>
+                <button type="button" onclick="calculateGANO()" class="px-6 py-2 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-bold shadow-md hover:opacity-90 transition-opacity">
+                    ✨ GANO Hesapla
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. ARAÇ: BİLİMSEL HESAP MAKİNESİ (#hesap-makinesi) -->
+        <section id="hesap-makinesi" class="p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xl space-y-6 scroll-mt-24">
+            <div class="space-y-1 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🧮</span>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Bilimsel Mühendislik Hesap Makinesi</h2>
+                </div>
+                <p class="text-xs text-slate-500">Trigonometrik (sin, cos, tan), logaritmik (ln, log), kök ve üstel hesaplamalar için bilimsel arayüz.</p>
+            </div>
+
+            <div class="max-w-md mx-auto p-4 rounded-3xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+                <!-- EKRAN -->
+                <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-right font-mono space-y-1">
+                    <div id="calc-history" class="text-[11px] text-slate-400 h-4 overflow-hidden"></div>
+                    <input id="calc-display" type="text" value="0" readonly class="w-full text-2xl font-bold bg-transparent text-right outline-none text-slate-900 dark:text-slate-100">
+                </div>
+
+                <!-- TUŞ TAKIMI -->
+                <div class="grid grid-cols-5 gap-2 text-xs font-bold font-mono">
+                    <button onclick="calcInput('sin(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">sin</button>
+                    <button onclick="calcInput('cos(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">cos</button>
+                    <button onclick="calcInput('tan(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">tan</button>
+                    <button onclick="calcClear()" class="p-2.5 rounded-xl bg-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors">C</button>
+                    <button onclick="calcBackspace()" class="p-2.5 rounded-xl bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white transition-colors">⌫</button>
+
+                    <button onclick="calcInput('log(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">log</button>
+                    <button onclick="calcInput('ln(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">ln</button>
+                    <button onclick="calcInput('sqrt(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">√</button>
+                    <button onclick="calcInput('^')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">^</button>
+                    <button onclick="calcInput('/')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">÷</button>
+
+                    <button onclick="calcInput('7')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">7</button>
+                    <button onclick="calcInput('8')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">8</button>
+                    <button onclick="calcInput('9')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">9</button>
+                    <button onclick="calcInput('(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">(</button>
+                    <button onclick="calcInput('*')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">×</button>
+
+                    <button onclick="calcInput('4')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">4</button>
+                    <button onclick="calcInput('5')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">5</button>
+                    <button onclick="calcInput('6')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">6</button>
+                    <button onclick="calcInput(')')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">)</button>
+                    <button onclick="calcInput('-')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">-</button>
+
+                    <button onclick="calcInput('1')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">1</button>
+                    <button onclick="calcInput('2')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">2</button>
+                    <button onclick="calcInput('3')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">3</button>
+                    <button onclick="calcInput('pi')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">π</button>
+                    <button onclick="calcInput('+')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">+</button>
+
+                    <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">0</button>
+                    <button onclick="calcInput('.')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">.</button>
+                    <button onclick="calcEvaluate()" class="col-span-2 p-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white hover:opacity-90 transition-opacity">=</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ARAÇ: DİRENÇ RENK KODU & DEVRE HESAPLAYICI (#direnc-hesaplayici) -->
+        <section id="direnc-hesaplayici" class="p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xl space-y-6 scroll-mt-24">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">⚡</span>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">4-Bant Direnç Renk Kodu Hesaplayıcı</h2>
+                    </div>
+                    <p class="text-xs text-slate-500">Elektronik direnç üzerindeki bant renklerini seçerek direnç değerini (Ohm) ve toleransını hesaplayın.</p>
+                </div>
+
+                <div class="bg-gradient-to-r from-tsBordo to-tsMavi p-0.5 rounded-2xl shrink-0">
+                    <div class="bg-white dark:bg-slate-900 px-6 py-2 rounded-[14px] text-center">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Direnç Değeri</span>
+                        <span id="resistor-result" class="text-xl font-extrabold text-tsMavi">1.0 kΩ ±5%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BANT SEÇİCİLERİ -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-bold">
+                <div class="space-y-1.5">
+                    <label class="text-slate-500">1. Bant (1. Basamak)</label>
+                    <select id="res-band1" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                        <option value="1" selected>Kahverengi (1)</option>
+                        <option value="2">Kırmızı (2)</option>
+                        <option value="3">Turuncu (3)</option>
+                        <option value="4">Sarı (4)</option>
+                        <option value="5">Yeşil (5)</option>
+                        <option value="6">Mavi (6)</option>
+                        <option value="7">Mor (7)</option>
+                        <option value="8">Gri (8)</option>
+                        <option value="9">Beyaz (9)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-slate-500">2. Bant (2. Basamak)</label>
+                    <select id="res-band2" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                        <option value="0" selected>Siyah (0)</option>
+                        <option value="1">Kahverengi (1)</option>
+                        <option value="2">Kırmızı (2)</option>
+                        <option value="3">Turuncu (3)</option>
+                        <option value="4">Sarı (4)</option>
+                        <option value="5">Yeşil (5)</option>
+                        <option value="6">Mavi (6)</option>
+                        <option value="7">Mor (7)</option>
+                        <option value="8">Gri (8)</option>
+                        <option value="9">Beyaz (9)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-slate-500">3. Bant (Çarpan)</label>
+                    <select id="res-multiplier" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                        <option value="1">Siyah (x1)</option>
+                        <option value="10">Kahverengi (x10)</option>
+                        <option value="100">Kırmızı (x100)</option>
+                        <option value="1000" selected>Turuncu (x1k)</option>
+                        <option value="10000">Sarı (x10k)</option>
+                        <option value="100000">Yeşil (x100k)</option>
+                        <option value="1000000">Mavi (x1M)</option>
+                        <option value="0.1">Altın (x0.1)</option>
+                        <option value="0.01">Gümüş (x0.01)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-slate-500">4. Bant (Tolerans)</label>
+                    <select id="res-tolerance" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                        <option value="5" selected>Altın (±5%)</option>
+                        <option value="10">Gümüş (±10%)</option>
+                        <option value="1">Kahverengi (±1%)</option>
+                        <option value="2">Kırmızı (±2%)</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- ARAÇ HESAPLAMA SCRIPT LERİ -->
+    <script>
+        // 1. GANO HESAPLAMA
+        function addCourseRow() {
+            const container = document.getElementById('course-rows-container');
+            if (!container) return;
+            const newRow = document.createElement('div');
+            newRow.className = 'course-row flex flex-col md:flex-row items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Ders Adı" class="course-name w-full md:w-1/2 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
+                <select class="course-credit w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
+                    <option value="4">4 Kredi</option>
+                    <option value="3" selected>3 Kredi</option>
+                    <option value="2">2 Kredi</option>
+                    <option value="5">5 Kredi</option>
+                </select>
+                <select class="course-grade w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi font-bold">
+                    <option value="4.0">AA (4.0)</option>
+                    <option value="3.5">BA (3.5)</option>
+                    <option value="3.0">BB (3.0)</option>
+                    <option value="2.5">CB (2.5)</option>
+                    <option value="2.0">CC (2.0)</option>
+                    <option value="1.5">DC (1.5)</option>
+                    <option value="1.0">DD (1.0)</option>
+                    <option value="0.0">FF (0.0)</option>
+                </select>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function calculateGANO() {
+            const credits = document.querySelectorAll('.course-credit');
+            const grades = document.querySelectorAll('.course-grade');
+            
+            let totalCredits = 0;
+            let totalPoints = 0;
+
+            credits.forEach((credEl, i) => {
+                const c = parseFloat(credEl.value) || 0;
+                const g = parseFloat(grades[i].value) || 0;
+                totalCredits += c;
+                totalPoints += (c * g);
+            });
+
+            const result = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+            const resEl = document.getElementById('gano-result');
+            if (resEl) resEl.innerText = result;
+        }
+
+        // 2. BİLİMSEL HESAP MAKİNESİ
+        let calcExpr = '';
+
+        function calcInput(val) {
+            const disp = document.getElementById('calc-display');
+            if (!disp) return;
+            if (disp.value === '0' || disp.value === 'Hata') calcExpr = '';
+            calcExpr += val;
+            disp.value = calcExpr;
+        }
+
+        function calcClear() {
+            calcExpr = '';
+            const disp = document.getElementById('calc-display');
+            const hist = document.getElementById('calc-history');
+            if (disp) disp.value = '0';
+            if (hist) hist.innerText = '';
+        }
+
+        function calcBackspace() {
+            calcExpr = calcExpr.slice(0, -1);
+            const disp = document.getElementById('calc-display');
+            if (disp) disp.value = calcExpr || '0';
+        }
+
+        function calcEvaluate() {
+            const disp = document.getElementById('calc-display');
+            const hist = document.getElementById('calc-history');
+            if (!disp || !calcExpr) return;
+
+            try {
+                let sanitized = calcExpr
+                    .replace(/sin\(/g, 'Math.sin(')
+                    .replace(/cos\(/g, 'Math.cos(')
+                    .replace(/tan\(/g, 'Math.tan(')
+                    .replace(/log\(/g, 'Math.log10(')
+                    .replace(/ln\(/g, 'Math.log(')
+                    .replace(/sqrt\(/g, 'Math.sqrt(')
+                    .replace(/pi/g, 'Math.PI')
+                    .replace(/\^/g, '**');
+
+                let res = eval(sanitized);
+                if (typeof res === 'number') {
+                    if (hist) hist.innerText = calcExpr + ' =';
+                    disp.value = Number.isInteger(res) ? res.toString() : res.toFixed(4);
+                    calcExpr = disp.value;
+                } else {
+                    disp.value = 'Hata';
+                    calcExpr = '';
+                }
+            } catch (e) {
+                disp.value = 'Hata';
+                calcExpr = '';
+            }
+        }
+
+        // 3. DİRENÇ RENK KODU
+        function calculateResistor() {
+            const b1 = parseFloat(document.getElementById('res-band1')?.value || 1);
+            const b2 = parseFloat(document.getElementById('res-band2')?.value || 0);
+            const mult = parseFloat(document.getElementById('res-multiplier')?.value || 1000);
+            const tol = document.getElementById('res-tolerance')?.value || '5';
+
+            let ohm = (b1 * 10 + b2) * mult;
+            let formatted = ohm >= 1000000 ? (ohm / 1000000).toFixed(1) + ' MΩ' : (ohm >= 1000 ? (ohm / 1000).toFixed(1) + ' kΩ' : ohm + ' Ω');
+
+            const resEl = document.getElementById('resistor-result');
+            if (resEl) resEl.innerText = `${formatted} ±${tol}%`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            calculateResistor();
+        });
+    </script>
+</body>
+</html>

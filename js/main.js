@@ -103,13 +103,37 @@ function renderNavbar(activePage) {
             ${logoHTML}
 
             <!-- MASAÜSTÜ MENÜ -->
-            <div class="hidden md:flex items-center space-x-1 border border-slate-200 dark:border-slate-800 p-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50">
-                <a id="nav-first-link" href="index.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-300 ${page === 'index' || page === 'home' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Ana Sayfa</a>
-                <a href="dersler.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Dersler & Notlar</a>
-                <a href="projeler.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'projeler' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Projeler</a>
-                <a href="sosyal.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'sosyal' || page === 'iletişim' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">İletişim</a>
-                <a href="https://academy.maliyildirimtr.com" target="_blank" rel="noopener noreferrer" class="px-4 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-indigo-600 to-sky-500 text-white shadow-sm hover:opacity-90 transition-opacity flex items-center gap-1">
-                    <span>🎓</span> Mali Academy ↗
+            <div class="hidden lg:flex items-center space-x-1 border border-slate-200 dark:border-slate-800 p-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50 text-xs font-semibold">
+                <a id="nav-first-link" href="index.html" class="px-3.5 py-1.5 rounded-full transition-all duration-300 ${page === 'index' || page === 'home' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Ana Sayfa</a>
+                <a href="dersler.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Dersler & Notlar</a>
+                <a href="sinav-hazirlik.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'sinav-hazirlik' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Sınav & Vize Hazırlık</a>
+                <a href="proje-gruplari.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'proje-gruplari' || page === 'gruplar' || page === 'grup-detay' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Proje Grupları</a>
+                <a href="ilan-panosu.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'ilan-panosu' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">İlan Panosu</a>
+                <a href="acik-kaynak.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'acik-kaynak' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Açık Kaynak Kit</a>
+
+                <!-- MÜHENDİSLİK ARAÇLARI DROPDOWN -->
+                <div class="relative group/drop inline-block">
+                    <button type="button" class="px-3.5 py-1.5 rounded-full transition-all duration-200 flex items-center gap-1 ${page === 'araclar' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">
+                        <span>Mühendislik Araçları</span>
+                        <span class="text-[10px]">▾</span>
+                    </button>
+                    <div class="absolute left-0 top-full pt-2 hidden group-hover/drop:block group-focus-within/drop:block z-50 w-56">
+                        <div class="p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-1">
+                            <a href="araclar.html#gano" class="block px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                                <span>📊</span> AGNO / GANO Ortalama
+                            </a>
+                            <a href="araclar.html#hesap-makinesi" class="block px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                                <span>🧮</span> Bilimsel Hesap Makinesi
+                            </a>
+                            <a href="araclar.html#direnc-hesaplayici" class="block px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                                <span>⚡</span> Direnç / Devre Hesaplama
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-sm hover:opacity-90 transition-opacity flex items-center gap-1">
+                    <span>⚡</span> Kişisel Site ↗
                 </a>
             </div>
 
@@ -128,19 +152,37 @@ function renderNavbar(activePage) {
                 </button>
 
                 <!-- Mobil Hamburger Menü Butonu -->
-                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center w-10 h-10">
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center w-10 h-10">
                     ☰
                 </button>
             </div>
         </div>
 
         <!-- MOBİL MENÜ -->
-        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0d0f12] px-4 py-4 space-y-2">
-            <a id="mobile-nav-first-link" href="index.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Ana Sayfa</a>
-            <a href="dersler.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Dersler & Notlar</a>
-            <a href="projeler.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Projeler</a>
-            <a href="sosyal.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">İletişim</a>
-            <a href="https://academy.maliyildirimtr.com" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 rounded-xl text-sm font-bold text-sky-400 hover:bg-sky-500/10 transition-colors">🎓 Mali Academy ↗</a>
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0d0f12] px-4 py-4 space-y-2 text-sm font-medium">
+            <a id="mobile-nav-first-link" href="index.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Ana Sayfa</a>
+            <a href="dersler.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Dersler & Notlar</a>
+            <a href="sinav-hazirlik.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Sınav & Vize Hazırlık</a>
+            <a href="proje-gruplari.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Proje Grupları</a>
+            <a href="ilan-panosu.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">İlan Panosu</a>
+            <a href="acik-kaynak.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Açık Kaynak Kit</a>
+            
+            <div class="border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-2 space-y-1">
+                <div class="px-4 py-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Mühendislik Araçları</div>
+                <a href="araclar.html#gano" class="block px-6 py-1.5 rounded-xl text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
+                    <span>📊</span> AGNO / GANO Ortalama
+                </a>
+                <a href="araclar.html#hesap-makinesi" class="block px-6 py-1.5 rounded-xl text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
+                    <span>🧮</span> Bilimsel Hesap Makinesi
+                </a>
+                <a href="araclar.html#direnc-hesaplayici" class="block px-6 py-1.5 rounded-xl text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
+                    <span>⚡</span> Direnç / Devre Hesaplama
+                </a>
+            </div>
+
+            <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 rounded-xl text-sm font-bold text-sky-400 hover:bg-sky-500/10 transition-colors pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                ⚡ Kişisel Site ↗
+            </a>
         </div>
     </nav>
 

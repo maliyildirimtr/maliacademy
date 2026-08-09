@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Açık Kaynak Kit & Kod Deposu | Mali Academy</title>
+    <meta name="description" content="Mali Academy Açık Kaynak Mühendislik Kitleri, SystemVerilog/FPGA mimarileri, STM32 FreeRTOS repoları ve açık kaynak donanım projeleri.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/tailwind-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body data-page="acik-kaynak" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <div id="navbar-container"></div>
+
+    <main class="max-w-6xl mx-auto px-4 py-10 flex-grow w-full space-y-8">
+        
+        <!-- HEADER SECTION -->
+        <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
+            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-bold w-fit">
+                        <span>📦</span> Açık Kaynak Mühendislik
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Açık Kaynak Donanım & Yazılım Kitleri</h1>
+                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Mühendislik öğrencileri ve geliştiriciler için hazırladığımız hazır kod şablonları, FPGA/SystemVerilog kütüphaneleri ve gömülü sistem projelendirme kitleri.
+                    </p>
+                </div>
+
+                <div>
+                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs hover:bg-slate-800 transition-colors border border-slate-700 inline-flex items-center gap-2 shadow-sm">
+                        <span>🐱</span> GitHub Repolarına Git ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- KİT KARTLARI GRİDİ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- 1. KİT: SYSTEMVERILOG RISC-V CORE -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold">SystemVerilog</span>
+                    <span class="text-xs text-slate-400 font-mono">v1.4</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">32-Bit RV32I RISC-V İşlemci Çekirdeği Kiti</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">5 aşamalı boru hattı (Pipeline) mimarisine sahip açık kaynak SystemVerilog çekirdeği. Vivado & ModelSim testbench simülasyon kodları içerir.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+                    git clone https://github.com/maliyildirimtr/riscv-sv.git
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-mono">MIT Lisansı</span>
+                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
+                </div>
+            </div>
+
+            <!-- 2. KİT: STM32 FREERTOS TEMEL PROJE ŞABLONU -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-500 border border-sky-500/20 text-xs font-bold">STM32 & FreeRTOS</span>
+                    <span class="text-xs text-slate-400 font-mono">v2.0</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">STM32F4 Gerçek Zamanlı Gömülü Şablon Kit</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">Task senkronizasyon mekanizmaları, Kuyruk (Queue) ve Semaför konfigürasyonu tamamlanmış hazır STM32CubeIDE başlangıç kiti.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+                    git clone https://github.com/maliyildirimtr/stm32-freertos.git
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-mono">Apache 2.0</span>
+                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
+                </div>
+            </div>
+
+            <!-- 3. KİT: PYTHON SIGNAL PROCESSING & DSP TOOLKIT -->
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold">Python DSP</span>
+                    <span class="text-xs text-slate-400 font-mono">v1.1</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">İşaret İşleme & Filtre Tasarım Kütüphanesi</h3>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">SciPy ve NumPy tabanlı FIR/IIR dijital filtre tasarım aracı, FFT spektrum analizi ve Kalman filtresi uygulama kütüphanesi.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+                    pip install mali-dsp-toolkit
+                </div>
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-mono">MIT Lisansı</span>
+                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
