@@ -48,57 +48,66 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             <!-- 1. KİT: SYSTEMVERILOG RISC-V CORE -->
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold">SystemVerilog</span>
-                    <span class="text-xs text-slate-400 font-mono">v1.4</span>
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold">SystemVerilog</span>
+                        <span class="text-xs text-slate-400 font-mono">v1.4</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">32-Bit RV32I RISC-V İşlemci Çekirdeği Kiti</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">5 aşamalı boru hattı (Pipeline) mimarisine sahip açık kaynak SystemVerilog çekirdeği. Vivado & ModelSim testbench simülasyon kodları içerir.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto">
+                        git clone https://github.com/maliyildirimtr/riscv-sv.git
+                    </div>
                 </div>
-                <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">32-Bit RV32I RISC-V İşlemci Çekirdeği Kiti</h3>
-                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">5 aşamalı boru hattı (Pipeline) mimarisine sahip açık kaynak SystemVerilog çekirdeği. Vivado & ModelSim testbench simülasyon kodları içerir.</p>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
-                    git clone https://github.com/maliyildirimtr/riscv-sv.git
-                </div>
-                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <span class="text-slate-400 font-mono">MIT Lisansı</span>
                     <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
                 </div>
             </div>
 
             <!-- 2. KİT: STM32 FREERTOS TEMEL PROJE ŞABLONU -->
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-500 border border-sky-500/20 text-xs font-bold">STM32 & FreeRTOS</span>
-                    <span class="text-xs text-slate-400 font-mono">v2.0</span>
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-500 border border-sky-500/20 text-xs font-bold">STM32 & FreeRTOS</span>
+                        <span class="text-xs text-slate-400 font-mono">v2.0</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">STM32F4 Gerçek Zamanlı Gömülü Şablon Kit</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">Task senkronizasyon mekanizmaları, Kuyruk (Queue) ve Semaför konfigürasyonu tamamlanmış hazır STM32CubeIDE başlangıç kiti.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto">
+                        git clone https://github.com/maliyildirimtr/stm32-freertos.git
+                    </div>
                 </div>
-                <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">STM32F4 Gerçek Zamanlı Gömülü Şablon Kit</h3>
-                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">Task senkronizasyon mekanizmaları, Kuyruk (Queue) ve Semaför konfigürasyonu tamamlanmış hazır STM32CubeIDE başlangıç kiti.</p>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
-                    git clone https://github.com/maliyildirimtr/stm32-freertos.git
-                </div>
-                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <span class="text-slate-400 font-mono">Apache 2.0</span>
                     <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
                 </div>
             </div>
 
             <!-- 3. KİT: PYTHON SIGNAL PROCESSING & DSP TOOLKIT -->
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg space-y-4 hover:border-tsMavi transition-all">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold">Python DSP</span>
-                    <span class="text-xs text-slate-400 font-mono">v1.1</span>
+            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold">Python DSP</span>
+                        <span class="text-xs text-slate-400 font-mono">v1.1</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">İşaret İşleme & Filtre Tasarım Kütüphanesi</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">SciPy ve NumPy tabanlı FIR/IIR dijital filtre tasarım aracı, FFT spektrum analizi ve Kalman filtresi uygulama kütüphanesi.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto">
+                        pip install mali-dsp-toolkit
+                    </div>
                 </div>
-                <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">İşaret İşleme & Filtre Tasarım Kütüphanesi</h3>
-                    <p class="text-xs text-slate-500 mt-1 line-clamp-3">SciPy ve NumPy tabanlı FIR/IIR dijital filtre tasarım aracı, FFT spektrum analizi ve Kalman filtresi uygulama kütüphanesi.</p>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
-                    pip install mali-dsp-toolkit
-                </div>
-                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <span class="text-slate-400 font-mono">MIT Lisansı</span>
                     <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
                 </div>
