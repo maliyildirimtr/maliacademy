@@ -411,8 +411,13 @@ function renderNavbar(activePage, currentUser) {
 
     const navContainer = document.getElementById('navbar-container');
     if (navContainer) {
-        navContainer.innerHTML = navbarHTML;
+        navContainer.innerHTML = layoutHTML;
         initThemeIcons();
+    }
+
+    const mainContent = document.querySelector('main');
+    if (mainContent) {
+        mainContent.classList.add('pt-20', 'lg:pl-64', 'transition-all', 'duration-300');
     }
 }
 
@@ -420,6 +425,12 @@ function renderNavbar(activePage, currentUser) {
 // 5. OTURUM DURUMU VE FIREBASE DİNAMİKLERİ
 // ==========================================
 let isSignUpMode = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    const user = typeof auth !== 'undefined' ? auth.currentUser : null;
+    renderNavbar(currentPath.replace('.html', ''), user);
+});
 
 if (typeof auth !== 'undefined') {
     auth.onAuthStateChanged(async (user) => {
@@ -429,7 +440,7 @@ if (typeof auth !== 'undefined') {
             _cachedUserEmailHash = null;
         }
         const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        renderNavbar(currentPath.replace('.html', ''));
+        renderNavbar(currentPath.replace('.html', ''), user);
     });
 }
 
