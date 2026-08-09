@@ -3,253 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mühendislik Araçları | Mali Academy</title>
-    <meta name="description" content="Mali Academy İnteraktif Mühendislik Araçları. AGNO/GANO Ortalama Hesaplayıcı, Bilimsel Hesap Makinesi ve 4-Bant Direnç/Devre Hesaplama araçları.">
+    <title>Mühendislik Araçları & Uygulama Galerisi | Mali Academy</title>
+    <meta name="description" content="Mali Academy Etkileşimli Mühendislik Araçları Galerisi. AGNO/GANO Hesaplayıcı, Bilimsel Hesap Makinesi, Direnç Renk Kodu, Ohm Kanunu ve Mantık Kapıları simülatörü.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/style.css">
 
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body data-page="araclar" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
 
+    <!-- ORTAK NAVBAR / SIDEBAR CONTAINER -->
     <div id="navbar-container"></div>
 
-    <main class="max-w-6xl mx-auto px-4 py-10 flex-grow w-full space-y-12">
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 py-10 flex-grow w-full space-y-10">
         
         <!-- HEADER SECTION -->
         <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
             <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
             
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="space-y-2 max-w-2xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold w-fit">
-                        <span>🛠️</span> Etkileşimli Araçlar
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div class="space-y-2 max-w-3xl">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold w-fit">
+                        <span>🛠️</span> Etkileşimli Uygulama Galerisi
                     </div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Mühendislik Hesaplama Araçları</h1>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+                        Mühendislik Araçları & Uygulama Dizin Paneli
+                    </h1>
                     <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Üniversite ders ortalaması (GANO/AGNO) hesaplama, canlı bilimsel modlu hesap makinesi ve elektronik devre direnç renk kodu analiz aracı.
+                        Akademik ortalama simülasyonu, bilimsel hesap makineleri, elektronik renk kodu analizörleri ve dijital mantık simülatörlerini içeren canlı mühendislik araçları.
                     </p>
                 </div>
-            </div>
 
-            <!-- ANKOR NAVIGATION -->
-            <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-xs font-semibold">
-                <a href="#gano" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-tsMavi hover:text-white transition-all flex items-center gap-1.5">
-                    <span>📊</span> AGNO / GANO Ortalama
-                </a>
-                <a href="#hesap-makinesi" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-tsMavi hover:text-white transition-all flex items-center gap-1.5">
-                    <span>🧮</span> Bilimsel Hesap Makinesi
-                </a>
-                <a href="#direnc-hesaplayici" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-tsMavi hover:text-white transition-all flex items-center gap-1.5">
-                    <span>⚡</span> Direnç / Devre Hesaplama
-                </a>
+                <!-- KATEGORİ FİLTRE BUTONLARI -->
+                <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                    <button onclick="filterTools('all')" class="tool-filter-btn active px-4 py-2 rounded-xl bg-tsMavi text-white shadow-sm transition-all">Tüm Araçlar</button>
+                    <button onclick="filterTools('academic')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Akademik</button>
+                    <button onclick="filterTools('calc')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Hesaplama</button>
+                    <button onclick="filterTools('electronics')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Elektronik</button>
+                </div>
             </div>
         </div>
 
-        <!-- 1. ARAÇ: GANO / AGNO HESAPLAYICI (#gano) -->
-        <section id="gano" class="p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xl space-y-6 scroll-mt-24">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl">📊</span>
-                        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">AGNO / GANO Ortalama Hesaplayıcı</h2>
+        <!-- UYGULAMA KUTUCUKLARI IZGARA SİSTEMİ (GRID CARDS - 1 Col Mobile / 2 Col Tablet / 3 Col Desktop) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- 1. KUTUCUK: AGNO / GANO HESAPLAYICI -->
+            <div data-category="academic" class="tool-card group p-6 rounded-3xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/70 shadow-lg hover:shadow-xl hover:shadow-indigo-500/10 hover:border-tsMavi transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            📊
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-[11px] font-bold">Popüler</span>
                     </div>
-                    <p class="text-xs text-slate-500">Derslerin kredi ve harf notlarını girerek Dönem ve Genel Ağırlıklı Not Ortalamanızı hesaplayın.</p>
-                </div>
 
-                <div class="bg-gradient-to-r from-tsBordo to-tsMavi p-0.5 rounded-2xl shrink-0">
-                    <div class="bg-white dark:bg-slate-900 px-6 py-2 rounded-[14px] text-center">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Hesaplanan GANO</span>
-                        <span id="gano-result" class="text-2xl font-extrabold text-tsMavi">0.00</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DERS GİRİŞ FORMU -->
-            <div id="course-rows-container" class="space-y-3">
-                <!-- ROW 1 -->
-                <div class="course-row flex flex-col md:flex-row items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-                    <input type="text" placeholder="Ders Adı (Örn: Mantık Devreleri)" class="course-name w-full md:w-1/2 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
-                    
-                    <select class="course-credit w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
-                        <option value="4">4 Kredi / AKTS</option>
-                        <option value="3" selected>3 Kredi / AKTS</option>
-                        <option value="2">2 Kredi / AKTS</option>
-                        <option value="5">5 Kredi / AKTS</option>
-                        <option value="6">6 Kredi / AKTS</option>
-                    </select>
-
-                    <select class="course-grade w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi font-bold">
-                        <option value="4.0">AA (4.0)</option>
-                        <option value="3.5">BA (3.5)</option>
-                        <option value="3.0">BB (3.0)</option>
-                        <option value="2.5">CB (2.5)</option>
-                        <option value="2.0">CC (2.0)</option>
-                        <option value="1.5">DC (1.5)</option>
-                        <option value="1.0">DD (1.0)</option>
-                        <option value="0.0">FF (0.0)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3 pt-2">
-                <button type="button" onclick="addCourseRow()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-300 transition-colors">
-                    ＋ Ders Ekle
-                </button>
-                <button type="button" onclick="calculateGANO()" class="px-6 py-2 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-bold shadow-md hover:opacity-90 transition-opacity">
-                    ✨ GANO Hesapla
-                </button>
-            </div>
-        </section>
-
-        <!-- 2. ARAÇ: BİLİMSEL HESAP MAKİNESİ (#hesap-makinesi) -->
-        <section id="hesap-makinesi" class="p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xl space-y-6 scroll-mt-24">
-            <div class="space-y-1 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl">🧮</span>
-                    <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Bilimsel Mühendislik Hesap Makinesi</h2>
-                </div>
-                <p class="text-xs text-slate-500">Trigonometrik (sin, cos, tan), logaritmik (ln, log), kök ve üstel hesaplamalar için bilimsel arayüz.</p>
-            </div>
-
-            <div class="max-w-md mx-auto p-4 rounded-3xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-                <!-- EKRAN -->
-                <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-right font-mono space-y-1">
-                    <div id="calc-history" class="text-[11px] text-slate-400 h-4 overflow-hidden"></div>
-                    <input id="calc-display" type="text" value="0" readonly class="w-full text-2xl font-bold bg-transparent text-right outline-none text-slate-900 dark:text-slate-100">
-                </div>
-
-                <!-- TUŞ TAKIMI -->
-                <div class="grid grid-cols-5 gap-2 text-xs font-bold font-mono">
-                    <button onclick="calcInput('sin(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">sin</button>
-                    <button onclick="calcInput('cos(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">cos</button>
-                    <button onclick="calcInput('tan(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">tan</button>
-                    <button onclick="calcClear()" class="p-2.5 rounded-xl bg-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors">C</button>
-                    <button onclick="calcBackspace()" class="p-2.5 rounded-xl bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white transition-colors">⌫</button>
-
-                    <button onclick="calcInput('log(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">log</button>
-                    <button onclick="calcInput('ln(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">ln</button>
-                    <button onclick="calcInput('sqrt(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">√</button>
-                    <button onclick="calcInput('^')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">^</button>
-                    <button onclick="calcInput('/')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">÷</button>
-
-                    <button onclick="calcInput('7')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">7</button>
-                    <button onclick="calcInput('8')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">8</button>
-                    <button onclick="calcInput('9')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">9</button>
-                    <button onclick="calcInput('(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">(</button>
-                    <button onclick="calcInput('*')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">×</button>
-
-                    <button onclick="calcInput('4')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">4</button>
-                    <button onclick="calcInput('5')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">5</button>
-                    <button onclick="calcInput('6')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">6</button>
-                    <button onclick="calcInput(')')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">)</button>
-                    <button onclick="calcInput('-')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">-</button>
-
-                    <button onclick="calcInput('1')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">1</button>
-                    <button onclick="calcInput('2')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">2</button>
-                    <button onclick="calcInput('3')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">3</button>
-                    <button onclick="calcInput('pi')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">π</button>
-                    <button onclick="calcInput('+')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">+</button>
-
-                    <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">0</button>
-                    <button onclick="calcInput('.')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">.</button>
-                    <button onclick="calcEvaluate()" class="col-span-2 p-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white hover:opacity-90 transition-opacity">=</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. ARAÇ: DİRENÇ RENK KODU & DEVRE HESAPLAYICI (#direnc-hesaplayici) -->
-        <section id="direnc-hesaplayici" class="p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xl space-y-6 scroll-mt-24">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl">⚡</span>
-                        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">4-Bant Direnç Renk Kodu Hesaplayıcı</h2>
-                    </div>
-                    <p class="text-xs text-slate-500">Elektronik direnç üzerindeki bant renklerini seçerek direnç değerini (Ohm) ve toleransını hesaplayın.</p>
-                </div>
-
-                <div class="bg-gradient-to-r from-tsBordo to-tsMavi p-0.5 rounded-2xl shrink-0">
-                    <div class="bg-white dark:bg-slate-900 px-6 py-2 rounded-[14px] text-center">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Direnç Değeri</span>
-                        <span id="resistor-result" class="text-xl font-extrabold text-tsMavi">1.0 kΩ ±5%</span>
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
+                            AGNO / GANO Ortalama Simülatörü
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            Ders kredileri ve harf notlarını girerek Dönemlik ve Genel Ağırlıklı Not Ortalamanızı (GANO) canlı hesaplayın.
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            <!-- BANT SEÇİCİLERİ -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-bold">
-                <div class="space-y-1.5">
-                    <label class="text-slate-500">1. Bant (1. Basamak)</label>
-                    <select id="res-band1" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
-                        <option value="1" selected>Kahverengi (1)</option>
-                        <option value="2">Kırmızı (2)</option>
-                        <option value="3">Turuncu (3)</option>
-                        <option value="4">Sarı (4)</option>
-                        <option value="5">Yeşil (5)</option>
-                        <option value="6">Mavi (6)</option>
-                        <option value="7">Mor (7)</option>
-                        <option value="8">Gri (8)</option>
-                        <option value="9">Beyaz (9)</option>
-                    </select>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-slate-500">2. Bant (2. Basamak)</label>
-                    <select id="res-band2" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
-                        <option value="0" selected>Siyah (0)</option>
-                        <option value="1">Kahverengi (1)</option>
-                        <option value="2">Kırmızı (2)</option>
-                        <option value="3">Turuncu (3)</option>
-                        <option value="4">Sarı (4)</option>
-                        <option value="5">Yeşil (5)</option>
-                        <option value="6">Mavi (6)</option>
-                        <option value="7">Mor (7)</option>
-                        <option value="8">Gri (8)</option>
-                        <option value="9">Beyaz (9)</option>
-                    </select>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-slate-500">3. Bant (Çarpan)</label>
-                    <select id="res-multiplier" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
-                        <option value="1">Siyah (x1)</option>
-                        <option value="10">Kahverengi (x10)</option>
-                        <option value="100">Kırmızı (x100)</option>
-                        <option value="1000" selected>Turuncu (x1k)</option>
-                        <option value="10000">Sarı (x10k)</option>
-                        <option value="100000">Yeşil (x100k)</option>
-                        <option value="1000000">Mavi (x1M)</option>
-                        <option value="0.1">Altın (x0.1)</option>
-                        <option value="0.01">Gümüş (x0.01)</option>
-                    </select>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-slate-500">4. Bant (Tolerans)</label>
-                    <select id="res-tolerance" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
-                        <option value="5" selected>Altın (±5%)</option>
-                        <option value="10">Gümüş (±10%)</option>
-                        <option value="1">Kahverengi (±1%)</option>
-                        <option value="2">Kırmızı (±2%)</option>
-                    </select>
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-400">Akademik • Not Ortalaması</span>
+                    <button onclick="openToolModal('gano')" class="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 group-hover:bg-tsMavi group-hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        Uygulamayı Aç →
+                    </button>
                 </div>
             </div>
-        </section>
+
+            <!-- 2. KUTUCUK: BİLİMSEL HESAP MAKİNESİ -->
+            <div data-category="calc" class="tool-card group p-6 rounded-3xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/70 shadow-lg hover:shadow-xl hover:shadow-emerald-500/10 hover:border-tsMavi transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            🧮
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[11px] font-bold">En Çok Kullanılan</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
+                            Bilimsel Mühendislik Hesap Makinesi
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            Trigonometrik (sin, cos, tan), logaritmik (ln, log), kök ve üstel hesaplamalar gerçekleştiren bilimsel konsol.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-400">Hesaplama • Mat / Fizik</span>
+                    <button onclick="openToolModal('hesap-makinesi')" class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-500 group-hover:bg-tsMavi group-hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        Uygulamayı Aç →
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. KUTUCUK: 4-BANT DİRENÇ RENK KODU -->
+            <div data-category="electronics" class="tool-card group p-6 rounded-3xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/70 shadow-lg hover:shadow-xl hover:shadow-amber-500/10 hover:border-tsMavi transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            ⚡
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[11px] font-bold">Elektronik</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
+                            4-Bant Direnç & Tolerans Analizörü
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            Direnç üzerindeki bant renklerini seçerek Ohm değerini, çarpanını ve % tolerans sapma aralığını hesaplayın.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-400">Elektronik • Devre</span>
+                    <button onclick="openToolModal('direnc-hesaplayici')" class="px-4 py-2 rounded-xl bg-amber-500/10 text-amber-500 group-hover:bg-tsMavi group-hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        Uygulamayı Aç →
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. KUTUCUK: OHM KANUNU & DEVRE GÜCÜ -->
+            <div data-category="electronics" class="tool-card group p-6 rounded-3xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/70 shadow-lg hover:shadow-xl hover:shadow-rose-500/10 hover:border-tsMavi transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            🔌
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20 text-[11px] font-bold">Devre Analizi</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
+                            Ohm Kanunu & Güç (Watt) Hesaplayıcı
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            Gerilim (Volt), Akım (Amper), Direnç (Ohm) ve Güç (Watt) parametrelerinden ikisini girerek tüm değerleri bulun.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-400">Fizik • Elektrik</span>
+                    <button onclick="openToolModal('ohm-kanunu')" class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 group-hover:bg-tsMavi group-hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        Uygulamayı Aç →
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5. KUTUCUK: MANTIK KAPILARI & DOĞRULUK TABLOSU -->
+            <div data-category="calc" class="tool-card group p-6 rounded-3xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/70 shadow-lg hover:shadow-xl hover:shadow-sky-500/10 hover:border-tsMavi transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            ⏱️
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[11px] font-bold">Dijital Mantık</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
+                            Mantık Kapıları & Truth Table Simülatörü
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            AND, OR, XOR, NAND, NOR kapıları için giriş durumlarını (0/1) değiştirerek canlı doğruluk tablosunu inceleyin.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-400">Sistem • Mantık</span>
+                    <button onclick="openToolModal('mantik-kapilari')" class="px-4 py-2 rounded-xl bg-sky-500/10 text-sky-400 group-hover:bg-tsMavi group-hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        Uygulamayı Aç →
+                    </button>
+                </div>
+            </div>
+
+            <!-- 6. KUTUCUK: FREKANS VE BİRİM DÖNÜŞTÜRÜCÜ -->
+            <div data-category="calc" class="tool-card group p-6 rounded-3xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-900/70 shadow-lg hover:shadow-xl hover:shadow-purple-500/10 hover:border-tsMavi transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            📏
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[11px] font-bold">Yeni</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
+                            Frekans & Sinyal Birim Dönüştürücü
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            Hz/kHz/MHz frekans, Periyot (sn/ms/us) ve sinyal mertebelerini anında birbirine dönüştürün.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-400">Dönüştürücü • Birim</span>
+                    <button onclick="openToolModal('birim-donusturucu')" class="px-4 py-2 rounded-xl bg-purple-500/10 text-purple-400 group-hover:bg-tsMavi group-hover:text-white font-bold text-xs transition-all flex items-center gap-1">
+                        Uygulamayı Aç →
+                    </button>
+                </div>
+            </div>
+
+        </div>
 
     </main>
+
+    <!-- UYGULAMA MODAL PENCERESİ (DİNAMİK ETKİLEŞİMLİ ARAYÜZ) -->
+    <div id="tool-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-[#0d0f12] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-2xl relative my-8">
+            
+            <!-- MODAL HEADER -->
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div id="modal-tool-icon" class="w-10 h-10 rounded-xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-xl font-bold">
+                        🛠️
+                    </div>
+                    <div>
+                        <h3 id="modal-tool-title" class="text-lg font-bold text-slate-900 dark:text-slate-100">
+                            Uygulama Başlığı
+                        </h3>
+                        <p id="modal-tool-desc" class="text-xs text-slate-500">Uygulama açıklaması...</p>
+                    </div>
+                </div>
+
+                <button onclick="closeToolModal()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-white flex items-center justify-center transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <!-- DİNAMİK ARAYÜZ ALANI (TOOL BODY) -->
+            <div id="modal-tool-body" class="space-y-6">
+                <!-- İçerik JavaScript ile dinamik render edilecek -->
+            </div>
+        </div>
+    </div>
 
     <script src="js/firebase.js"></script>
     <script src="js/main.js"></script>
 
-    <!-- ARAÇ HESAPLAMA SCRIPT LERİ -->
+    <!-- ETKİLEŞİMLİ UYGULAMA SCRIPTLERİ -->
     <script>
-        // 1. GANO HESAPLAMA
+        // KATEGORİ FİLTRELEME
+        function filterTools(cat) {
+            document.querySelectorAll('.tool-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-tsMavi', 'text-white');
+                btn.classList.add('bg-slate-200', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            });
+            event.target.classList.remove('bg-slate-200', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            event.target.classList.add('bg-tsMavi', 'text-white');
+
+            document.querySelectorAll('.tool-card').forEach(card => {
+                if (cat === 'all' || card.getAttribute('data-category') === cat) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // MODAL AÇMA / KAPATMA & DİNAMİK TOOL RENDER
+        function openToolModal(toolKey) {
+            const modal = document.getElementById('tool-modal');
+            const iconEl = document.getElementById('modal-tool-icon');
+            const titleEl = document.getElementById('modal-tool-title');
+            const descEl = document.getElementById('modal-tool-desc');
+            const bodyEl = document.getElementById('modal-tool-body');
+
+            if (!modal || !bodyEl) return;
+
+            if (toolKey === 'gano') {
+                iconEl.innerText = '📊';
+                titleEl.innerText = 'AGNO / GANO Ortalama Simülatörü';
+                descEl.innerText = 'Ders kredileri ve harf notlarını girerek Dönem ve GANO ortalamanızı hesaplayın.';
+                bodyEl.innerHTML = `
+                    <div class="flex items-center justify-between p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                        <span class="text-xs font-bold text-indigo-400">Hesaplanan GANO Score</span>
+                        <span id="gano-result" class="text-2xl font-extrabold text-tsMavi">0.00</span>
+                    </div>
+
+                    <div id="course-rows-container" class="space-y-3">
+                        <div class="course-row flex flex-col md:flex-row items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+                            <input type="text" placeholder="Ders Adı (Örn: Mantık Devreleri)" class="course-name w-full md:w-1/2 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
+                            <select class="course-credit w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi">
+                                <option value="4">4 Kredi</option>
+                                <option value="3" selected>3 Kredi</option>
+                                <option value="2">2 Kredi</option>
+                                <option value="5">5 Kredi</option>
+                            </select>
+                            <select class="course-grade w-full md:w-1/4 px-4 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-tsMavi font-bold">
+                                <option value="4.0">AA (4.0)</option>
+                                <option value="3.5">BA (3.5)</option>
+                                <option value="3.0">BB (3.0)</option>
+                                <option value="2.5">CB (2.5)</option>
+                                <option value="2.0">CC (2.0)</option>
+                                <option value="1.5">DC (1.5)</option>
+                                <option value="1.0">DD (1.0)</option>
+                                <option value="0.0">FF (0.0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <button onclick="addCourseRow()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-300 transition-colors">
+                            ＋ Ders Ekle
+                        </button>
+                        <button onclick="calculateGANO()" class="px-6 py-2 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-bold shadow-md hover:opacity-90 transition-opacity">
+                            ✨ GANO Hesapla
+                        </button>
+                    </div>
+                `;
+            } else if (toolKey === 'hesap-makinesi') {
+                iconEl.innerText = '🧮';
+                titleEl.innerText = 'Bilimsel Mühendislik Hesap Makinesi';
+                descEl.innerText = 'Trigonometrik (sin, cos, tan), logaritmik ve kök hesaplama konsolu.';
+                bodyEl.innerHTML = `
+                    <div class="max-w-md mx-auto p-4 rounded-3xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+                        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-right font-mono space-y-1">
+                            <div id="calc-history" class="text-[11px] text-slate-400 h-4 overflow-hidden"></div>
+                            <input id="calc-display" type="text" value="0" readonly class="w-full text-2xl font-bold bg-transparent text-right outline-none text-slate-900 dark:text-slate-100">
+                        </div>
+
+                        <div class="grid grid-cols-5 gap-2 text-xs font-bold font-mono">
+                            <button onclick="calcInput('sin(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">sin</button>
+                            <button onclick="calcInput('cos(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">cos</button>
+                            <button onclick="calcInput('tan(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">tan</button>
+                            <button onclick="calcClear()" class="p-2.5 rounded-xl bg-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors">C</button>
+                            <button onclick="calcBackspace()" class="p-2.5 rounded-xl bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white transition-colors">⌫</button>
+
+                            <button onclick="calcInput('log(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">log</button>
+                            <button onclick="calcInput('ln(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">ln</button>
+                            <button onclick="calcInput('sqrt(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">√</button>
+                            <button onclick="calcInput('^')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-tsMavi hover:text-white transition-colors">^</button>
+                            <button onclick="calcInput('/')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">÷</button>
+
+                            <button onclick="calcInput('7')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">7</button>
+                            <button onclick="calcInput('8')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">8</button>
+                            <button onclick="calcInput('9')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">9</button>
+                            <button onclick="calcInput('(')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">(</button>
+                            <button onclick="calcInput('*')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">×</button>
+
+                            <button onclick="calcInput('4')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">4</button>
+                            <button onclick="calcInput('5')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">5</button>
+                            <button onclick="calcInput('6')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">6</button>
+                            <button onclick="calcInput(')')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">)</button>
+                            <button onclick="calcInput('-')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">-</button>
+
+                            <button onclick="calcInput('1')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">1</button>
+                            <button onclick="calcInput('2')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">2</button>
+                            <button onclick="calcInput('3')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">3</button>
+                            <button onclick="calcInput('pi')" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800">π</button>
+                            <button onclick="calcInput('+')" class="p-2.5 rounded-xl bg-slate-300 dark:bg-slate-700 hover:bg-tsMavi hover:text-white transition-colors">+</button>
+
+                            <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">0</button>
+                            <button onclick="calcInput('.')" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">.</button>
+                            <button onclick="calcEvaluate()" class="col-span-2 p-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white hover:opacity-90 transition-opacity">=</button>
+                        </div>
+                    </div>
+                `;
+            } else if (toolKey === 'direnc-hesaplayici') {
+                iconEl.innerText = '⚡';
+                titleEl.innerText = '4-Bant Direnç Renk Kodu Hesaplayıcı';
+                descEl.innerText = 'Direnç üzerindeki bant renklerini seçerek Ohm değerini hesaplayın.';
+                bodyEl.innerHTML = `
+                    <div class="flex items-center justify-between p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                        <span class="text-xs font-bold text-amber-500">Hesaplanan Direnç Değeri</span>
+                        <span id="resistor-result" class="text-xl font-extrabold text-tsMavi">1.0 kΩ ±5%</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold">
+                        <div class="space-y-1.5">
+                            <label class="text-slate-500">1. Bant (1. Basamak)</label>
+                            <select id="res-band1" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                                <option value="1" selected>Kahverengi (1)</option>
+                                <option value="2">Kırmızı (2)</option>
+                                <option value="3">Turuncu (3)</option>
+                                <option value="4">Sarı (4)</option>
+                                <option value="5">Yeşil (5)</option>
+                                <option value="6">Mavi (6)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-slate-500">2. Bant (2. Basamak)</label>
+                            <select id="res-band2" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                                <option value="0" selected>Siyah (0)</option>
+                                <option value="1">Kahverengi (1)</option>
+                                <option value="2">Kırmızı (2)</option>
+                                <option value="3">Turuncu (3)</option>
+                                <option value="4">Sarı (4)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-slate-500">3. Bant (Çarpan)</label>
+                            <select id="res-multiplier" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                                <option value="1">Siyah (x1)</option>
+                                <option value="10">Kahverengi (x10)</option>
+                                <option value="100">Kırmızı (x100)</option>
+                                <option value="1000" selected>Turuncu (x1k)</option>
+                                <option value="10000">Sarı (x10k)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-slate-500">4. Bant (Tolerans)</label>
+                            <select id="res-tolerance" onchange="calculateResistor()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                                <option value="5" selected>Altın (±5%)</option>
+                                <option value="10">Gümüş (±10%)</option>
+                                <option value="1">Kahverengi (±1%)</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                calculateResistor();
+            } else if (toolKey === 'ohm-kanunu') {
+                iconEl.innerText = '🔌';
+                titleEl.innerText = 'Ohm Kanunu & Güç (Watt) Hesaplayıcı';
+                descEl.innerText = 'V = I * R ve P = V * I bağlantıları ile devre parametrelerini hesaplayın.';
+                bodyEl.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Hesaplanan Güç (P)</span>
+                            <span id="ohm-power-res" class="text-lg font-extrabold text-tsMavi">12.00 Watt</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Direnç (R)</span>
+                            <span id="ohm-res-res" class="text-lg font-extrabold text-tsMavi">6.00 Ohm</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-xs font-bold">
+                        <div class="space-y-1">
+                            <label class="text-slate-500">Gerilim (Volt - V)</label>
+                            <input id="ohm-v" type="number" value="12" oninput="calculateOhmLaw()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-slate-500">Akım (Amper - I)</label>
+                            <input id="ohm-i" type="number" value="2" oninput="calculateOhmLaw()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                        </div>
+                    </div>
+                `;
+                calculateOhmLaw();
+            } else if (toolKey === 'mantik-kapilari') {
+                iconEl.innerText = '⏱️';
+                titleEl.innerText = 'Mantık Kapıları & Truth Table Simülatörü';
+                descEl.innerText = 'Giriş durumlarını değiştirerek canlı Mantık Kapısı çıkışını gözlemleyin.';
+                bodyEl.innerHTML = `
+                    <div class="p-6 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-center space-y-3">
+                        <span class="text-xs font-bold text-sky-400">Mantık Çıkışı (Q)</span>
+                        <div id="logic-output-badge" class="text-4xl font-extrabold text-tsMavi font-mono">1 (HIGH)</div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 text-xs font-bold">
+                        <div class="space-y-1">
+                            <label class="text-slate-500">Giriş A</label>
+                            <select id="logic-in-a" onchange="calculateLogicGate()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                                <option value="1">1 (HIGH)</option>
+                                <option value="0">0 (LOW)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-slate-500">Mantık Kapısı</label>
+                            <select id="logic-gate-type" onchange="calculateLogicGate()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none font-bold text-tsMavi">
+                                <option value="AND">AND (Ve)</option>
+                                <option value="OR">OR (Veya)</option>
+                                <option value="XOR">XOR (Özel Veya)</option>
+                                <option value="NAND">NAND (Ve Değil)</option>
+                                <option value="NOR">NOR (Veya Değil)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-slate-500">Giriş B</label>
+                            <select id="logic-in-b" onchange="calculateLogicGate()" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none">
+                                <option value="1">1 (HIGH)</option>
+                                <option value="0">0 (LOW)</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                calculateLogicGate();
+            } else if (toolKey === 'birim-donusturucu') {
+                iconEl.innerText = '📏';
+                titleEl.innerText = 'Frekans & Periyot Birim Dönüştürücü';
+                descEl.innerText = 'Frekans (Hz) ve Periyot (T = 1/f) değerlerini birimsel dönüştürün.';
+                bodyEl.innerHTML = `
+                    <div class="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-center space-y-1">
+                        <span class="text-xs font-bold text-purple-400">Hesaplanan Sinyal Periyodu (T)</span>
+                        <div id="freq-conv-res" class="text-2xl font-extrabold text-tsMavi font-mono">1.000 ms (Milisaniye)</div>
+                    </div>
+
+                    <div class="space-y-3 text-xs font-bold">
+                        <label class="text-slate-500">Frekans Değeri (Hz)</label>
+                        <input id="freq-val-input" type="number" value="1000" oninput="convertFrequency()" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none text-sm">
+                    </div>
+                `;
+                convertFrequency();
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeToolModal() {
+            const modal = document.getElementById('tool-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // HESAPLAMA MANTIKLARI
         function addCourseRow() {
             const container = document.getElementById('course-rows-container');
             if (!container) return;
@@ -296,9 +576,7 @@
             if (resEl) resEl.innerText = result;
         }
 
-        // 2. BİLİMSEL HESAP MAKİNESİ
         let calcExpr = '';
-
         function calcInput(val) {
             const disp = document.getElementById('calc-display');
             if (!disp) return;
@@ -306,7 +584,6 @@
             calcExpr += val;
             disp.value = calcExpr;
         }
-
         function calcClear() {
             calcExpr = '';
             const disp = document.getElementById('calc-display');
@@ -314,18 +591,15 @@
             if (disp) disp.value = '0';
             if (hist) hist.innerText = '';
         }
-
         function calcBackspace() {
             calcExpr = calcExpr.slice(0, -1);
             const disp = document.getElementById('calc-display');
             if (disp) disp.value = calcExpr || '0';
         }
-
         function calcEvaluate() {
             const disp = document.getElementById('calc-display');
             const hist = document.getElementById('calc-history');
             if (!disp || !calcExpr) return;
-
             try {
                 let sanitized = calcExpr
                     .replace(/sin\(/g, 'Math.sin(')
@@ -352,7 +626,6 @@
             }
         }
 
-        // 3. DİRENÇ RENK KODU
         function calculateResistor() {
             const b1 = parseFloat(document.getElementById('res-band1')?.value || 1);
             const b2 = parseFloat(document.getElementById('res-band2')?.value || 0);
@@ -366,8 +639,52 @@
             if (resEl) resEl.innerText = `${formatted} ±${tol}%`;
         }
 
+        function calculateOhmLaw() {
+            const v = parseFloat(document.getElementById('ohm-v')?.value || 12);
+            const i = parseFloat(document.getElementById('ohm-i')?.value || 2);
+            const r = i > 0 ? (v / i).toFixed(2) : 0;
+            const p = (v * i).toFixed(2);
+
+            const pEl = document.getElementById('ohm-power-res');
+            const rEl = document.getElementById('ohm-res-res');
+            if (pEl) pEl.innerText = p + ' Watt';
+            if (rEl) rEl.innerText = r + ' Ohm';
+        }
+
+        function calculateLogicGate() {
+            const a = parseInt(document.getElementById('logic-in-a')?.value || 1);
+            const b = parseInt(document.getElementById('logic-in-b')?.value || 1);
+            const type = document.getElementById('logic-gate-type')?.value || 'AND';
+            let res = 0;
+
+            if (type === 'AND') res = a && b;
+            else if (type === 'OR') res = a || b;
+            else if (type === 'XOR') res = a ^ b;
+            else if (type === 'NAND') res = !(a && b) ? 1 : 0;
+            else if (type === 'NOR') res = !(a || b) ? 1 : 0;
+
+            const outEl = document.getElementById('logic-output-badge');
+            if (outEl) outEl.innerText = res === 1 ? '1 (HIGH)' : '0 (LOW)';
+        }
+
+        function convertFrequency() {
+            const f = parseFloat(document.getElementById('freq-val-input')?.value || 1000);
+            const t = f > 0 ? (1 / f) : 0;
+            let text = '';
+            if (t >= 1) text = t.toFixed(3) + ' s (Saniye)';
+            else if (t >= 0.001) text = (t * 1000).toFixed(3) + ' ms (Milisaniye)';
+            else text = (t * 1000000).toFixed(3) + ' µs (Mikrosaniye)';
+
+            const resEl = document.getElementById('freq-conv-res');
+            if (resEl) resEl.innerText = text;
+        }
+
+        // Hash parametresi kontrolü ile otomatik modal açma (araclar.html#gano vb.)
         document.addEventListener('DOMContentLoaded', () => {
-            calculateResistor();
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                openToolModal(hash);
+            }
         });
     </script>
 </body>
