@@ -277,17 +277,17 @@ function renderNavbar(activePage, currentUser) {
                     <span class="sidebar-text">Açık Kaynak Kit</span>
                 </a>
 
-                <!-- MÜHENDİSLİK ARAÇLARI AKORDEON -->
-                <div>
-                    <button onclick="toggleToolsSubmenu(event)" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all ${page === 'araclar' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                <!-- MÜHENDİSLİK ARAÇLARI (HOVER İLE AÇILAN SUBMENU & DİREKT TIKLANINCA SAYFAYA GİDEN LİNK) -->
+                <div class="group/tools relative">
+                    <a href="araclar.html" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all ${page === 'araclar' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
                         <div class="flex items-center gap-3">
                             <span class="text-base">🧮</span>
                             <span class="sidebar-text">Mühendislik Araçları</span>
                         </div>
-                        <span id="tools-submenu-arrow" class="sidebar-text text-[10px] transition-transform duration-200">▾</span>
-                    </button>
+                        <span class="sidebar-text text-[10px] group-hover/tools:rotate-180 transition-transform duration-200">▾</span>
+                    </a>
                     
-                    <div id="tools-submenu" class="mt-1 pl-9 space-y-1 ${page === 'araclar' ? '' : 'hidden'}">
+                    <div id="tools-submenu" class="mt-1 pl-9 space-y-1 ${page === 'araclar' ? 'block' : 'hidden group-hover/tools:block'}">
                         <a href="araclar.html#gano" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
                             📊 AGNO / GANO Ortalama
                         </a>
