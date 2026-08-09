@@ -454,8 +454,48 @@ function closeAuthModal() {
 }
 
 // ==========================================
-// PROFİL / HESAP MODALI FONKSİYONLARI 
+// TOAST BİLDİRİM SİSTEMİ (MODERN BİLDİRİM KARTLARI)
 // ==========================================
+function showToast(message, type = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none p-2';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto p-4 rounded-2xl border shadow-2xl backdrop-blur-md flex items-start gap-3 transition-all duration-300 transform translate-y-2 opacity-0 text-xs font-semibold ${
+        type === 'error' 
+            ? 'bg-rose-950/90 border-rose-800 text-rose-100 shadow-rose-950/40' 
+            : type === 'success' 
+            ? 'bg-emerald-950/90 border-emerald-800 text-emerald-100 shadow-emerald-950/40' 
+            : type === 'warning'
+            ? 'bg-amber-950/90 border-amber-800 text-amber-100 shadow-amber-950/40'
+            : 'bg-slate-900/90 border-slate-700 text-slate-100 shadow-slate-950/40'
+    }`;
+
+    const icon = type === 'error' ? '⚠️' : type === 'success' ? '✅' : type === 'warning' ? '🌐' : 'ℹ️';
+
+    toast.innerHTML = `
+        <span class="text-base shrink-0">${icon}</span>
+        <div class="flex-grow leading-relaxed">${message}</div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white shrink-0">✕</button>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+    }, 10);
+
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+    }, 5500);
+}
+
 function openProfileModal() {
     const user = typeof auth !== 'undefined' ? auth.currentUser : null;
     if (!user) return;
@@ -484,7 +524,7 @@ function updateUserProfile(e) {
     const saveBtn = document.getElementById('profile-save-btn');
 
     if (!newName) {
-        alert("Lütfen geçerli bir kullanıcı adı girin!");
+        showToast("Lütfen geçerli bir kullanıcı adı girin!", "warning");
         return;
     }
 
@@ -493,11 +533,12 @@ function updateUserProfile(e) {
     user.updateProfile({
         displayName: newName
     }).then(() => {
-        alert("✅ Kullanıcı adınız başarıyla güncellendi!");
+        showToast("✅ Kullanıcı adınız başarıyla güncellendi!", "success");
         closeProfileModal();
-        location.reload();
+        setTimeout(() => location.reload(), 1000);
     }).catch((err) => {
-        alert("Güncelleme Hatası: " + err.message);
+        console.error("Firebase Profil Güncelleme Hatası:", err);
+        showToast("Güncelleme Hatası: " + (err.message || "Profil güncellenemedi."), "error");
         if (saveBtn) saveBtn.innerText = "Değişiklikleri Kaydet";
     });
 }
@@ -533,7 +574,7 @@ function handleAuthSubmit(e) {
 
     if (isSignUpMode) {
         if (!username) {
-            alert("Lütfen bir kullanıcı adı belirleyin!");
+            showToast("Lütfen bir kullanıcı adı belirleyin!", "warning");
             return;
         }
 
@@ -543,24 +584,32 @@ function handleAuthSubmit(e) {
                     displayName: username
                 });
             })
-            .then(() => closeAuthModal())
+            .then(() => {
+                showToast("✅ Hesabınız başarıyla oluşturuldu ve giriş yapıldı!", "success");
+                closeAuthModal();
+            })
             .catch(err => {
+                console.error("Firebase Kayıt Hatası:", err);
                 if (err.code === 'auth/email-already-in-use') {
-                    alert("⚠️ Bu e-posta adresi zaten kullanımda! Lütfen 'Giriş Yap' sekmesini kullanın.");
+                    showToast("⚠️ Bu e-posta adresi zaten kullanımda! Lütfen 'Giriş Yap' sekmesini kullanın.", "warning");
                 } else if (err.code === 'auth/weak-password') {
-                    alert("⚠️ Şifreniz çok zayıf! En az 6 karakter giriniz.");
+                    showToast("⚠️ Şifreniz çok zayıf! En az 6 karakter giriniz.", "warning");
                 } else {
-                    alert("Kayıt Hatası: " + err.message);
+                    showToast("Kayıt Hatası: " + (err.message || "Kayıt yapılırken bir hata oluştu."), "error");
                 }
             });
     } else {
         auth.signInWithEmailAndPassword(email, password)
-            .then(() => closeAuthModal())
+            .then(() => {
+                showToast("✅ Başarıyla giriş yapıldı!", "success");
+                closeAuthModal();
+            })
             .catch(err => {
+                console.error("Firebase Giriş Hatası:", err);
                 if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                    alert("⚠️ E-posta veya şifre hatalı!");
+                    showToast("⚠️ E-posta veya şifre hatalı!", "error");
                 } else {
-                    alert("Giriş Hatası: " + err.message);
+                    showToast("Giriş Hatası: " + (err.message || "Giriş yapılırken bir sorun oluştu."), "error");
                 }
             });
     }
@@ -571,28 +620,56 @@ function handleForgotPassword() {
     const email = emailInput ? emailInput.value.trim() : '';
 
     if (!email) {
-        alert("Lütfen önce E-posta kutusuna adresinizi yazın, ardından 'Şifrenizi mi unuttunuz?' butonuna tıklayın.");
+        showToast("Lütfen önce E-posta kutusuna adresinizi yazın, ardından 'Şifrenizi mi unuttunuz?' butonuna tıklayın.", "info");
         return;
     }
 
     auth.sendPasswordResetEmail(email)
         .then(() => {
-            alert(`✅ ${email} adresine şifre sıfırlama bağlantısı gönderildi! Lütfen e-postanızı (ve Spam klasörünü) kontrol edin.`);
+            showToast(`✅ ${email} adresine şifre sıfırlama bağlantısı gönderildi! Lütfen e-postanızı (ve Spam klasörünü) kontrol edin.`, "success");
             closeAuthModal();
         })
         .catch((err) => {
+            console.error("Firebase Şifre Sıfırlama Hatası:", err);
             if (err.code === 'auth/user-not-found') {
-                alert("⚠️ Bu e-posta adresine ait kayıtlı bir kullanıcı bulunamadı.");
+                showToast("⚠️ Bu e-posta adresine ait kayıtlı bir kullanıcı bulunamadı.", "warning");
             } else {
-                alert("Sıfırlama Hatası: " + err.message);
+                showToast("Sıfırlama Hatası: " + (err.message || "Sıfırlama bağlantısı gönderilemedi."), "error");
             }
         });
 }
 
 function loginWithGoogle() {
+    // PROTOKOL KONTROLÜ (file:// engelleme ve bilgilendirme)
+    if (window.location.protocol === 'file:') {
+        showToast("Google ile giriş yapabilmek için projenin yerel bir HTTP sunucusunda (Live Server / localhost) veya yayınlanmış domain üzerinde çalışması gerekmektedir.", "warning");
+        console.warn("Firebase Auth: Google signInWithPopup 'file://' protokolünde tarayıcı kısıtlaması nedeniyle çalışmaz. Lütfen http://localhost veya domain üzerinden açın.");
+        return;
+    }
+
+    if (typeof auth === 'undefined' || typeof googleProvider === 'undefined' || !auth || !googleProvider) {
+        showToast("⚠️ Firebase Kimlik Doğrulama modülü henüz yüklenemedi. Lütfen internet bağlantınızı ve Firebase ayarlarınızı kontrol edin.", "error");
+        console.error("Firebase Auth: auth veya googleProvider nesnesi bulunamadı.");
+        return;
+    }
+
     auth.signInWithPopup(googleProvider)
-        .then(() => closeAuthModal())
-        .catch(err => alert("Google Giriş Hatası: " + err.message));
+        .then(() => {
+            showToast("✅ Google hesabı ile başarıyla giriş yapıldı!", "success");
+            closeAuthModal();
+        })
+        .catch(err => {
+            console.error("Firebase Google Auth Hatası:", err);
+            if (err.code === 'auth/operation-not-supported-in-this-environment') {
+                showToast("🌐 Google ile giriş bu ortamda (file://) desteklenmemektedir. Lütfen localhost veya canlı domain üzerinde deneyiniz.", "warning");
+            } else if (err.code === 'auth/popup-closed-by-user') {
+                showToast("ℹ️ Giriş penceresi kapatıldı.", "info");
+            } else if (err.code === 'auth/unauthorized-domain') {
+                showToast("⚠️ Bu domain Firebase Console > Authorized Domains listesinde ekli değil. Lütfen Firebase ayarlarınızı kontrol edin.", "error");
+            } else {
+                showToast("Giriş Hatası: " + (err.message || "Giriş yapılırken bir sorun oluştu."), "error");
+            }
+        });
 }
 
 function logoutUser() {
