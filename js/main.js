@@ -426,13 +426,20 @@ function renderNavbar(activePage, currentUser) {
 // ==========================================
 let isSignUpMode = false;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initNavbar() {
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     const user = (typeof auth !== 'undefined' ? auth.currentUser : null) || (typeof SSO !== 'undefined' ? SSO.getSSOUser() : null);
     renderNavbar(currentPath.replace('.html', ''), user);
-});
+}
 
-if (typeof auth !== 'undefined') {
+// ANINDA ÇALIŞTIRMA (Menünün kaybolmasını / gecikmesini engeller)
+initNavbar();
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavbar);
+}
+
+if (typeof auth !== 'undefined' && auth) {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             if (user.email) {
@@ -442,8 +449,7 @@ if (typeof auth !== 'undefined') {
         } else {
             _cachedUserEmailHash = null;
         }
-        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        renderNavbar(currentPath.replace('.html', ''), user);
+        initNavbar();
     });
 }
 
