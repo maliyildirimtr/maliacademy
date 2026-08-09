@@ -86,12 +86,12 @@ function toggleMobileMenu() {
 // 4. ORTAK NAVBAR COMPONENT & ARAYÜZ (DİNAMİK LOGO)
 // ==========================================
 function renderNavbar(activePage) {
-    const page = activePage || document.body.getAttribute('data-page') || 'dersler';
+    const page = activePage || document.body.getAttribute('data-page') || 'index';
     const adminActive = isAdmin();
 
     const logoHTML = `
-        <a href="dersler.html" onclick="handleLogoClick(event)" class="text-xl font-extrabold tracking-wider uppercase select-none cursor-pointer flex items-center gap-1.5">
-            <span>🎓</span> MALİ <span class="ts-gradient-text">ACADEMY</span>
+        <a href="index.html" onclick="handleLogoClick(event)" class="text-xl font-bold tracking-wider uppercase select-none cursor-pointer">
+            M. Ali <span class="ts-gradient-text">Yıldırım</span>
         </a>
     `;
 
@@ -104,10 +104,12 @@ function renderNavbar(activePage) {
 
             <!-- MASAÜSTÜ MENÜ -->
             <div class="hidden md:flex items-center space-x-1 border border-slate-200 dark:border-slate-800 p-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50">
-                <a href="dersler.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'dersler' || page === 'index' || page === 'ders-detay' || page === 'konu-detay' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Dersler & Notlar</a>
-                <a href="gruplar.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'gruplar' || page === 'grup-detay' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Proje Grupları</a>
-                <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="px-4 py-1.5 text-xs font-semibold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors flex items-center gap-1">
-                    <span>⚡</span> Kişisel Site ↗
+                <a href="index.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'index' || page === 'home' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Hakkımda</a>
+                <a href="dersler.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Dersler & Notlar</a>
+                <a href="projeler.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'projeler' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Projeler</a>
+                <a href="sosyal.html" class="px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${page === 'sosyal' || page === 'iletişim' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">İletişim</a>
+                <a href="https://academy.maliyildirimtr.com" target="_blank" rel="noopener noreferrer" class="px-4 py-1.5 text-xs font-bold rounded-full bg-gradient-to-r from-indigo-600 to-sky-500 text-white shadow-sm hover:opacity-90 transition-opacity flex items-center gap-1">
+                    <span>🎓</span> Mali Academy ↗
                 </a>
             </div>
 
@@ -134,9 +136,11 @@ function renderNavbar(activePage) {
 
         <!-- MOBİL MENÜ -->
         <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0d0f12] px-4 py-4 space-y-2">
+            <a href="index.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Hakkımda</a>
             <a href="dersler.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Dersler & Notlar</a>
-            <a href="gruplar.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Proje Grupları</a>
-            <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 transition-colors">⚡ Kişisel Web Sitem ↗</a>
+            <a href="projeler.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Projeler</a>
+            <a href="sosyal.html" class="block px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">İletişim</a>
+            <a href="https://academy.maliyildirimtr.com" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 rounded-xl text-sm font-bold text-sky-400 hover:bg-sky-500/10 transition-colors">🎓 Mali Academy ↗</a>
         </div>
     </nav>
 
@@ -531,15 +535,13 @@ function openAddModal() {
 document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.getAttribute('data-page') || 
                  window.location.pathname.split('/').pop().replace('.html', '') || 
-                 'dersler';
+                 'index';
     renderNavbar(page);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('openModal') === 'true') {
-        const modal = document.getElementById('add-course-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-        }
+    if (window.location.hash === '#contact-section' || window.location.hash === '#iletisim') {
+        setTimeout(() => {
+            scrollToContactForm();
+        }, 300);
     }
 });
 
