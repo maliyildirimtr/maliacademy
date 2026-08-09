@@ -642,7 +642,7 @@ function handleForgotPassword() {
 function loginWithGoogle() {
     // PROTOKOL KONTROLÜ (file:// engelleme ve bilgilendirme)
     if (window.location.protocol === 'file:') {
-        showToast("Google ile giriş yapabilmek için projenin yerel bir HTTP sunucusunda (Live Server / localhost) veya yayınlanmış domain üzerinde çalışması gerekmektedir.", "warning");
+        showToast("🌐 Google ile giriş yapabilmek için projenin yerel bir HTTP sunucusunda (Live Server / localhost) veya yayınlanmış domain üzerinde çalışması gerekmektedir.", "warning");
         console.warn("Firebase Auth: Google signInWithPopup 'file://' protokolünde tarayıcı kısıtlaması nedeniyle çalışmaz. Lütfen http://localhost veya domain üzerinden açın.");
         return;
     }
@@ -662,12 +662,14 @@ function loginWithGoogle() {
             console.error("Firebase Google Auth Hatası:", err);
             if (err.code === 'auth/operation-not-supported-in-this-environment') {
                 showToast("🌐 Google ile giriş bu ortamda (file://) desteklenmemektedir. Lütfen localhost veya canlı domain üzerinde deneyiniz.", "warning");
+            } else if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/invalid-action' || (err.message && err.message.toLowerCase().includes('invalid'))) {
+                showToast("⚠️ Firebase Console'da Google Sağlayıcısı (Google Provider) henüz aktif edilmemiş. Lütfen Firebase Console > Authentication bölümünden Google girişini etkinleştirin veya E-posta ile giriş yapın.", "error");
             } else if (err.code === 'auth/popup-closed-by-user') {
                 showToast("ℹ️ Giriş penceresi kapatıldı.", "info");
             } else if (err.code === 'auth/unauthorized-domain') {
-                showToast("⚠️ Bu domain Firebase Console > Authorized Domains listesinde ekli değil. Lütfen Firebase ayarlarınızı kontrol edin.", "error");
+                showToast("⚠️ Bu domain ('" + window.location.hostname + "') Firebase Console > Authorized Domains listesinde ekli değil. Lütfen domaininizi Firebase ayarlarına ekleyin.", "error");
             } else {
-                showToast("Giriş Hatası: " + (err.message || "Giriş yapılırken bir sorun oluştu."), "error");
+                showToast("Google Giriş Hatası: " + (err.message || "Giriş yapılırken bir sorun oluştu."), "error");
             }
         });
 }
