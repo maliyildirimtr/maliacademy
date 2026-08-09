@@ -87,6 +87,19 @@ function isCurrentUserMember() {
     return (typeof isAdmin === 'function' && isAdmin());
 }
 
+function checkAuthOrPrompt() {
+    const user = getCurrentUser();
+    if (!user) {
+        if (typeof openAuthModal === 'function') {
+            openAuthModal();
+        } else {
+            alert("Bu işlemi gerçekleştirmek için lütfen giriş yapın veya kayıt olun.");
+        }
+        return false;
+    }
+    return true;
+}
+
 // GRUP ÇALIŞMA ALANINI YÜKLEME
 function loadGroupWorkspace() {
     if (typeof db !== 'undefined' && db && db.collection) {
@@ -530,6 +543,7 @@ function toggleVoiceCallMute() {
 
 // GRUBA ÜYE OLMA
 function joinCurrentGroup() {
+    if (!checkAuthOrPrompt()) return;
     const user = getCurrentUser();
     const name = user ? (user.displayName || user.email.split('@')[0]) : "Katılan Üye";
     const email = user ? user.email : "uye@maliyildirimtr.com";
@@ -1503,6 +1517,7 @@ function openExternalDocPreviewModal(url, title) {
 }
 
 function openAddDocModal() {
+    if (!checkAuthOrPrompt()) return;
 
     document.getElementById('edit-doc-id').value = '';
     document.getElementById('doc-title-input').value = '';
@@ -4759,6 +4774,8 @@ function joinCallFromMessage(roomUrl, callType) {
 }
 
 function sendChatMessage(sender, text, attachment, poll = null, eventData = null, replyTo = null) {
+    if (!checkAuthOrPrompt()) return;
+
     const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue) 
         ? firebase.firestore.FieldValue.serverTimestamp() 
         : new Date().toISOString();
@@ -4808,7 +4825,10 @@ function populateMemberSelect(selectId) {
 }
 
 // MODAL YÖNETİMİ
-function openAddTaskModal() { document.getElementById('add-task-modal').classList.remove('hidden'); }
+function openAddTaskModal() { 
+    if (!checkAuthOrPrompt()) return;
+    document.getElementById('add-task-modal').classList.remove('hidden'); 
+}
 function closeAddTaskModal() { 
     const modal = document.getElementById('add-task-modal');
     const form = document.getElementById('add-task-form');
@@ -4817,6 +4837,7 @@ function closeAddTaskModal() {
 }
 
 function openAddExpenseModal() {
+    if (!checkAuthOrPrompt()) return;
     document.getElementById('edit-expense-id').value = '';
     document.getElementById('expense-modal-title').innerText = "💳 Yeni Harcama Kaydı Ekle";
     document.getElementById('add-expense-modal').classList.remove('hidden');

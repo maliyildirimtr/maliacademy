@@ -284,9 +284,24 @@ function handleCategorySelectChange(selectEl) {
     }
 }
 
+function checkAuthOrPrompt() {
+    const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
+    if (!user) {
+        if (typeof openAuthModal === 'function') {
+            openAuthModal();
+        } else {
+            alert("Bu işlemi gerçekleştirmek için lütfen giriş yapın veya kayıt olun.");
+        }
+        return false;
+    }
+    return true;
+}
+
 // MODAL AÇMA / KAPAMA
 function openCreateGroupModal() {
-    document.getElementById('create-group-modal').classList.remove('hidden');
+    if (!checkAuthOrPrompt()) return;
+    const modal = document.getElementById('create-group-modal');
+    if (modal) modal.classList.remove('hidden');
 }
 function closeCreateGroupModal() {
     const modal = document.getElementById('create-group-modal');
@@ -299,11 +314,14 @@ function closeCreateGroupModal() {
 }
 
 function openJoinModal() {
-    document.getElementById('join-group-modal').classList.remove('hidden');
+    if (!checkAuthOrPrompt()) return;
+    const modal = document.getElementById('join-group-modal');
+    if (modal) modal.classList.remove('hidden');
 }
 function closeJoinModal() {
-    document.getElementById('join-group-modal').classList.add('hidden');
-    document.getElementById('join-group-form').reset();
+    const modal = document.getElementById('join-group-modal');
+    if (modal) modal.classList.add('hidden');
+    if (document.getElementById('join-group-form')) document.getElementById('join-group-form').reset();
 }
 
 // YENİ GRUP OLUŞTURMA SÜRECİ
@@ -413,17 +431,19 @@ function handleCreateGroup(e) {
 
 // TALENT MATCH BAŞVURU SÜRECİ
 function openApplyGroupModal(groupId, groupName) {
-    document.getElementById('apply-group-id').value = groupId;
+    if (!checkAuthOrPrompt()) return;
+    const modal = document.getElementById('apply-group-modal');
+    if (document.getElementById('apply-group-id')) document.getElementById('apply-group-id').value = groupId;
     const nameEl = document.getElementById('apply-group-name-display');
     if (nameEl) nameEl.innerText = `📌 Başvurulacak Proje: ${groupName}`;
 
     const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
     if (user) {
-        document.getElementById('applicant-name').value = user.displayName || '';
-        document.getElementById('applicant-email').value = user.email || '';
+        if (document.getElementById('applicant-name')) document.getElementById('applicant-name').value = user.displayName || user.email.split('@')[0] || '';
+        if (document.getElementById('applicant-email')) document.getElementById('applicant-email').value = user.email || '';
     }
 
-    document.getElementById('apply-group-modal').classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeApplyGroupModal() {
