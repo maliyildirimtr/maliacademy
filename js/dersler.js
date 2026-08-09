@@ -176,9 +176,19 @@ function deleteCourse(id, title) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initDerslerPage() {
     renderAcademyUserPanel();
     loadCourses();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDerslerPage);
+} else {
+    initDerslerPage();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initDerslerPage();
 
     const courseForm = document.getElementById('add-course-form');
     if (courseForm) {
@@ -205,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (typeof auth !== 'undefined') {
+    if (typeof auth !== 'undefined' && auth) {
         auth.onAuthStateChanged(() => {
             renderAcademyUserPanel();
         });

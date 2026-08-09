@@ -427,28 +427,35 @@ function renderNavbar(activePage, currentUser) {
 let isSignUpMode = false;
 
 function initNavbar() {
-    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    const user = (typeof auth !== 'undefined' ? auth.currentUser : null) || (typeof SSO !== 'undefined' ? SSO.getSSOUser() : null);
-    renderNavbar(currentPath.replace('.html', ''), user);
+    try {
+        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+        const user = (typeof auth !== 'undefined' && auth ? auth.currentUser : null) || (typeof SSO !== 'undefined' ? SSO.getSSOUser() : null);
+        renderNavbar(currentPath.replace('.html', ''), user);
+    } catch (e) {
+        console.error("Navbar render hatası:", e);
+    }
 }
-
-// ANINDA ÇALIŞTIRMA (Menünün kaybolmasını / gecikmesini engeller)
-initNavbar();
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initNavbar);
+} else {
+    initNavbar();
 }
+
+document.addEventListener('DOMContentLoaded', initNavbar);
 
 if (typeof auth !== 'undefined' && auth) {
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            if (user.email) {
-                _cachedUserEmailHash = await computeSHA256(user.email.toLowerCase().trim());
+        try {
+            if (user) {
+                if (user.email) {
+                    _cachedUserEmailHash = await computeSHA256(user.email.toLowerCase().trim());
+                }
+                if (typeof SSO !== 'undefined') SSO.onLogin(user);
+            } else {
+                _cachedUserEmailHash = null;
             }
-            if (typeof SSO !== 'undefined') SSO.onLogin(user);
-        } else {
-            _cachedUserEmailHash = null;
-        }
+        } catch (e) {}
         initNavbar();
     });
 }
