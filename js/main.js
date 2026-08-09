@@ -457,47 +457,86 @@ function closeAuthModal() {
 }
 
 // ==========================================
-// TOAST BİLDİRİM SİSTEMİ (MODERN BİLDİRİM KARTLARI)
+// MALI NETWORK - ÖZEL TOAST BİLDİRİM SİSTEMİ
 // ==========================================
+function dismissToast(toastEl) {
+    if (!toastEl) return;
+    toastEl.classList.remove('translate-x-0', 'opacity-100');
+    toastEl.classList.add('translate-x-full', 'opacity-0');
+    setTimeout(() => {
+        if (toastEl && toastEl.parentNode) {
+            toastEl.parentNode.removeChild(toastEl);
+        }
+    }, 300);
+}
+
 function showToast(message, type = 'info') {
-    let container = document.getElementById('toast-container');
+    let container = document.getElementById('toast-notification-container');
     if (!container) {
         container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none p-2';
+        container.id = 'toast-notification-container';
+        container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 380px; width: calc(100vw - 40px); pointer-events: none;';
         document.body.appendChild(container);
     }
 
     const toast = document.createElement('div');
-    toast.className = `pointer-events-auto p-4 rounded-2xl border shadow-2xl backdrop-blur-md flex items-start gap-3 transition-all duration-300 transform translate-y-2 opacity-0 text-xs font-semibold ${
+    toast.className = `pointer-events-auto p-4 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-start gap-3 transition-all duration-300 transform translate-x-full opacity-0 text-xs font-semibold relative overflow-hidden select-none ${
         type === 'error' 
-            ? 'bg-rose-950/90 border-rose-800 text-rose-100 shadow-rose-950/40' 
+            ? 'bg-rose-950/95 border-rose-700/90 text-rose-100 shadow-rose-950/60' 
             : type === 'success' 
-            ? 'bg-emerald-950/90 border-emerald-800 text-emerald-100 shadow-emerald-950/40' 
+            ? 'bg-emerald-950/95 border-emerald-700/90 text-emerald-100 shadow-emerald-950/60' 
             : type === 'warning'
-            ? 'bg-amber-950/90 border-amber-800 text-amber-100 shadow-amber-950/40'
-            : 'bg-slate-900/90 border-slate-700 text-slate-100 shadow-slate-950/40'
+            ? 'bg-amber-950/95 border-amber-700/90 text-amber-100 shadow-amber-950/60'
+            : 'bg-slate-900/95 border-slate-700/90 text-slate-100 shadow-slate-950/60'
     }`;
 
-    const icon = type === 'error' ? '⚠️' : type === 'success' ? '✅' : type === 'warning' ? '🌐' : 'ℹ️';
+    const icon = type === 'error' ? '🔴' : type === 'success' ? '🟢' : type === 'warning' ? '⚠️' : 'ℹ️';
 
     toast.innerHTML = `
-        <span class="text-base shrink-0">${icon}</span>
-        <div class="flex-grow leading-relaxed">${message}</div>
-        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white shrink-0">✕</button>
+        <span class="text-base shrink-0 mt-0.5">${icon}</span>
+        <div class="flex-grow pr-4 leading-relaxed">${message}</div>
+        <button onclick="dismissToast(this.parentElement)" title="Kapat" class="absolute top-2.5 right-2.5 text-slate-400 hover:text-white shrink-0 w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors text-sm">✕</button>
     `;
 
     container.appendChild(toast);
 
-    setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-    }, 10);
+    // Sağdan kayarak giriş animasyonu
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+        toast.classList.add('translate-x-0', 'opacity-100');
+    });
 
-    setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-    }, 5500);
+    // 🟢 SADECE HATA OLMAYAN BİLDİRİMLER İÇİN 10 SANİYE VE HOVER-PAUSE MANTIĞI
+    if (type !== 'error') {
+        let timeoutId = null;
+        let startTime = Date.now();
+        let remainingTime = 10000; // 10 saniye
+
+        const startTimer = () => {
+            startTime = Date.now();
+            timeoutId = setTimeout(() => {
+                dismissToast(toast);
+            }, remainingTime);
+        };
+
+        const pauseTimer = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+                remainingTime -= (Date.now() - startTime);
+                if (remainingTime < 1000) remainingTime = 1000;
+            }
+        };
+
+        toast.addEventListener('mouseenter', pauseTimer);
+        toast.addEventListener('mouseleave', startTimer);
+
+        startTimer();
+    }
+    // 🔴 HATA BİLDİRİMLERİ (ERROR) İÇİN TIMER ÇALIŞTIRILMAZ; KULLANICI ✕ BASANA KADAR EKRANDA KALIR!
 }
+window.showToast = showToast;
+window.dismissToast = dismissToast;
 
 function openProfileModal() {
     const user = typeof auth !== 'undefined' ? auth.currentUser : null;
