@@ -73,118 +73,246 @@ function toggleTheme() {
 })();
 
 // ==========================================
-// 3. MOBİL MENÜ LOGIC
+// 3. SIDEBAR & HEADER LAYOUT TOGGLES
 // ==========================================
-function toggleMobileMenu() {
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu) {
-        mobileMenu.classList.toggle('hidden');
+let isSidebarCollapsed = false;
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar) return;
+
+    if (window.innerWidth < 1024) {
+        // Mobil Çekmece Toggle
+        sidebar.classList.toggle('-translate-x-full');
+        if (backdrop) backdrop.classList.toggle('hidden');
+    } else {
+        // Masaüstü Daraltma / Genişletme Toggle
+        isSidebarCollapsed = !isSidebarCollapsed;
+        const mainContent = document.querySelector('main');
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('lg:w-20');
+            sidebar.classList.remove('lg:w-64');
+            sidebar.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('lg:hidden'));
+            if (mainContent) {
+                mainContent.classList.remove('lg:pl-64');
+                mainContent.classList.add('lg:pl-20');
+            }
+        } else {
+            sidebar.classList.remove('lg:w-20');
+            sidebar.classList.add('lg:w-64');
+            sidebar.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('lg:hidden'));
+            if (mainContent) {
+                mainContent.classList.remove('lg:pl-20');
+                mainContent.classList.add('lg:pl-64');
+            }
+        }
+    }
+}
+
+function toggleToolsSubmenu(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const submenu = document.getElementById('tools-submenu');
+    const arrow = document.getElementById('tools-submenu-arrow');
+    if (submenu) {
+        submenu.classList.toggle('hidden');
+    }
+    if (arrow) {
+        arrow.classList.toggle('rotate-180');
+    }
+}
+
+function toggleProfileDropdown() {
+    const menu = document.getElementById('profile-dropdown-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+function logoutUser() {
+    if (typeof auth !== 'undefined') {
+        auth.signOut().then(() => {
+            alert("👋 Başarıyla çıkış yapıldı.");
+            location.reload();
+        }).catch(err => alert("Çıkış hatası: " + err.message));
     }
 }
 
 // ==========================================
-// 4. ORTAK NAVBAR COMPONENT & ARAYÜZ (DİNAMİK LOGO)
+// 4. SOL YAN MENÜ (SIDEBAR) & DİNAMİK ÜST BAR (HEADER) COMPONENT
 // ==========================================
-function renderNavbar(activePage) {
+function renderNavbar(activePage, currentUser) {
     const page = activePage || document.body.getAttribute('data-page') || 'index';
+    const user = currentUser || (typeof auth !== 'undefined' ? auth.currentUser : null);
     const adminActive = isAdmin();
 
-    const logoHTML = `
-        <a href="index.html" onclick="handleLogoClick(event)" class="text-xl font-bold tracking-wider uppercase select-none cursor-pointer">
-            M. Ali <span class="ts-gradient-text">Yıldırım</span>
-        </a>
-    `;
+    const defaultAvatarSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2338bdf8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.04-4.83-2.61.03-1.6 3.22-2.47 4.83-2.47 1.61 0 4.8 1.87 4.83 2.47C15.8 18.96 14.03 20 12 20z"/></svg>`;
+    const userAvatar = (user && user.photoURL) ? user.photoURL : defaultAvatarSvg;
+    const userName = user ? (user.displayName || user.email.split('@')[0]) : '';
 
-    const navbarHTML = `
-    <nav class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0d0f12]/80 glass-card backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            
-            <!-- Dinamik Logo -->
-            ${logoHTML}
+    // HEADER AUTH SAĞ ALAN İÇERİĞİ
+    let authHeaderRightHTML = "";
+    if (user) {
+        authHeaderRightHTML = `
+            <div class="relative">
+                <button title="Bildirimler" onclick="alert('🔔 3 Yeni ders ve duyuru bildiriminiz var.')" class="p-2 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative transition-colors">
+                    <span>🔔</span>
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">3</span>
+                </button>
+            </div>
 
-            <!-- MASAÜSTÜ MENÜ -->
-            <div class="hidden lg:flex items-center space-x-1 border border-slate-200 dark:border-slate-800 p-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50 text-xs font-semibold">
-                <a id="nav-first-link" href="index.html" class="px-3.5 py-1.5 rounded-full transition-all duration-300 ${page === 'index' || page === 'home' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Ana Sayfa</a>
-                <a href="dersler.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Dersler & Notlar</a>
-                <a href="sinav-hazirlik.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'sinav-hazirlik' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Sınav & Vize Hazırlık</a>
-                <a href="proje-gruplari.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'proje-gruplari' || page === 'gruplar' || page === 'grup-detay' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Proje Grupları</a>
-                <a href="ilan-panosu.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'ilan-panosu' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">İlan Panosu</a>
-                <a href="acik-kaynak.html" class="px-3.5 py-1.5 rounded-full transition-all duration-200 ${page === 'acik-kaynak' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">Açık Kaynak Kit</a>
+            <div class="relative">
+                <button onclick="toggleProfileDropdown()" class="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none">
+                    <img src="${userAvatar}" alt="Profil" class="w-7 h-7 rounded-full object-cover border border-tsMavi">
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${userName}</span>
+                    <span class="text-[10px] text-slate-400">▾</span>
+                </button>
 
-                <!-- MÜHENDİSLİK ARAÇLARI DROPDOWN -->
-                <div class="relative group/drop inline-block">
-                    <button type="button" class="px-3.5 py-1.5 rounded-full transition-all duration-200 flex items-center gap-1 ${page === 'araclar' ? 'bg-white dark:bg-slate-800 text-tsBordo dark:text-tsMavi shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}">
-                        <span>Mühendislik Araçları</span>
-                        <span class="text-[10px]">▾</span>
+                <div id="profile-dropdown-menu" class="absolute right-0 top-full mt-2 hidden z-50 w-56 p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-1">
+                    <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                        <p class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">${userName}</p>
+                        <p class="text-[10px] text-slate-500 truncate">${user.email}</p>
+                    </div>
+                    <button onclick="openProfileModal()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors">
+                        <span>👤</span> Profilim & Düzenle
                     </button>
-                    <div class="absolute left-0 top-full pt-2 hidden group-hover/drop:block group-focus-within/drop:block z-50 w-56">
-                        <div class="p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-1">
-                            <a href="araclar.html#gano" class="block px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                                <span>📊</span> AGNO / GANO Ortalama
-                            </a>
-                            <a href="araclar.html#hesap-makinesi" class="block px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                                <span>🧮</span> Bilimsel Hesap Makinesi
-                            </a>
-                            <a href="araclar.html#direnc-hesaplayici" class="block px-3.5 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                                <span>⚡</span> Direnç / Devre Hesaplama
-                            </a>
-                        </div>
+                    <button onclick="openProfileModal()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors">
+                        <span>⚙️</span> Hesap Ayarları
+                    </button>
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-1">
+                        <button onclick="logoutUser()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2 transition-colors">
+                            <span>🚪</span> Çıkış Yap
+                        </button>
                     </div>
                 </div>
-
-                <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-sm hover:opacity-90 transition-opacity flex items-center gap-1">
-                    <span>⚡</span> Kişisel Site ↗
-                </a>
             </div>
+        `;
+    } else {
+        authHeaderRightHTML = `
+            <button onclick="openAuthModal()" class="px-4 py-2 rounded-full bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-1.5">
+                <span>🔑</span> Giriş Yap / Kayıt Ol
+            </button>
+        `;
+    }
 
-            <!-- SAĞ BUTONLAR -->
-            <div class="flex items-center gap-2">
-                ${adminActive ? `
-                    <button onclick="logoutAdmin()" class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-1">
-                        <span>👑</span> Yönetici (Çıkış)
-                    </button>
-                ` : ''}
+    const layoutHTML = `
+    <!-- ÜST BAR (HEADER BAR) -->
+    <header class="fixed top-0 left-0 right-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-[#0d0f12]/85 glass-card backdrop-blur-md flex items-center justify-between px-4 lg:px-6">
+        
+        <!-- SOL ALAN: TOGGLE BUTONU + LOGO -->
+        <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" title="Menüyü Daralt / Genişlet" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center w-9 h-9">
+                ☰
+            </button>
 
-                <!-- Tema Değiştirici -->
-                <button id="theme-toggle" onclick="toggleTheme()" class="p-2.5 rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center w-10 h-10">
-                    <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                    <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                </button>
-
-                <!-- Mobil Hamburger Menü Butonu -->
-                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center w-10 h-10">
-                    ☰
-                </button>
-            </div>
-        </div>
-
-        <!-- MOBİL MENÜ -->
-        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0d0f12] px-4 py-4 space-y-2 text-sm font-medium">
-            <a id="mobile-nav-first-link" href="index.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Ana Sayfa</a>
-            <a href="dersler.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Dersler & Notlar</a>
-            <a href="sinav-hazirlik.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Sınav & Vize Hazırlık</a>
-            <a href="proje-gruplari.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Proje Grupları</a>
-            <a href="ilan-panosu.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">İlan Panosu</a>
-            <a href="acik-kaynak.html" class="block px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors">Açık Kaynak Kit</a>
-            
-            <div class="border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-2 space-y-1">
-                <div class="px-4 py-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Mühendislik Araçları</div>
-                <a href="araclar.html#gano" class="block px-6 py-1.5 rounded-xl text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
-                    <span>📊</span> AGNO / GANO Ortalama
-                </a>
-                <a href="araclar.html#hesap-makinesi" class="block px-6 py-1.5 rounded-xl text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
-                    <span>🧮</span> Bilimsel Hesap Makinesi
-                </a>
-                <a href="araclar.html#direnc-hesaplayici" class="block px-6 py-1.5 rounded-xl text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-2">
-                    <span>⚡</span> Direnç / Devre Hesaplama
-                </a>
-            </div>
-
-            <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 rounded-xl text-sm font-bold text-sky-400 hover:bg-sky-500/10 transition-colors pt-2 border-t border-slate-100 dark:border-slate-800/60">
-                ⚡ Kişisel Site ↗
+            <a href="index.html" class="flex items-center gap-2 text-base md:text-lg font-extrabold tracking-wider uppercase select-none cursor-pointer">
+                <span class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-black shadow-md">MALI</span>
+                <span class="text-slate-900 dark:text-slate-100">ACADEMY</span>
             </a>
         </div>
-    </nav>
+
+        <!-- ORTA ALAN: DİNAMİK ARAMA ÇUBUĞU -->
+        <div class="relative max-w-md w-full hidden md:block mx-4">
+            <input type="text" placeholder="🔍 İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-4 py-2 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all">
+        </div>
+
+        <!-- SAĞ ALAN: TEMA + AUTH -->
+        <div class="flex items-center gap-3">
+            ${adminActive ? `
+                <button onclick="logoutAdmin()" class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-1">
+                    <span>👑</span> Yönetici (Çıkış)
+                </button>
+            ` : ''}
+
+            <!-- Tema Değiştirici -->
+            <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center w-9 h-9">
+                <svg id="theme-toggle-dark-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="w-4 h-4 hidden text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            </button>
+
+            <!-- AUTH SAĞ ALAN -->
+            <div id="header-auth-area" class="flex items-center gap-2">
+                ${authHeaderRightHTML}
+            </div>
+        </div>
+    </header>
+
+    <!-- SOL YAN MENÜ (SIDEBAR NAVIGATION) -->
+    <aside id="app-sidebar" class="fixed top-16 left-0 bottom-0 z-30 w-64 border-r border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur-md transition-all duration-300 transform -translate-x-full lg:translate-x-0 flex flex-col justify-between p-4 overflow-y-auto">
+        <div class="space-y-6">
+            
+            <div class="px-3 pt-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block sidebar-text">Akademik Gezinti</span>
+            </div>
+
+            <!-- İKONLU MENÜ ÖGELERİ -->
+            <nav class="space-y-1 text-xs font-semibold">
+                <a href="index.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'index' || page === 'home' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <span class="text-base">🏠</span>
+                    <span class="sidebar-text">Ana Sayfa</span>
+                </a>
+
+                <a href="dersler.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <span class="text-base">📚</span>
+                    <span class="sidebar-text">Dersler & Notlar</span>
+                </a>
+
+                <a href="sinav-hazirlik.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'sinav-hazirlik' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <span class="text-base">📝</span>
+                    <span class="sidebar-text">Sınav & Vize Hazırlık</span>
+                </a>
+
+                <a href="proje-gruplari.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'proje-gruplari' || page === 'gruplar' || page === 'grup-detay' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <span class="text-base">👥</span>
+                    <span class="sidebar-text">Proje Grupları</span>
+                </a>
+
+                <a href="ilan-panosu.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'ilan-panosu' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <span class="text-base">📌</span>
+                    <span class="sidebar-text">İlan Panosu</span>
+                </a>
+
+                <a href="acik-kaynak.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'acik-kaynak' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <span class="text-base">🧰</span>
+                    <span class="sidebar-text">Açık Kaynak Kit</span>
+                </a>
+
+                <!-- MÜHENDİSLİK ARAÇLARI AKORDEON -->
+                <div>
+                    <button onclick="toggleToolsSubmenu(event)" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all ${page === 'araclar' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-base">🧮</span>
+                            <span class="sidebar-text">Mühendislik Araçları</span>
+                        </div>
+                        <span id="tools-submenu-arrow" class="sidebar-text text-[10px] transition-transform duration-200">▾</span>
+                    </button>
+                    
+                    <div id="tools-submenu" class="mt-1 pl-9 space-y-1 ${page === 'araclar' ? '' : 'hidden'}">
+                        <a href="araclar.html#gano" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
+                            📊 AGNO / GANO Ortalama
+                        </a>
+                        <a href="araclar.html#hesap-makinesi" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
+                            🧮 Bilimsel Hesap Makinesi
+                        </a>
+                        <a href="araclar.html#direnc-hesaplayici" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
+                            ⚡ Direnç / Devre Hesaplama
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- SIDEBAR ALT DIŞ LİNK -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+            <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity">
+                <span>⚡</span>
+                <span class="sidebar-text">Kişisel Site ↗</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- MOBİL BACKDROP OVERLAY -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 hidden lg:hidden"></div>
 
     <!-- KULLANICI AUTH MODAL (GİRİŞ & KAYIT PENCERESİ) -->
     <div id="auth-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
