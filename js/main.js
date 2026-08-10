@@ -486,12 +486,60 @@ function renderNavbar(activePage, currentUser) {
             </div>
         </div>
     </div>
+
+    <!-- DERS EKLE / DÜZENLE MODAL -->
+    <div id="add-course-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2" id="course-modal-title">
+                    <span>➕</span> Yeni Ders & Not Ekle
+                </h3>
+                <button onclick="closeCourseModal()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            
+            <form id="add-course-form" class="space-y-4">
+                <input type="hidden" id="edit-course-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Ders / Kurs Adı *</label>
+                    <input type="text" id="course-title" required placeholder="Örn: Sayısal Sinyal İşleme" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">KOD / Kategori</label>
+                    <input type="text" id="course-code" placeholder="Örn: EEE-202 / Gömülü Sistemler" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">İkon / Emoji</label>
+                    <input type="text" id="course-icon" placeholder="Örn: 📚 veya ⚡" value="📚" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Kısa Açıklama</label>
+                    <textarea id="course-description" rows="3" placeholder="Ders içeriği veya notlar hakkında kısa bilgi..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi resize-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Konu / İçerik Linki veya PDF Bağlantısı</label>
+                    <input type="url" id="course-content-url" placeholder="https://drive.google.com/... veya PDF linki" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                    <p class="text-[10px] text-slate-400 mt-1">Drive, GitHub veya PDF not bağlantısını ekleyebilirsiniz.</p>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="closeCourseModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800">İptal</button>
+                    <button type="submit" id="save-course-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-tsBordo to-tsMavi text-white shadow-md hover:opacity-90 transition-opacity">Kaydet & Yayınla</button>
+                </div>
+            </form>
+        </div>
+    </div>
     `;
 
     const navContainer = document.getElementById('navbar-container');
     if (navContainer) {
         navContainer.innerHTML = layoutHTML;
         initThemeIcons();
+        if (typeof setupAddCourseFormListener === 'function') setupAddCourseFormListener();
     }
 
     const mainContent = document.querySelector('main');
@@ -1338,3 +1386,126 @@ async function saveCroppedProfilePicture() {
         }
     }
 }
+
+// ==========================================
+// 13. DERS & NOT EKLEME MODAL VE GÖNDERİM ALTYAPISI
+// ==========================================
+function openAddCourseModal() {
+    const modal = document.getElementById('add-course-modal');
+    if (!modal) return;
+
+    const editInput = document.getElementById('edit-course-id');
+    if (editInput) editInput.value = '';
+
+    const form = document.getElementById('add-course-form');
+    if (form) form.reset();
+
+    const modalTitle = document.getElementById('course-modal-title');
+    if (modalTitle) modalTitle.innerHTML = "<span>➕</span> Yeni Ders & Not Ekle";
+
+    modal.classList.remove('hidden');
+}
+
+function closeCourseModal() {
+    const modal = document.getElementById('add-course-modal');
+    if (modal) modal.classList.add('hidden');
+    const form = document.getElementById('add-course-form');
+    if (form) form.reset();
+    const editInput = document.getElementById('edit-course-id');
+    if (editInput) editInput.value = '';
+}
+
+function handleAddCourseClick(e) {
+    if (e) e.preventDefault();
+    openAddCourseModal();
+}
+
+function setupAddCourseFormListener() {
+    const courseForm = document.getElementById('add-course-form');
+    if (!courseForm || courseForm.getAttribute('data-listener-attached') === 'true') return;
+    courseForm.setAttribute('data-listener-attached', 'true');
+
+    courseForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+        const adminState = typeof isAdmin === 'function' && isAdmin();
+
+        if (!user && !adminState) {
+            if (typeof showToast === 'function') {
+                showToast("Ders ve not eklemek için lütfen önce kayıt olun veya giriş yapın!", "warning");
+            } else {
+                alert("Ders ve not eklemek için lütfen önce kayıt olun veya giriş yapın!");
+            }
+            closeCourseModal();
+            if (typeof openAuthModal === 'function') openAuthModal();
+            return;
+        }
+
+        const editId = document.getElementById('edit-course-id') ? document.getElementById('edit-course-id').value : '';
+        const collName = document.getElementById('edit-course-collection')?.value || "academy_courses";
+        const title = document.getElementById('course-title').value.trim();
+        const code = document.getElementById('course-code').value.trim();
+        const icon = document.getElementById('course-icon').value.trim() || '📚';
+        const description = document.getElementById('course-description').value.trim();
+        const contentUrlInput = document.getElementById('course-content-url');
+        const contentUrl = contentUrlInput ? contentUrlInput.value.trim() : '';
+
+        const authorName = user ? (user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı')) : 'Yönetici';
+        const authorUid = user ? user.uid : 'admin';
+
+        const saveBtn = document.getElementById('save-course-btn');
+        if (saveBtn) saveBtn.innerText = "Kaydediliyor...";
+
+        const coursePayload = {
+            title,
+            code,
+            icon,
+            description,
+            contentUrl,
+            authorName,
+            authorUid,
+            updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
+        };
+
+        if (typeof db !== 'undefined') {
+            if (editId) {
+                db.collection(collName).doc(editId).update(coursePayload).then(() => {
+                    if (typeof showToast === 'function') showToast("✅ Ders başarıyla güncellendi!", "success");
+                    closeCourseModal();
+                    if (typeof loadCourses === 'function') loadCourses();
+                }).catch(() => {
+                    db.collection("courses").doc(editId).update(coursePayload).then(() => {
+                        if (typeof showToast === 'function') showToast("✅ Ders başarıyla güncellendi!", "success");
+                        closeCourseModal();
+                        if (typeof loadCourses === 'function') loadCourses();
+                    });
+                }).finally(() => {
+                    if (saveBtn) saveBtn.innerText = "Kaydet & Yayınla";
+                });
+            } else {
+                coursePayload.createdAt = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString();
+                db.collection("academy_courses").add(coursePayload).then(() => {
+                    if (typeof showToast === 'function') showToast("✅ Ders & Not başarıyla eklendi!", "success");
+                    closeCourseModal();
+                    if (typeof loadCourses === 'function') loadCourses();
+                }).catch(err => {
+                    console.warn("academy_courses yazma uyarısı, courses deneniyor:", err);
+                    db.collection("courses").add(coursePayload).then(() => {
+                        if (typeof showToast === 'function') showToast("✅ Ders & Not başarıyla eklendi!", "success");
+                        closeCourseModal();
+                        if (typeof loadCourses === 'function') loadCourses();
+                    });
+                }).finally(() => {
+                    if (saveBtn) saveBtn.innerText = "Kaydet & Yayınla";
+                });
+            }
+        } else {
+            if (typeof showToast === 'function') showToast("Veritabanı bağlantısı henüz hazır değil.", "error");
+            if (saveBtn) saveBtn.innerText = "Kaydet & Yayınla";
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupAddCourseFormListener();
+});
