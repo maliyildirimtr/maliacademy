@@ -72,24 +72,28 @@ function openCreateAnnouncementModal() {
 
                 const adminGroups = Array.from(groupMap.values());
 
-                let optionsHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                let optionsHTML = "";
                 if (adminGroups.length > 0) {
-                    adminGroups.forEach(g => {
+                    adminGroups.forEach((g, idx) => {
                         const gName = g.name || g.title || 'Proje Grubu';
-                        optionsHTML += `<option value="${g.id}" data-name="${gName}">👥 ${gName} (Yönetici)</option>`;
+                        const isSel = (targetGroupId && g.id === targetGroupId) || (!targetGroupId && idx === 0) ? 'selected' : '';
+                        optionsHTML += `<option value="${g.id}" data-name="${gName}" ${isSel}>👥 ${gName} (Yönetici)</option>`;
                     });
+                    optionsHTML += `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
                     if (noticeEl) noticeEl.classList.add('hidden');
                 } else {
+                    optionsHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
                     if (noticeEl) noticeEl.classList.remove('hidden');
                 }
 
                 selectEl.innerHTML = optionsHTML;
+                if (targetGroupId) selectEl.value = targetGroupId;
             }).catch(() => {
-                selectEl.innerHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                selectEl.innerHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
                 if (noticeEl) noticeEl.classList.remove('hidden');
             });
         } else {
-            selectEl.innerHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+            selectEl.innerHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
             if (noticeEl) noticeEl.classList.remove('hidden');
         }
     }
