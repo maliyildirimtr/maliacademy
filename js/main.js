@@ -138,6 +138,32 @@ function logoutUser() {
     }
 }
 
+function getUserInitials(user) {
+    if (!user) return '?';
+    const name = (user.displayName || user.email || 'Kullanıcı').trim();
+    const cleanName = name.includes('@') ? name.split('@')[0] : name;
+    const parts = cleanName.split(/[\s._-]+/).filter(Boolean);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1 && parts[0].length >= 2) {
+        return parts[0].slice(0, 2).toUpperCase();
+    } else if (parts.length === 1 && parts[0].length === 1) {
+        return parts[0][0].toUpperCase();
+    }
+    return '👤';
+}
+
+function getUserAvatarHTML(user, sizeClass = "w-7 h-7 text-xs") {
+    if (!user) {
+        return `<div class="${sizeClass} rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 font-bold flex items-center justify-center shrink-0">👤</div>`;
+    }
+    if (user.photoURL && user.photoURL.startsWith('http')) {
+        return `<img src="${user.photoURL}" alt="Profil" class="${sizeClass} rounded-full object-cover border border-tsMavi shadow-sm shrink-0">`;
+    }
+    const initials = getUserInitials(user);
+    return `<div class="${sizeClass} rounded-full bg-gradient-to-tr from-tsBordo via-rose-600 to-tsMavi text-white font-extrabold flex items-center justify-center border border-tsMavi/40 shadow-sm shrink-0 select-none">${initials}</div>`;
+}
+
 // ==========================================
 // 4. SOL YAN MENÜ (SIDEBAR) & DİNAMİK ÜST BAR (HEADER) COMPONENT
 // ==========================================
@@ -146,9 +172,8 @@ function renderNavbar(activePage, currentUser) {
     const user = currentUser || (typeof auth !== 'undefined' ? auth.currentUser : null) || (typeof SSO !== 'undefined' ? SSO.getSSOUser() : null);
     const adminActive = isAdmin();
 
-    const defaultAvatarSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2338bdf8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.04-4.83-2.61.03-1.6 3.22-2.47 4.83-2.47 1.61 0 4.8 1.87 4.83 2.47C15.8 18.96 14.03 20 12 20z"/></svg>`;
-    const userAvatar = (user && user.photoURL) ? user.photoURL : defaultAvatarSvg;
     const userName = user ? (user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı')) : '';
+    const avatarHTML = getUserAvatarHTML(user, "w-7 h-7 text-xs");
 
     // HEADER AUTH SAĞ ALAN İÇERİĞİ
     let authHeaderRightHTML = "";
@@ -163,7 +188,7 @@ function renderNavbar(activePage, currentUser) {
 
             <div class="relative">
                 <button id="user-profile-btn" onclick="toggleProfileDropdown()" class="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none">
-                    <img src="${userAvatar}" alt="Profil" class="w-7 h-7 rounded-full object-cover border border-tsMavi">
+                    ${avatarHTML}
                     <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${userName}</span>
                     <span class="text-[10px] text-slate-400">▾</span>
                 </button>
@@ -371,6 +396,14 @@ function renderNavbar(activePage, currentUser) {
             </div>
 
             <form id="profile-edit-form" onsubmit="updateUserProfile(event)" class="space-y-4">
+                <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div id="profile-modal-avatar-preview"></div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" id="profile-modal-user-title">Kullanıcı</p>
+                        <p class="text-[10px] text-slate-500 truncate" id="profile-modal-user-subtitle">Hesap Ayarları</p>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold mb-1 text-slate-400">E-Posta Adresiniz</label>
                     <input type="email" id="profile-email-disabled" disabled class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 text-slate-500 text-xs cursor-not-allowed">
@@ -379,6 +412,12 @@ function renderNavbar(activePage, currentUser) {
                 <div>
                     <label class="block text-xs font-semibold mb-1 text-slate-400">Kullanıcı Adınız</label>
                     <input type="text" id="profile-display-name" required placeholder="Kullanıcı Adınız..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Profil Fotoğrafı Bağlantısı (URL)</label>
+                    <input type="url" id="profile-photo-url" placeholder="https://example.com/profil.jpg" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                    <p class="text-[10px] text-slate-400 mt-1">Görsel URL adresinizi yazabilir veya boş bırakıp harf inisiyalli logonuzu kullanabilirsiniz.</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -460,12 +499,11 @@ if (typeof auth !== 'undefined' && auth) {
                 
                 const userBtn = document.getElementById('user-profile-btn');
                 if (userBtn && user) {
-                    const defaultAvatarSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2338bdf8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.04-4.83-2.61.03-1.6 3.22-2.47 4.83-2.47 1.61 0 4.8 1.87 4.83 2.47C15.8 18.96 14.03 20 12 20z"/></svg>`;
-                    const avatarSrc = user.photoURL || defaultAvatarSvg;
+                    const avatarHTML = getUserAvatarHTML(user, "w-7 h-7 text-xs");
                     const nameStr = user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
 
                     userBtn.innerHTML = `
-                        <img src="${avatarSrc}" alt="Profil" class="w-7 h-7 rounded-full object-cover border border-tsMavi">
+                        ${avatarHTML}
                         <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${nameStr}</span>
                         <span class="text-[10px] text-slate-400">▾</span>
                     `;
@@ -578,9 +616,17 @@ function openProfileModal() {
     const modal = document.getElementById('user-profile-modal');
     const emailInput = document.getElementById('profile-email-disabled');
     const nameInput = document.getElementById('profile-display-name');
+    const photoInput = document.getElementById('profile-photo-url');
+    const avatarPreview = document.getElementById('profile-modal-avatar-preview');
+    const userTitle = document.getElementById('profile-modal-user-title');
+    const userSubtitle = document.getElementById('profile-modal-user-subtitle');
 
     if (emailInput) emailInput.value = user.email || '';
-    if (nameInput) nameInput.value = user.displayName || user.email.split('@')[0];
+    if (nameInput) nameInput.value = user.displayName || (user.email ? user.email.split('@')[0] : '');
+    if (photoInput) photoInput.value = user.photoURL || '';
+    if (avatarPreview) avatarPreview.innerHTML = getUserAvatarHTML(user, "w-10 h-10 text-sm");
+    if (userTitle) userTitle.innerText = user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+    if (userSubtitle) userSubtitle.innerText = user.email || 'Hesap Ayarları';
 
     if (modal) modal.classList.remove('hidden');
 }
@@ -596,6 +642,8 @@ function updateUserProfile(e) {
     if (!user) return;
 
     const newName = document.getElementById('profile-display-name').value.trim();
+    const photoInput = document.getElementById('profile-photo-url');
+    const newPhotoUrl = photoInput ? photoInput.value.trim() : '';
     const saveBtn = document.getElementById('profile-save-btn');
 
     if (!newName) {
@@ -606,10 +654,13 @@ function updateUserProfile(e) {
     if (saveBtn) saveBtn.innerText = "Kaydediliyor...";
 
     user.updateProfile({
-        displayName: newName
+        displayName: newName,
+        photoURL: newPhotoUrl || null
     }).then(() => {
-        showToast("✅ Kullanıcı adınız başarıyla güncellendi!", "success");
+        showToast("✅ Profil bilgileriniz başarıyla güncellendi!", "success");
         closeProfileModal();
+        initNavbar();
+        if (typeof renderAcademyUserPanel === 'function') renderAcademyUserPanel();
         setTimeout(() => location.reload(), 1000);
     }).catch((err) => {
         console.error("Firebase Profil Güncelleme Hatası:", err);
