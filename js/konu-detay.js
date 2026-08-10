@@ -72,6 +72,19 @@ function updateCompleteButtonUI(completed) {
 }
 
 // FORM VE MODAL FONKSİYONLARI
+function addLinkInput(title = '', url = '') {
+    const c = document.getElementById('link-inputs-container');
+    if (!c) return;
+    const div = document.createElement('div');
+    div.className = "p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex gap-2 items-center link-row";
+    div.innerHTML = `
+        <input type="text" placeholder="Link Başlığı (Örn: Ek Kaynak Doküman)" value="${title}" class="link-title w-1/3 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-tsMavi">
+        <input type="url" placeholder="Link / URL Adresi" value="${url}" class="link-url w-2/3 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-tsMavi">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 p-2 text-xs font-bold">✕</button>
+    `;
+    c.appendChild(div);
+}
+
 function addPdfInput(title = '', url = '') {
     const c = document.getElementById('pdf-inputs-container');
     if (!c) return;
@@ -102,6 +115,14 @@ function addCodeInput(title = '', content = '') {
 
 function openEditModal(topicData) {
     document.getElementById('input-video-url').value = topicData.videoUrl || '';
+    
+    const linkContainer = document.getElementById('link-inputs-container');
+    if (linkContainer) {
+        linkContainer.innerHTML = '';
+        (topicData.linkList || []).forEach(link => addLinkInput(link.title, link.url));
+        if (!topicData.linkList || topicData.linkList.length === 0) addLinkInput();
+    }
+
     const pdfContainer = document.getElementById('pdf-inputs-container');
     if (pdfContainer) {
         pdfContainer.innerHTML = '';
@@ -328,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ytId = getYouTubeId(topic.videoUrl);
             const loggedInAdmin = typeof isAdmin === 'function' && isAdmin();
 
+            const linkList = topic.linkList || (topic.linkUrl ? [{ title: topic.linkTitle || 'Harici Bağlantı', url: topic.linkUrl }] : []);
             const pdfList = topic.pdfList || (topic.pdfUrl ? [{ title: 'Ders Notu (PDF)', url: topic.pdfUrl }] : []);
             const codeList = topic.codeList || (topic.codeContent ? [{ title: topic.codeTitle || 'Kaynak Kod', content: topic.codeContent }] : []);
 
@@ -360,12 +382,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     ` : ''}
 
+                    <!-- 1. HARİCİ LİNK / URL BAĞLANTILARI (İLK SIRADA) -->
+                    ${linkList.length > 0 ? `
+                        <div class="space-y-3">
+                            <h3 class="font-bold text-base flex items-center gap-2 text-sky-400">🔗 Harici Link & Bağlantılar (${linkList.length})</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${linkList.map(link => `
+                                    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 flex items-center justify-between shadow-sm hover:border-sky-400/50 transition-colors">
+                                        <div class="flex items-center gap-3 overflow-hidden">
+                                            <div class="w-10 h-10 shrink-0 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-lg">🔗</div>
+                                            <div class="truncate">
+                                                <h4 class="font-bold text-xs truncate">${link.title || 'Harici Bağlantı'}</h4>
+                                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${link.url}</p>
+                                            </div>
+                                        </div>
+                                        <a href="${link.url}" target="_blank" class="shrink-0 ml-2 px-3.5 py-1.5 rounded-xl bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white transition-all text-xs font-semibold border border-sky-500/20">Bağlantıyı Aç ↗</a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- 2. PDF DERS NOTLARI VE DOSYALAR (İKİNCİ SIRADA) -->
                     ${pdfList.length > 0 ? `
                         <div class="space-y-3">
-                            <h3 class="font-bold text-base flex items-center gap-2">📄 Ders Notları & Dokümanlar (${pdfList.length})</h3>
+                            <h3 class="font-bold text-base flex items-center gap-2 text-red-500">📄 PDF Ders Notları & Dokümanlar (${pdfList.length})</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 ${pdfList.map(pdf => `
-                                    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 flex items-center justify-between shadow-sm">
+                                    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 flex items-center justify-between shadow-sm hover:border-red-500/50 transition-colors">
                                         <div class="flex items-center gap-3 overflow-hidden">
                                             <div class="w-10 h-10 shrink-0 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center font-bold text-lg">📄</div>
                                             <div class="truncate">
@@ -380,9 +424,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     ` : ''}
 
+                    <!-- 3. KOD BLOKLARI (ÜÇÜNCÜ SIRADA) -->
                     ${codeList.length > 0 ? `
                         <div class="space-y-6 pt-2">
-                            <h3 class="font-bold text-base flex items-center gap-2">💻 Kaynak Kodlar (${codeList.length})</h3>
+                            <h3 class="font-bold text-base flex items-center gap-2 text-tsMavi">💻 Kaynak Kodlar (${codeList.length})</h3>
                             ${codeList.map(code => `
                                 <div class="rounded-3xl border border-slate-800 bg-[#0a0c10] overflow-hidden shadow-xl">
                                     <div class="px-5 py-3 bg-[#12151c] border-b border-slate-800 flex items-center justify-between">
@@ -435,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const editBtn = document.getElementById('open-edit-btn');
-            if (editBtn) editBtn.onclick = () => openEditModal({ ...topic, pdfList, codeList });
+            if (editBtn) editBtn.onclick = () => openEditModal({ ...topic, linkList, pdfList, codeList });
 
             checkUserProgress();
             updateCommentFormUI();
@@ -449,9 +494,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editTopicForm) {
         editTopicForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            if(typeof isAdmin === 'function' && !isAdmin()) return;
+            const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+            if (!user && (typeof isAdmin === 'function' && !isAdmin())) return;
 
             const videoUrl = document.getElementById('input-video-url').value;
+
+            const linkList = [];
+            document.querySelectorAll('.link-row').forEach(row => {
+                const title = row.querySelector('.link-title').value.trim();
+                const url = row.querySelector('.link-url').value.trim();
+                if (url) linkList.push({ title: title || 'Harici Bağlantı', url: url });
+            });
+
             const pdfList = [];
             document.querySelectorAll('.pdf-row').forEach(row => {
                 const title = row.querySelector('.pdf-title').value.trim();
@@ -467,11 +521,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (typeof db !== 'undefined') {
-                db.collection("courses").doc(courseId).collection("topics").doc(topicId).update({
+                const updatePayload = {
                     videoUrl: videoUrl,
+                    linkList: linkList,
                     pdfList: pdfList,
                     codeList: codeList
-                }).then(() => closeEditModal()).catch(err => alert("Hata: " + err.message));
+                };
+
+                db.collection("academy_courses").doc(courseId).collection("topics").doc(topicId).update(updatePayload)
+                  .then(() => closeEditModal())
+                  .catch(() => {
+                      db.collection("courses").doc(courseId).collection("topics").doc(topicId).update(updatePayload)
+                        .then(() => closeEditModal());
+                  });
             }
         });
     }
