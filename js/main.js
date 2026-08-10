@@ -343,7 +343,7 @@ function renderNavbar(activePage, currentUser) {
 
         <!-- SIDEBAR ALT DIŞ LİNK -->
         <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
-            <a href="https://maliyildirimtr.github.io" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity">
+            <a href="https://maliyildirimtr.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity">
                 <span>⚡</span>
                 <span class="sidebar-text">Kişisel Site ↗</span>
             </a>
