@@ -63,9 +63,11 @@
                 <div>
                     <label class="block text-xs font-semibold mb-1 text-slate-400">Proje Grubu Seçimi *</label>
                     <select id="announcement-project-group" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
-                        <option value="">⏳ Proje gruplarınız yükleniyor...</option>
+                        <option value="custom">＋ Özel / Bağımsız İlan Grubu</option>
                     </select>
-                    <p class="text-[10px] text-slate-500 mt-1">👥 İlanı hangi proje grubunuz için açtığınızı seçin.</p>
+                    <p id="no-admin-group-notice" class="hidden text-[11px] text-amber-500 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 mt-2 font-medium">
+                        ℹ️ Yönetici veya Yönetici Yardımcısı olduğunuz bir proje grubu bulunmuyor. İlanınızı bağımsız olarak yayınlayabilirsiniz.
+                    </p>
                 </div>
 
                 <div>

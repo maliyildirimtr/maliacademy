@@ -20,32 +20,77 @@ function openCreateAnnouncementModal() {
     }
 
     const selectEl = document.getElementById('announcement-project-group');
+    const noticeEl = document.getElementById('no-admin-group-notice');
+    if (noticeEl) noticeEl.classList.add('hidden');
+
     if (selectEl) {
-        selectEl.innerHTML = `<option value="">⏳ Proje gruplarınız yükleniyor...</option>`;
+        selectEl.innerHTML = `<option value="custom">⏳ Yönetici olduğunuz proje grupları yükleniyor...</option>`;
 
         if (typeof db !== 'undefined' && db && db.collection) {
-            const fetchP1 = db.collection("project_groups").where("authorUid", "==", user.uid).get().catch(() => ({ docs: [] }));
-            const fetchP2 = db.collection("groups").where("authorUid", "==", user.uid).get().catch(() => ({ docs: [] }));
+            const fetchP1 = db.collection("project_groups").get().catch(() => ({ docs: [] }));
+            const fetchP2 = db.collection("groups").get().catch(() => ({ docs: [] }));
 
             Promise.all([fetchP1, fetchP2]).then(([snap1, snap2]) => {
                 const groupMap = new Map();
-                if (snap1 && snap1.docs) snap1.docs.forEach(d => groupMap.set(d.id, { id: d.id, ...d.data() }));
-                if (snap2 && snap2.docs) snap2.docs.forEach(d => groupMap.set(d.id, { id: d.id, ...d.data() }));
+                const uid = user.uid;
 
-                const foundGroups = Array.from(groupMap.values());
+                const filterAdminGroup = (doc) => {
+                    const data = doc.data();
+                    if (!data) return false;
 
-                let optionsHTML = "";
-                if (foundGroups.length > 0) {
-                    foundGroups.forEach(g => {
-                        const gName = g.name || g.title || 'Proje Grubu';
-                        optionsHTML += `<option value="${g.id}" data-name="${gName}">👥 ${gName}</option>`;
+                    // 1. Kurucu / Yönetici / Lider Kontrolü (adminUid, ownerUid, authorUid, leaderUid, leader.uid, roles[uid] === 'admin')
+                    const isCreator = (data.adminUid === uid) || (data.ownerUid === uid) || (data.authorUid === uid) || (data.leaderUid === uid) || (data.leader && data.leader.uid === uid);
+                    const hasAdminRole = data.roles && (data.roles[uid] === 'admin' || data.roles[uid] === 'owner');
+
+                    // 2. Yönetici Yardımcısı / Moderatör Kontrolü (coAdmins, moderators dizileri veya roles[uid] === 'co_admin')
+                    const isCoAdmin = (Array.isArray(data.coAdmins) && data.coAdmins.includes(uid)) || 
+                                      (Array.isArray(data.moderators) && data.moderators.includes(uid)) ||
+                                      (data.roles && (data.roles[uid] === 'co_admin' || data.roles[uid] === 'moderator'));
+
+                    // 3. Üyeler dizisindeki rol kontrolü (Yönetici, Lider, Yönetici Yardımcısı)
+                    let isMemberAdmin = false;
+                    if (Array.isArray(data.members)) {
+                        const m = data.members.find(mem => mem.uid === uid || mem.id === uid);
+                        if (m && (m.role === 'Yönetici' || m.role === 'Lider' || m.role === 'Yönetici Yardımcısı' || m.role === 'Admin' || m.role === 'Co-Admin')) {
+                            isMemberAdmin = true;
+                        }
+                    }
+
+                    return isCreator || hasAdminRole || isCoAdmin || isMemberAdmin;
+                };
+
+                if (snap1 && snap1.docs) {
+                    snap1.docs.forEach(d => {
+                        if (filterAdminGroup(d)) groupMap.set(d.id, { id: d.id, ...d.data() });
                     });
                 }
-                optionsHTML += `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                if (snap2 && snap2.docs) {
+                    snap2.docs.forEach(d => {
+                        if (filterAdminGroup(d)) groupMap.set(d.id, { id: d.id, ...d.data() });
+                    });
+                }
+
+                const adminGroups = Array.from(groupMap.values());
+
+                let optionsHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                if (adminGroups.length > 0) {
+                    adminGroups.forEach(g => {
+                        const gName = g.name || g.title || 'Proje Grubu';
+                        optionsHTML += `<option value="${g.id}" data-name="${gName}">👥 ${gName} (Yönetici)</option>`;
+                    });
+                    if (noticeEl) noticeEl.classList.add('hidden');
+                } else {
+                    if (noticeEl) noticeEl.classList.remove('hidden');
+                }
+
                 selectEl.innerHTML = optionsHTML;
+            }).catch(() => {
+                selectEl.innerHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                if (noticeEl) noticeEl.classList.remove('hidden');
             });
         } else {
             selectEl.innerHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+            if (noticeEl) noticeEl.classList.remove('hidden');
         }
     }
 
