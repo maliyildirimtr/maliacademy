@@ -4,30 +4,30 @@
 
 const DEFAULT_INITIAL_CARDS = [
     {
-        icon: "👋",
-        badge: "📌 Biyografi",
-        title: "Ben Kimim?",
-        description: "Gazi Üniversitesi Elektrik-Elektronik Mühendisliği öğrencisi. FPGA mimarileri, SystemVerilog, STM32 & FreeRTOS gömülü sistemler ve yapay zeka projeleri. Detaylı teknik öz geçmişimi inceleyin.",
-        buttonText: "Detayları İncele ↓",
-        targetUrl: "#about-details",
-        isProtected: true
-    },
-    {
-        icon: "📚",
-        badge: "🎓 Akademik",
-        title: "Dersler & Akademik Notlar",
-        description: "Mantık Devreleri Tasarımı, Microprocessors, İşaretler ve Sistemler ders notları, sınav hazırlık belgeleri ve açık kaynak anlatımlar.",
-        buttonText: "Derslere Git →",
+        icon: "⚡",
+        badge: "🚀 Öne Çıkan Eğitim",
+        title: "Mantıksal Devre Tasarımı & SystemVerilog Kursu Yayında!",
+        description: "FPGA mimarileri, SystemVerilog, Vivado & ModelSim simülasyonları ile 13+ kapsamlı akademik ders modülü ve uygulama notları.",
+        buttonText: "Ders İçeriğini İncele →",
         targetUrl: "dersler.html",
         isProtected: true
     },
     {
-        icon: "🚀",
-        badge: "⚡ Topluluk",
-        title: "Mali Academy İş Birliği Platformu",
-        description: "Mühendislik takımları için geliştirilmiş ortak çalışma alanı: Kanban panosu, bütçe takibi ve görüntülü Virtual Lab odaları.",
-        buttonText: "Platforma Git ↗",
-        targetUrl: "https://academy.maliyildirimtr.com",
+        icon: "👥",
+        badge: "🤝 Proje & Takım Çalışması",
+        title: "Proje Grupları & Takım Arkadaşı Bulma Platformu",
+        description: "FPGA, Yapay Zeka, Gömülü Sistemler ve Bitirme Projesi takımlarına katılın veya kendi grubunuzu oluşturup ortak çalışın.",
+        buttonText: "Proje Gruplarını Gör →",
+        targetUrl: "proje-gruplari.html",
+        isProtected: true
+    },
+    {
+        icon: "🧮",
+        badge: "🛠️ Mühendislik Kitleri",
+        title: "Açık Kaynak Mühendislik Araçları & Kitler",
+        description: "AGNO/GANO hesaplama, bilimsel hesap makinesi, direnç renk kodları ve mantık devresi hesaplama araçları.",
+        buttonText: "Araçları Kullan →",
+        targetUrl: "araclar.html",
         isProtected: true
     }
 ];

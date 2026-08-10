@@ -68,19 +68,22 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
-<body data-page="dersler" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
+<body data-page="index" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
 
     <!-- ORTAK NAVBAR CONTAINER -->
     <div id="navbar-container"></div>
 
-    <!-- MAIN CONTENT -->
-    <main class="max-w-6xl mx-auto px-4 py-12 flex-grow w-full space-y-8">
+    <!-- MAIN CONTENT HUB -->
+    <main class="max-w-6xl mx-auto px-4 py-12 flex-grow w-full space-y-10">
         
         <!-- ÜST BAŞLIK VE GİRİŞ PANELİ -->
         <div class="border-b border-slate-200 dark:border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight">Akademik Dersler & Eğitim Setleri</h1>
-                <p class="text-slate-500 text-xs mt-1">İçeriğine gitmek istediğiniz ders penceresine tıklayın.</p>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold mb-2">
+                    <span>🎓</span> Mali Academy Portal Hub
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Mehmet Ali Yıldırım Akademik Portal</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Ders notları, proje grupları, sınav hazırlık arşivi ve mühendislik araçları platformu.</p>
             </div>
 
             <!-- KULLANICI / ADMİN KART VE GİRİŞ PANELİ (SAĞ TARAF) -->
@@ -89,10 +92,184 @@
             </div>
         </div>
 
-        <!-- DERS KARTLARI GRID -->
-        <div id="courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full py-20 text-center text-slate-500 text-sm">⏳ Yükleniyor...</div>
-        </div>
+        <!-- 1. HERO SLIDER ALANI (ÖNE ÇIKAN DERSLER & DUYURULAR) -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <span>📢</span> Öne Çıkanlar & Duyurular
+                </h2>
+                <div class="flex items-center gap-2">
+                    <span id="slider-count-badge" class="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">1 / 3</span>
+                    <button onclick="prevSlide()" class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs">‹</button>
+                    <button onclick="nextSlide()" class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs">›</button>
+                </div>
+            </div>
+
+            <div class="relative overflow-hidden rounded-3xl" onmouseenter="stopAutoSlide()" onmouseleave="startAutoSlide()">
+                <div id="slider-track" class="flex w-full transition-transform duration-500 ease-out cursor-grab active:cursor-grabbing select-none">
+                    <!-- Dynamic slider content loaded from js/slider.js -->
+                </div>
+            </div>
+
+            <div id="slider-dots" class="flex justify-center items-center gap-1.5 pt-2"></div>
+        </section>
+
+        <!-- 2. PLATFORM MODÜLLERİ GRID (AKADEMİK GEZİNTİ KARTLARI) -->
+        <section class="space-y-4">
+            <div class="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold tracking-tight flex items-center gap-2">
+                        <span>🌐</span> Platform Modülleri & Akademik Gezinti
+                    </h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Gitmey istediğiniz akademik hizmet veya araç modülünü seçin.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- KART 1: Dersler & Notlar -->
+                <div onclick="window.location.href='dersler.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                            📚
+                        </div>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Eğitim Notları</span>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Dersler & Notlar</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            Mühendislik ders notları, SystemVerilog/FPGA eğitim videoları ve konu özetleri.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            İçeriğe Git →
+                        </span>
+                    </div>
+                </div>
+
+                <!-- KART 2: Sınav & Vize Hazırlık -->
+                <div onclick="window.location.href='sinav-hazirlik.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                            📝
+                        </div>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Sınav Arşivi</span>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Sınav & Vize Hazırlık</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            Çıkmış vize/final soruları, çalışma kağıtları, örnek sınav çözümleri ve çalışma föyleri.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            İçeriğe Git →
+                        </span>
+                    </div>
+                </div>
+
+                <!-- KART 3: Proje Grupları -->
+                <div onclick="window.location.href='proje-gruplari.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                            👥
+                        </div>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Takım Çalışması</span>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Proje Grupları</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            Takım arkadaşı ara, proje gruplarına katıl, ortak Kanban panosu ve bütçe yönetimi alanında üret.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            İçeriğe Git →
+                        </span>
+                    </div>
+                </div>
+
+                <!-- KART 4: İlan Panosu -->
+                <div onclick="window.location.href='ilan-panosu.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                            📌
+                        </div>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Duyuru & İlanlar</span>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">İlan Panosu</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            Mühendislik staj ilanları, proje yarışmaları, akademik duyurular ve öğrenci ilan panosu.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            İçeriğe Git →
+                        </span>
+                    </div>
+                </div>
+
+                <!-- KART 5: Açık Kaynak Kit -->
+                <div onclick="window.location.href='acik-kaynak.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                            🧰
+                        </div>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Açık Kaynak Kodlar</span>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Açık Kaynak Kit</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            FPGA IP çekirdekleri, SystemVerilog modülleri, STM32 sürücüleri ve mühendislik kütüphaneleri.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            İçeriğe Git →
+                        </span>
+                    </div>
+                </div>
+
+                <!-- KART 6: Mühendislik Araçları -->
+                <div onclick="window.location.href='araclar.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                            ⚙️
+                        </div>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Hesaplayıcılar</span>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Mühendislik Araçları</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                            AGNO/GANO hesaplama, bilimsel hesap makinesi, direnç renk kodları ve mantık devresi yardımcıları.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            İçeriğe Git →
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. ÖNE ÇIKAN AKADEMİK DERSLER LİSTESİ -->
+        <section class="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold tracking-tight flex items-center gap-2">
+                        <span>🎓</span> Öne Çıkan Akademik Dersler
+                    </h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Sistemdeki aktif eğitim setleri ve ders notları.</p>
+                </div>
+                <a href="dersler.html" class="text-xs font-bold text-tsMavi hover:underline flex items-center gap-1">
+                    Tüm Dersleri Gör →
+                </a>
+            </div>
+
+            <!-- DERS KARTLARI GRID -->
+            <div id="courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full py-12 text-center text-slate-500 text-sm">⏳ Dersler yükleniyor...</div>
+            </div>
+        </section>
+
     </main>
 
     <!-- DERS EKLE / DÜZENLE MODAL (ADMIN) -->
@@ -245,7 +422,8 @@
     <!-- SCRIPT'LER -->
     <script src="js/firebase.js"></script>
     <script src="js/sso.js"></script>
-    <script src="js/main.js?v=20260809v3"></script>
+    <script src="js/slider.js"></script>
+    <script src="js/main.js?v=20260810v1"></script>
     <script src="js/courses-seed.js"></script>
     <script src="js/dersler.js"></script>
 </body>
