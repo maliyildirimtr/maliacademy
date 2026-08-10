@@ -396,13 +396,23 @@ function renderNavbar(activePage, currentUser) {
             </div>
 
             <form id="profile-edit-form" onsubmit="updateUserProfile(event)" class="space-y-4">
-                <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
-                    <div id="profile-modal-avatar-preview"></div>
-                    <div class="overflow-hidden">
+                <div class="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                    <div class="relative group shrink-0">
+                        <div id="profile-modal-avatar-preview"></div>
+                        <button type="button" onclick="triggerProfilePictureUpload()" title="Profil Fotoğrafı Yükle" class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-tsMavi text-white flex items-center justify-center text-xs shadow-md hover:scale-110 transition-transform cursor-pointer border-2 border-white dark:border-slate-900">
+                            📷
+                        </button>
+                    </div>
+                    <div class="text-center sm:text-left overflow-hidden w-full">
                         <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" id="profile-modal-user-title">Kullanıcı</p>
                         <p class="text-[10px] text-slate-500 truncate" id="profile-modal-user-subtitle">Hesap Ayarları</p>
+                        <button type="button" onclick="triggerProfilePictureUpload()" class="mt-2 px-3 py-1 rounded-xl text-xs font-bold bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 hover:bg-tsMavi hover:text-white transition-all cursor-pointer inline-flex items-center gap-1.5">
+                            <span>📷</span> Fotoğraf Yükle & Kırp
+                        </button>
                     </div>
                 </div>
+
+                <input type="file" id="profile-picture-input" accept="image/*" onchange="handleProfilePictureSelect(event)" class="hidden">
 
                 <div>
                     <label class="block text-xs font-semibold mb-1 text-slate-400">E-Posta Adresiniz</label>
@@ -415,9 +425,9 @@ function renderNavbar(activePage, currentUser) {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-slate-400">Profil Fotoğrafı Bağlantısı (URL)</label>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Profil Fotoğrafı Bağlantısı (URL / Özel)</label>
                     <input type="url" id="profile-photo-url" placeholder="https://example.com/profil.jpg" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
-                    <p class="text-[10px] text-slate-400 mt-1">Görsel URL adresinizi yazabilir veya boş bırakıp harf inisiyalli logonuzu kullanabilirsiniz.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Fotoğraf kırparak yükleyebilir veya doğrudan görsel URL adresi girebilirsiniz.</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -425,6 +435,36 @@ function renderNavbar(activePage, currentUser) {
                     <button type="submit" id="profile-save-btn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-tsBordo to-tsMavi text-white shadow-md hover:opacity-90 transition-opacity">Değişiklikleri Kaydet</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- GITHUB TARZI PROFİL FOTOĞRAFI KIRPMA MODALI (CROPPER.JS) -->
+    <div id="profile-crop-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl flex flex-col items-center relative overflow-hidden">
+            
+            <div class="w-full flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <span>✂️</span> Profil Fotoğrafınızı Kırpın
+                </h3>
+                <button type="button" onclick="closeCropModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            <div class="w-full max-h-[360px] bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800/80 p-2">
+                <img id="crop-image-element" src="" alt="Kırpılacak Görsel" class="max-w-full max-h-[330px] block">
+            </div>
+
+            <p class="text-[11px] text-slate-400 text-center">
+                Görseli dairesel maskeye sığacak şekilde sürükleyin ve boyutlandırın.
+            </p>
+
+            <div class="w-full flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+                <button type="button" onclick="closeCropModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">
+                    İptal
+                </button>
+                <button type="button" id="save-cropped-photo-btn" onclick="saveCroppedProfilePicture()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-tsBordo to-tsMavi text-white shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+                    <span>✨</span> Profil Fotoğrafını Kaydet
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1092,4 +1132,209 @@ function initDynamicNavbarFirstLink() {
 
     window.addEventListener('scroll', handleNavbarScroll, { passive: true });
     handleNavbarScroll();
+}
+
+// ==========================================
+// 12. GITHUB TARZI CROPPER.JS PROFİL FOTOĞRAFI YÜKLEME & KIRPMA MANTIĞI
+// ==========================================
+let cropperInstance = null;
+
+(function injectCropperCircularStyles() {
+    if (document.getElementById('cropper-circular-style')) return;
+    const style = document.createElement('style');
+    style.id = 'cropper-circular-style';
+    style.innerHTML = `
+        .cropper-view-box,
+        .cropper-face {
+            border-radius: 50% !important;
+        }
+        .cropper-view-box {
+            outline: 2px dashed #38bdf8 !important;
+            outline-offset: -1px;
+        }
+        .cropper-dashed, .cropper-point {
+            border-color: #38bdf8 !important;
+        }
+        .cropper-point {
+            background-color: #38bdf8 !important;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+function ensureCropperLoaded(callback) {
+    if (typeof Cropper !== 'undefined') {
+        if (callback) callback();
+        return;
+    }
+    if (!document.getElementById('cropper-css')) {
+        const link = document.createElement('link');
+        link.id = 'cropper-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css';
+        document.head.appendChild(link);
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js';
+    script.onload = () => {
+        if (callback) callback();
+    };
+    document.head.appendChild(script);
+}
+
+function triggerProfilePictureUpload() {
+    const fileInput = document.getElementById('profile-picture-input');
+    if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+    }
+}
+
+function handleProfilePictureSelect(e) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+
+    if (!file.type.startsWith('image/')) {
+        if (typeof showToast === 'function') showToast("Lütfen geçerli bir görsel dosyası seçin (PNG, JPG, WEBP).", "warning");
+        return;
+    }
+
+    ensureCropperLoaded(() => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            openCropModal(event.target.result);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function openCropModal(imageSrc) {
+    const cropModal = document.getElementById('profile-crop-modal');
+    const imageEl = document.getElementById('crop-image-element');
+    if (!cropModal || !imageEl) return;
+
+    if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+    }
+
+    imageEl.src = imageSrc;
+    cropModal.classList.remove('hidden');
+
+    setTimeout(() => {
+        cropperInstance = new Cropper(imageEl, {
+            aspectRatio: 1,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.85,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false
+        });
+    }, 100);
+}
+
+function closeCropModal() {
+    const cropModal = document.getElementById('profile-crop-modal');
+    if (cropModal) cropModal.classList.add('hidden');
+    if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+    }
+}
+
+async function saveCroppedProfilePicture() {
+    if (!cropperInstance) return;
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    if (!user) {
+        if (typeof showToast === 'function') showToast("Oturum bulunamadı, lütfen önce giriş yapın.", "error");
+        return;
+    }
+
+    const saveBtn = document.getElementById('save-cropped-photo-btn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<span class="inline-block animate-spin">⏳</span> Kaydediliyor...`;
+    }
+
+    try {
+        const canvas = cropperInstance.getCroppedCanvas({
+            width: 400,
+            height: 400,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high'
+        });
+
+        canvas.toBlob(async (blob) => {
+            try {
+                let downloadURL = null;
+
+                // 1. Storage yüklemesi dene
+                if (typeof firebase !== 'undefined' && firebase.storage) {
+                    try {
+                        const storageRef = firebase.storage().ref(`profile_pictures/${user.uid}.jpg`);
+                        await storageRef.put(blob, { contentType: 'image/jpeg' });
+                        downloadURL = await storageRef.getDownloadURL();
+                    } catch (storageErr) {
+                        console.warn("Firebase Storage yükleme uyarısı, DataURL alternatifi kullanılıyor:", storageErr);
+                    }
+                }
+
+                // Alternatif: 400x400 yüksek kaliteli compressed DataURL
+                if (!downloadURL) {
+                    downloadURL = canvas.toDataURL('image/jpeg', 0.85);
+                }
+
+                // 2. Firebase Auth Profilini Güncelle
+                await user.updateProfile({ photoURL: downloadURL });
+
+                // 3. Firestore Kullanıcı Dokümanını Güncelle
+                if (typeof db !== 'undefined' && db && db.collection) {
+                    try {
+                        await db.collection("users").doc(user.uid).set({
+                            photoURL: downloadURL,
+                            updatedAt: new Date().toISOString()
+                        }, { merge: true });
+                    } catch (dbErr) {
+                        console.warn("Firestore kullanıcı güncelleme uyarısı:", dbErr);
+                    }
+                }
+
+                // 4. Modalları kapat ve arayüzü güncelle
+                closeCropModal();
+                if (typeof showToast === 'function') {
+                    showToast("✅ Profil fotoğrafınız başarıyla güncellendi!", "success");
+                }
+                initNavbar();
+                if (typeof renderAcademyUserPanel === 'function') renderAcademyUserPanel();
+
+                const photoUrlInput = document.getElementById('profile-photo-url');
+                if (photoUrlInput) photoUrlInput.value = downloadURL;
+
+                const avatarPreview = document.getElementById('profile-modal-avatar-preview');
+                if (avatarPreview) avatarPreview.innerHTML = getUserAvatarHTML(user, "w-10 h-10 text-sm");
+
+            } catch (err) {
+                console.error("Profil Fotoğrafı Kaydetme Hatası:", err);
+                if (typeof showToast === 'function') showToast("Hata: " + (err.message || "Profil fotoğrafı yüklenemedi."), "error");
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `<span>✨</span> Profil Fotoğrafını Kaydet`;
+                }
+            }
+        }, 'image/jpeg', 0.85);
+
+    } catch (e) {
+        console.error("Cropper Canvas Hatası:", e);
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `<span>✨</span> Profil Fotoğrafını Kaydet`;
+        }
+    }
 }
