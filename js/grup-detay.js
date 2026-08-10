@@ -774,7 +774,7 @@ function renderOverviewTab(container) {
                         <button onclick="openAddParticipantModal()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5">
                             <span>＋</span> Yeni Katılımcı Ekle
                         </button>
-                        <a href="ilan-panosu.html?groupId=${groupId}" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-xs hover:border-tsMavi transition-colors flex items-center justify-center gap-1.5">
+                        <a href="ilan-panosu.html?groupId=${groupId}&autoOpen=true" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-xs hover:border-tsMavi transition-colors flex items-center justify-center gap-1.5">
                             <span>📌</span> İlan Ver
                         </a>
                     </div>

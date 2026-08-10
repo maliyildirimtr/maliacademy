@@ -563,10 +563,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetGroupId = urlParams.get('groupId');
-    if (targetGroupId) {
-        setTimeout(() => {
-            openCreateAnnouncementModal(targetGroupId);
-        }, 400);
+    const autoOpen = urlParams.get('autoOpen');
+
+    if (targetGroupId || autoOpen === 'true') {
+        // Wait for Firebase auth to be ready before opening the modal
+        const tryOpen = () => {
+            const user = typeof auth !== 'undefined' ? auth.currentUser : null;
+            if (user) {
+                openCreateAnnouncementModal(targetGroupId || null);
+            } else if (typeof auth !== 'undefined') {
+                // Auth object exists but user not ready yet - listen once
+                const unsub = auth.onAuthStateChanged((u) => {
+                    unsub();
+                    if (u) {
+                        openCreateAnnouncementModal(targetGroupId || null);
+                    }
+                });
+            }
+        };
+        // Give Firebase SDK a moment to initialise, then check auth
+        if (document.readyState === 'complete') {
+            setTimeout(tryOpen, 300);
+        } else {
+            window.addEventListener('load', () => setTimeout(tryOpen, 300));
+        }
     }
 
     const createForm = document.getElementById('announcement-create-form');
