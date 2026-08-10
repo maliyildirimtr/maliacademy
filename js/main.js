@@ -836,6 +836,22 @@ function closeAuthModal() {
 // ==========================================
 // MALI NETWORK - ÖZEL TOAST BİLDİRİM SİSTEMİ
 // ==========================================
+
+// Global Browser Alert Override -> Transforms all native browser popups into sleek Website Toast Notifications
+window.alert = function(message) {
+    if (typeof showToast === 'function') {
+        let toastType = 'info';
+        if (typeof message === 'string') {
+            if (message.includes('✅') || message.includes('🎉') || message.includes('başarıyla') || message.includes('kabul edildi')) toastType = 'success';
+            else if (message.includes('❌') || message.includes('Hata') || message.includes('hata') || message.includes('Eyvah') || message.includes('reddedildi')) toastType = 'error';
+            else if (message.includes('⚠️') || message.includes('Lütfen') || message.includes('uyarı') || message.includes('🔑') || message.includes('🔒')) toastType = 'warning';
+        }
+        showToast(message, toastType);
+    } else {
+        console.log("ALERT:", message);
+    }
+};
+
 function dismissToast(toastEl) {
     if (!toastEl) return;
     toastEl.classList.remove('translate-x-0', 'opacity-100');

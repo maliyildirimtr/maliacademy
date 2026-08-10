@@ -540,27 +540,33 @@ function handleCreateGroup(e) {
             db.collection("groups").add(newGroup).then((docRef) => {
                 newGroup.id = docRef.id;
                 saveGroupToLocalCache(newGroup);
-                alert(`✅ "${name}" projesi başarıyla oluşturuldu!\n🔑 Davet Kodu: ${randomCode}`);
+                if (typeof showToast === 'function') showToast(`✅ "${name}" projesi başarıyla oluşturuldu! 🔑 Davet Kodu: ${randomCode}`, "success");
                 closeCreateGroupModal();
-                window.location.href = `grup-detay.html?id=${docRef.id}`;
+                setTimeout(() => {
+                    window.location.href = `grup-detay.html?id=${docRef.id}`;
+                }, 1000);
             }).catch(err => {
                 console.warn("Firestore kayıt hatası, yerel yönlendirme yapılıyor:", err);
                 const localId = 'grp-' + Date.now();
                 newGroup.id = localId;
                 saveGroupToLocalCache(newGroup);
                 DEMO_GROUPS.unshift(newGroup);
-                alert(`✅ "${name}" projesi başarıyla oluşturuldu!\n🔑 Davet Kodu: ${randomCode}`);
+                if (typeof showToast === 'function') showToast(`✅ "${name}" projesi başarıyla oluşturuldu! 🔑 Davet Kodu: ${randomCode}`, "success");
                 closeCreateGroupModal();
-                window.location.href = `grup-detay.html?id=${localId}`;
+                setTimeout(() => {
+                    window.location.href = `grup-detay.html?id=${localId}`;
+                }, 1000);
             });
         } else {
             const localId = 'grp-' + Date.now();
             newGroup.id = localId;
             saveGroupToLocalCache(newGroup);
             DEMO_GROUPS.unshift(newGroup);
-            alert(`✅ "${name}" projesi başarıyla oluşturuldu!\n🔑 Davet Kodu: ${randomCode}`);
+            if (typeof showToast === 'function') showToast(`✅ "${name}" projesi başarıyla oluşturuldu! 🔑 Davet Kodu: ${randomCode}`, "success");
             closeCreateGroupModal();
-            window.location.href = `grup-detay.html?id=${localId}`;
+            setTimeout(() => {
+                window.location.href = `grup-detay.html?id=${localId}`;
+            }, 1000);
         }
     } catch (err) {
         console.error("Grup kurma hatası:", err);
