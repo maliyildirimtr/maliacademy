@@ -7,7 +7,9 @@ function renderAcademyUserPanel() {
     const adminState = typeof isAdmin === 'function' && isAdmin();
 
     if (user || adminState) {
-        const displayName = adminState ? '👑 Admin' : ('👤 ' + (user.displayName || user.email.split('@')[0]));
+        const displayName = adminState ? '👑 Admin' : (user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı'));
+        const defaultAvatarSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2338bdf8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.04-4.83-2.61.03-1.6 3.22-2.47 4.83-2.47 1.61 0 4.8 1.87 4.83 2.47C15.8 18.96 14.03 20 12 20z"/></svg>`;
+        const photoURL = user && user.photoURL ? user.photoURL : defaultAvatarSvg;
 
         panel.innerHTML = `
             <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -17,9 +19,10 @@ function renderAcademyUserPanel() {
                     </button>
                 ` : ''}
 
-                <!-- KULLANICI ADI BUTONU -->
-                <button type="button" onclick="${adminState ? '' : 'openProfileModal()'}" title="${adminState ? '' : 'Kullanıcı Adını Değiştir'}" class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all ${adminState ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 cursor-default' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-tsMavi hover:text-tsMavi cursor-pointer'}">
-                    ${displayName}
+                <!-- KULLANICI ADI & PROFİL RESMİ BUTONU -->
+                <button type="button" onclick="${adminState ? '' : 'openProfileModal()'}" title="${adminState ? '' : 'Kullanıcı Adını Değiştir'}" class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 ${adminState ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 cursor-default' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-tsMavi hover:text-tsMavi cursor-pointer'}">
+                    ${adminState ? '' : `<img src="${photoURL}" alt="Profil" class="w-6 h-6 rounded-full object-cover border border-tsMavi">`}
+                    <span>${displayName}</span>
                 </button>
 
                 <button type="button" onclick="logoutUser()" title="Çıkış Yap" class="text-xs px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 font-semibold transition-colors">

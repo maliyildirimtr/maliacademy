@@ -162,7 +162,7 @@ function renderNavbar(activePage, currentUser) {
             </div>
 
             <div class="relative">
-                <button onclick="toggleProfileDropdown()" class="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none">
+                <button id="user-profile-btn" onclick="toggleProfileDropdown()" class="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none">
                     <img src="${userAvatar}" alt="Profil" class="w-7 h-7 rounded-full object-cover border border-tsMavi">
                     <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${userName}</span>
                     <span class="text-[10px] text-slate-400">▾</span>
@@ -459,8 +459,16 @@ if (typeof auth !== 'undefined' && auth) {
                 document.querySelectorAll('.login-modal, #auth-modal').forEach(m => m.classList.add('hidden'));
                 
                 const userBtn = document.getElementById('user-profile-btn');
-                if (userBtn && user.displayName) {
-                    userBtn.innerHTML = user.displayName;
+                if (userBtn && user) {
+                    const defaultAvatarSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2338bdf8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.04-4.83-2.61.03-1.6 3.22-2.47 4.83-2.47 1.61 0 4.8 1.87 4.83 2.47C15.8 18.96 14.03 20 12 20z"/></svg>`;
+                    const avatarSrc = user.photoURL || defaultAvatarSvg;
+                    const nameStr = user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+
+                    userBtn.innerHTML = `
+                        <img src="${avatarSrc}" alt="Profil" class="w-7 h-7 rounded-full object-cover border border-tsMavi">
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${nameStr}</span>
+                        <span class="text-[10px] text-slate-400">▾</span>
+                    `;
                 }
             } else {
                 console.log("Kullanıcı oturumu kapalı.");
