@@ -41,18 +41,29 @@ function loadAnnouncements() {
     const grid = document.getElementById('announcements-grid');
     if (!grid) return;
 
-    if (typeof db !== 'undefined') {
-        db.collection("announcements").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-            if (snapshot.empty) {
+    if (typeof db !== 'undefined' && db) {
+        db.collection("announcements").onSnapshot((snapshot) => {
+            if (!snapshot || snapshot.empty) {
                 renderSampleAnnouncements(grid);
                 return;
             }
 
+            let items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Client-side sort by timestamp/createdAt
+            items.sort((a, b) => {
+                const tA = a.createdAt && typeof a.createdAt.toMillis === 'function' ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds * 1000 : 0);
+                const tB = b.createdAt && typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : (b.createdAt && b.createdAt.seconds ? b.createdAt.seconds * 1000 : 0);
+                return tB - tA;
+            });
+
             let html = "";
-            snapshot.docs.forEach((doc) => {
-                const item = doc.data();
-                const id = doc.id;
-                const dateStr = item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : 'Yeni';
+            items.forEach((item) => {
+                const id = item.id;
+                let dateStr = 'Yeni';
+                if (item.createdAt && typeof item.createdAt.toDate === 'function') {
+                    dateStr = item.createdAt.toDate().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                }
                 const badgeClass = getCategoryBadgeClass(item.category);
 
                 html += `
@@ -84,7 +95,8 @@ function loadAnnouncements() {
             if (targetId && !currentAnnouncementId) {
                 openAnnouncementDetailModal(targetId);
             }
-        }, () => {
+        }, (err) => {
+            console.warn("Firestore announcements okuma uyarısı, örnek ilanlar yükleniyor:", err);
             renderSampleAnnouncements(grid);
         });
     } else {
@@ -233,8 +245,8 @@ function loadRequestSection(announcementId, announcementData, isAuthor) {
     const user = typeof auth !== 'undefined' ? auth.currentUser : null;
 
     if (isAuthor) {
-        db.collection("announcements").doc(announcementId).collection("requests").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-            if (snapshot.empty) {
+        db.collection("announcements").doc(announcementId).collection("requests").onSnapshot(snapshot => {
+            if (!snapshot || snapshot.empty) {
                 reqContainer.innerHTML = `
                     <div class="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">
                         📩 Henüz bu ilana katılma isteği gönderilmedi.
@@ -243,10 +255,16 @@ function loadRequestSection(announcementId, announcementData, isAuthor) {
                 return;
             }
 
-            let html = `<h4 class="font-bold text-sm flex items-center gap-2">📩 Gelen Katılma İstekleri (${snapshot.docs.length})</h4><div class="space-y-3">`;
-            snapshot.docs.forEach(doc => {
-                const req = doc.data();
-                const reqId = doc.id;
+            let requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            requests.sort((a, b) => {
+                const tA = a.createdAt && typeof a.createdAt.toMillis === 'function' ? a.createdAt.toMillis() : (a.createdAt && a.createdAt.seconds ? a.createdAt.seconds * 1000 : 0);
+                const tB = b.createdAt && typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : (b.createdAt && b.createdAt.seconds ? b.createdAt.seconds * 1000 : 0);
+                return tB - tA;
+            });
+
+            let html = `<h4 class="font-bold text-sm flex items-center gap-2">📩 Gelen Katılma İstekleri (${requests.length})</h4><div class="space-y-3">`;
+            requests.forEach(req => {
+                const reqId = req.id;
                 const statusBadge = req.status === 'accepted' ? '<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">✓ Kabul Edildi</span>'
                     : req.status === 'rejected' ? '<span class="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded">✕ Reddedildi</span>'
                     : '<span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">⏳ Bekliyor</span>';
@@ -276,6 +294,9 @@ function loadRequestSection(announcementId, announcementData, isAuthor) {
             });
             html += `</div>`;
             reqContainer.innerHTML = html;
+        }, (err) => {
+            console.warn("Gelen istekler okuma uyarısı:", err);
+            reqContainer.innerHTML = `<div class="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">📩 Henüz bu ilana katılma isteği gönderilmedi.</div>`;
         });
     } else {
         if (!user) {
