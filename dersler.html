@@ -29,11 +29,18 @@
     <!-- MAIN CONTENT -->
     <main class="max-w-6xl mx-auto px-4 py-12 flex-grow w-full space-y-8">
         
-        <!-- ÜST BAŞLIK -->
+        <!-- ÜST BAŞLIK & DERS EKLEME PANELİ -->
         <div class="border-b border-slate-200 dark:border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight">Akademik Dersler & Eğitim Setleri</h1>
-                <p class="text-slate-500 text-xs mt-1">İçeriğine gitmek istediğiniz ders penceresine tıklayın.</p>
+                <p class="text-slate-500 text-xs mt-1">İçeriğine gitmek istediğiniz ders penceresine tıklayın veya topluluğa katkı sağlamak için yeni ders ekleyin.</p>
+            </div>
+
+            <!-- DERS & NOT EKLE BUTONU -->
+            <div id="academy-add-course-container" class="flex items-center gap-2">
+                <button type="button" onclick="handleAddCourseClick(event)" class="px-4 py-2 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer">
+                    <span>＋</span> Ders & Not Ekle
+                </button>
             </div>
         </div>
 
@@ -43,11 +50,13 @@
         </div>
     </main>
 
-    <!-- DERS EKLE / DÜZENLE MODAL (ADMIN) -->
+    <!-- DERS EKLE / DÜZENLE MODAL -->
     <div id="add-course-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h3 class="text-base font-bold" id="course-modal-title">➕ Yeni Ders Ekle</h3>
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2" id="course-modal-title">
+                    <span>➕</span> Yeni Ders & Not Ekle
+                </h3>
                 <button onclick="closeCourseModal()" class="text-slate-400 hover:text-white">✕</button>
             </div>
             
@@ -55,28 +64,34 @@
                 <input type="hidden" id="edit-course-id">
                 
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-slate-400">Ders Başlığı *</label>
-                    <input type="text" id="course-title" required placeholder="Örn: Mantık Devreleri Tasarımı" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Ders / Kurs Adı *</label>
+                    <input type="text" id="course-title" required placeholder="Örn: Sayısal Sinyal İşleme" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-slate-400">Ders Kodu / Kategori</label>
-                    <input type="text" id="course-code" placeholder="Örn: EEE-201 veya Genel Notlar" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">KOD / Kategori</label>
+                    <input type="text" id="course-code" placeholder="Örn: EEE-202 / Gömülü Sistemler" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-slate-400">İkon / Görsel (Emoji veya Görsel Linki)</label>
-                    <input type="text" id="course-icon" placeholder="Örn: ⚡ veya images/ders.png" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">İkon / Emoji</label>
+                    <input type="text" id="course-icon" placeholder="Örn: 📚 veya ⚡" value="📚" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold mb-1 text-slate-400">Kısa Açıklama</label>
-                    <textarea id="course-description" rows="3" placeholder="Ders içeriği hakkında kısa bilgi..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi resize-none"></textarea>
+                    <textarea id="course-description" rows="3" placeholder="Ders içeriği veya notlar hakkında kısa bilgi..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi resize-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Konu / İçerik Linki veya PDF Bağlantısı</label>
+                    <input type="url" id="course-content-url" placeholder="https://drive.google.com/... veya PDF linki" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
+                    <p class="text-[10px] text-slate-400 mt-1">Drive, GitHub veya PDF not bağlantısını ekleyebilirsiniz.</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                     <button type="button" onclick="closeCourseModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800">İptal</button>
-                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-tsBordo to-tsMavi text-white shadow-md">Kaydet</button>
+                    <button type="submit" id="save-course-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-tsBordo to-tsMavi text-white shadow-md hover:opacity-90 transition-opacity">Kaydet & Yayınla</button>
                 </div>
             </form>
         </div>

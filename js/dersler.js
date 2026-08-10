@@ -39,28 +39,47 @@ function renderAcademyUserPanel() {
 }
 
 // Dersleri Yükleme Fonksiyonu
+function handleAddCourseClick(e) {
+    if (e) e.preventDefault();
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    if (!user) {
+        if (typeof showToast === 'function') {
+            showToast("Ders & Not eklemek için lütfen önce giriş yapın!", "info");
+        } else {
+            alert("Ders & Not eklemek için lütfen önce giriş yapın!");
+        }
+        if (typeof openAuthModal === 'function') openAuthModal();
+        return;
+    }
+    openAddCourseModal();
+}
+
 function loadCourses() {
     const grid = document.getElementById('courses-grid');
     if (!grid) return;
 
     const renderCourseList = (coursesList) => {
+        const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
         const adminState = typeof isAdmin === 'function' && isAdmin();
         let html = "";
 
         coursesList.forEach((course) => {
             const courseId = course.id;
             const iconContent = typeof renderIcon === 'function' ? renderIcon(course.icon) : (course.icon || '⚡');
+            const canEdit = adminState || (user && course.authorUid === user.uid);
+            const targetUrl = course.contentUrl ? course.contentUrl : `ders-detay.html?id=${courseId}`;
+            const isExternal = course.contentUrl && (course.contentUrl.startsWith('http://') || course.contentUrl.startsWith('https://'));
 
             html += `
-                <div onclick="window.location.href='ders-detay.html?id=${courseId}'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                <div onclick="window.open('${targetUrl}', '${isExternal ? '_blank' : '_self'}')" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
                     
                     <!-- Sol Kenar Bordo-Mavi Geçiş Çizgisi -->
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
-                    ${adminState ? `
-                        <div class="absolute top-3 right-3 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation()">
-                            <button onclick="openEditCourseModal('${courseId}', '${(course.title||'').replace(/'/g, "\\'")}', '${course.code||''}', '${course.icon||''}', '${(course.description||'').replace(/'/g, "\\'")}')" class="text-xs text-yellow-400 hover:text-yellow-300 px-1">✏️</button>
-                            <button onclick="deleteCourse('${courseId}', '${(course.title||'').replace(/'/g, "\\'")}')" class="text-xs text-red-400 hover:text-red-300 px-1">🗑️</button>
+                    ${canEdit ? `
+                        <div class="absolute top-3 right-3 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation()">
+                            <button onclick="openEditCourseModal('${courseId}', '${(course.title||'').replace(/'/g, "\\'")}', '${(course.code||'').replace(/'/g, "\\'")}', '${(course.icon||'').replace(/'/g, "\\'")}', '${(course.description||'').replace(/'/g, "\\'")}', '${(course.contentUrl||'').replace(/'/g, "\\'")}', '${course.collectionName||'academy_courses'}')" class="text-xs text-yellow-400 hover:text-yellow-300 px-1">✏️</button>
+                            <button onclick="deleteCourse('${courseId}', '${(course.title||'').replace(/'/g, "\\'")}', '${course.collectionName||'academy_courses'}')" class="text-xs text-red-400 hover:text-red-300 px-1">🗑️</button>
                         </div>
                     ` : ''}
 
@@ -75,7 +94,10 @@ function loadCourses() {
 
                     <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
                         <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            İçeriği İncele (<span id="topic-count-${courseId}">...</span>) →
+                            ${course.contentUrl ? 'İçeriği Aç / İndir ↗' : 'İçeriği İncele (<span id="topic-count-' + courseId + '">...</span>) →'}
+                        </span>
+                        <span class="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                            👤 ${course.authorName || 'Mali Academy'}
                         </span>
                     </div>
                 </div>
@@ -84,13 +106,15 @@ function loadCourses() {
 
         grid.innerHTML = html;
 
-        // Her ders için konu ve video sayısını Firestore'dan canlı takip et
+        // Her ders için konu ve video sayısını canlı takip et
         coursesList.forEach((course) => {
+            if (course.contentUrl) return;
             const courseId = course.id;
             const countEl = document.getElementById(`topic-count-${courseId}`);
 
             if (typeof db !== 'undefined') {
-                db.collection("courses").doc(courseId).collection("topics").onSnapshot((topicsSnap) => {
+                const targetColl = course.collectionName || "courses";
+                db.collection(targetColl).doc(courseId).collection("topics").onSnapshot((topicsSnap) => {
                     let count = topicsSnap.size;
                     if (count === 0 && courseId === 'systemverilog-kursu' && typeof SYSTEMVERILOG_TOPICS !== 'undefined') {
                         count = SYSTEMVERILOG_TOPICS.length;
@@ -98,7 +122,7 @@ function loadCourses() {
                     if (countEl) {
                         countEl.innerText = `${count} Konu & Video`;
                     }
-                }, (err) => {
+                }, () => {
                     let fallbackCount = (courseId === 'systemverilog-kursu' && typeof SYSTEMVERILOG_TOPICS !== 'undefined') ? SYSTEMVERILOG_TOPICS.length : 0;
                     if (countEl) {
                         countEl.innerText = `${fallbackCount} Konu & Video`;
@@ -114,27 +138,35 @@ function loadCourses() {
     };
 
     if (typeof db !== 'undefined') {
-        db.collection("courses").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-            let courses = [];
-            if (!snapshot.empty) {
-                snapshot.docs.forEach((doc) => {
-                    courses.push({ id: doc.id, ...doc.data() });
-                });
-            }
-            
-            if (courses.length === 0 && typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined') {
-                courses = [SYSTEMVERILOG_COURSE_DATA];
-            }
+        const fetchCourses = () => {
+            Promise.all([
+                db.collection("academy_courses").get().catch(() => ({ docs: [] })),
+                db.collection("courses").get().catch(() => ({ docs: [] }))
+            ]).then(([academySnap, coursesSnap]) => {
+                let courses = [];
+                const courseIds = new Set();
 
-            renderCourseList(courses);
-        }, (err) => {
-            console.warn("Firestore çekme hatası, varsayılan dersler yükleniyor:", err);
-            if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined') {
-                renderCourseList([SYSTEMVERILOG_COURSE_DATA]);
-            } else {
-                grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-500 text-xs">Veri yükleme hatası: ${err.message}</div>`;
-            }
-        });
+                academySnap.docs.forEach(doc => {
+                    courses.push({ id: doc.id, collectionName: 'academy_courses', ...doc.data() });
+                    courseIds.add(doc.id);
+                });
+
+                coursesSnap.docs.forEach(doc => {
+                    if (!courseIds.has(doc.id)) {
+                        courses.push({ id: doc.id, collectionName: 'courses', ...doc.data() });
+                    }
+                });
+
+                if (courses.length === 0 && typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined') {
+                    courses = [SYSTEMVERILOG_COURSE_DATA];
+                }
+
+                renderCourseList(courses);
+            });
+        };
+
+        db.collection("academy_courses").onSnapshot(() => fetchCourses(), () => fetchCourses());
+        db.collection("courses").onSnapshot(() => fetchCourses(), () => fetchCourses());
     } else if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined') {
         renderCourseList([SYSTEMVERILOG_COURSE_DATA]);
     }
@@ -142,22 +174,45 @@ function loadCourses() {
 
 // Modal Yönetimi
 function openAddCourseModal() {
-    document.getElementById('edit-course-id').value = '';
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    if (!user) {
+        if (typeof showToast === 'function') showToast("Ders eklemek için lütfen giriş yapın!", "info");
+        if (typeof openAuthModal === 'function') openAuthModal();
+        return;
+    }
+    const editInput = document.getElementById('edit-course-id');
+    if (editInput) editInput.value = '';
     const form = document.getElementById('add-course-form');
     if (form) form.reset();
     const modalTitle = document.getElementById('course-modal-title');
-    if (modalTitle) modalTitle.innerText = "➕ Yeni Ders Ekle";
+    if (modalTitle) modalTitle.innerHTML = "<span>➕</span> Yeni Ders & Not Ekle";
     const modal = document.getElementById('add-course-modal');
     if (modal) modal.classList.remove('hidden');
 }
 
-function openEditCourseModal(id, title, code, icon, description) {
-    document.getElementById('edit-course-id').value = id;
+function openEditCourseModal(id, title, code, icon, description, contentUrl = '', collectionName = 'academy_courses') {
+    const editInput = document.getElementById('edit-course-id');
+    if (editInput) editInput.value = id;
+
+    let collInput = document.getElementById('edit-course-collection');
+    if (!collInput) {
+        collInput = document.createElement('input');
+        collInput.type = 'hidden';
+        collInput.id = 'edit-course-collection';
+        document.getElementById('add-course-form').appendChild(collInput);
+    }
+    collInput.value = collectionName;
+
     document.getElementById('course-title').value = title;
     document.getElementById('course-code').value = code;
     document.getElementById('course-icon').value = icon;
     document.getElementById('course-description').value = description;
-    document.getElementById('course-modal-title').innerText = "✏️ Dersi Düzenle";
+
+    const contentUrlInput = document.getElementById('course-content-url');
+    if (contentUrlInput) contentUrlInput.value = contentUrl;
+
+    const modalTitle = document.getElementById('course-modal-title');
+    if (modalTitle) modalTitle.innerHTML = "<span>✏️</span> Dersi Düzenle";
     document.getElementById('add-course-modal').classList.remove('hidden');
 }
 
@@ -166,14 +221,22 @@ function closeCourseModal() {
     if (modal) modal.classList.add('hidden');
     const form = document.getElementById('add-course-form');
     if (form) form.reset();
-    document.getElementById('edit-course-id').value = '';
+    const editInput = document.getElementById('edit-course-id');
+    if (editInput) editInput.value = '';
 }
 
-function deleteCourse(id, title) {
-    if (typeof isAdmin === 'function' && !isAdmin()) return;
-    if (confirm(`"${title}" dersini ve tüm alt konularını silmek istediğinize emin misiniz?`)) {
+function deleteCourse(id, title, collectionName = 'academy_courses') {
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    const adminState = typeof isAdmin === 'function' && isAdmin();
+    if (!user && !adminState) return;
+
+    if (confirm(`"${title}" ders notunu silmek istediğinize emin misiniz?`)) {
         if (typeof db !== 'undefined') {
-            db.collection("courses").doc(id).delete();
+            db.collection(collectionName).doc(id).delete().then(() => {
+                if (typeof showToast === 'function') showToast("🗑️ Ders silindi.", "info");
+            }).catch(() => {
+                db.collection("courses").doc(id).delete();
+            });
         }
     }
 }
@@ -196,23 +259,66 @@ document.addEventListener('DOMContentLoaded', () => {
     if (courseForm) {
         courseForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            if (typeof isAdmin === 'function' && !isAdmin()) return;
+            const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+            const adminState = typeof isAdmin === 'function' && isAdmin();
+
+            if (!user && !adminState) {
+                if (typeof showToast === 'function') showToast("Ders eklemek için lütfen giriş yapın!", "warning");
+                return;
+            }
 
             const editId = document.getElementById('edit-course-id').value;
+            const collName = document.getElementById('edit-course-collection')?.value || "academy_courses";
             const title = document.getElementById('course-title').value.trim();
             const code = document.getElementById('course-code').value.trim();
-            const icon = document.getElementById('course-icon').value.trim();
+            const icon = document.getElementById('course-icon').value.trim() || '📚';
             const description = document.getElementById('course-description').value.trim();
+            const contentUrlInput = document.getElementById('course-content-url');
+            const contentUrl = contentUrlInput ? contentUrlInput.value.trim() : '';
+
+            const authorName = user ? (user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı')) : 'Yönetici';
+            const authorUid = user ? user.uid : 'admin';
+
+            const saveBtn = document.getElementById('save-course-btn');
+            if (saveBtn) saveBtn.innerText = "Kaydediliyor...";
+
+            const coursePayload = {
+                title,
+                code,
+                icon,
+                description,
+                contentUrl,
+                authorName,
+                authorUid,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
             if (editId) {
-                db.collection("courses").doc(editId).update({
-                    title, code, icon, description
-                }).then(() => closeCourseModal());
+                db.collection(collName).doc(editId).update(coursePayload).then(() => {
+                    if (typeof showToast === 'function') showToast("✅ Ders başarıyla güncellendi!", "success");
+                    closeCourseModal();
+                }).catch(() => {
+                    db.collection("courses").doc(editId).update(coursePayload).then(() => {
+                        if (typeof showToast === 'function') showToast("✅ Ders başarıyla güncellendi!", "success");
+                        closeCourseModal();
+                    });
+                }).finally(() => {
+                    if (saveBtn) saveBtn.innerText = "Kaydet & Yayınla";
+                });
             } else {
-                db.collection("courses").add({
-                    title, code, icon, description,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => closeCourseModal());
+                coursePayload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                db.collection("academy_courses").add(coursePayload).then(() => {
+                    if (typeof showToast === 'function') showToast("✅ Ders & Not başarıyla eklendi!", "success");
+                    closeCourseModal();
+                }).catch(err => {
+                    console.warn("academy_courses yazma uyarısı, courses deneniyor:", err);
+                    db.collection("courses").add(coursePayload).then(() => {
+                        if (typeof showToast === 'function') showToast("✅ Ders & Not başarıyla eklendi!", "success");
+                        closeCourseModal();
+                    });
+                }).finally(() => {
+                    if (saveBtn) saveBtn.innerText = "Kaydet & Yayınla";
+                });
             }
         });
     }
