@@ -488,6 +488,14 @@ function deleteAnnouncement(announcementId) {
 document.addEventListener('DOMContentLoaded', () => {
     loadAnnouncements();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetGroupId = urlParams.get('groupId');
+    if (targetGroupId) {
+        setTimeout(() => {
+            openCreateAnnouncementModal(targetGroupId);
+        }, 400);
+    }
+
     const createForm = document.getElementById('announcement-create-form');
     if (createForm) {
         createForm.addEventListener('submit', function(e) {
@@ -499,15 +507,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const groupSelect = document.getElementById('announcement-project-group');
+            const selectedOpt = groupSelect ? groupSelect.options[groupSelect.selectedIndex] : null;
+            const groupId = groupSelect ? groupSelect.value : 'custom';
+            const groupName = (selectedOpt && selectedOpt.hasAttribute('data-name')) ? selectedOpt.getAttribute('data-name') : (document.getElementById('announcement-title').value.trim());
+
             const category = document.getElementById('announcement-category').value;
             const title = document.getElementById('announcement-title').value.trim();
             const description = document.getElementById('announcement-description').value.trim();
-            const inviteLink = document.getElementById('announcement-invite-link').value.trim();
+            const inviteLink = document.getElementById('announcement-invite-link') ? document.getElementById('announcement-invite-link').value.trim() : '';
 
             const submitBtn = document.getElementById('create-announcement-submit-btn');
             if (submitBtn) submitBtn.innerText = "Yayınlanıyor...";
 
             db.collection("announcements").add({
+                groupId: groupId || 'custom',
+                groupName: groupName || title,
                 category: category,
                 title: title,
                 description: description,
@@ -518,8 +533,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(() => {
                 if (typeof showToast === 'function') showToast("🎉 İlanınız başarıyla yayınlandı!", "success");
                 closeCreateAnnouncementModal();
+                loadAnnouncements();
             }).catch(err => {
-                alert("İlan eklenirken hata oluştu: " + err.message);
+                if (typeof showToast === 'function') showToast("İlan eklenirken hata oluştu: " + err.message, "error");
+                else alert("İlan eklenirken hata oluştu: " + err.message);
             }).finally(() => {
                 if (submitBtn) submitBtn.innerText = "İlanı Yayınla";
             });

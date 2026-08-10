@@ -768,6 +768,16 @@ function renderOverviewTab(container) {
                     <div class="space-y-3">
                         ${membersHTML}
                     </div>
+
+                    <!-- KATILIMCI EKLE & İLAN VER BUTONLARI -->
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+                        <button onclick="openAddParticipantModal()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5">
+                            <span>＋</span> Yeni Katılımcı Ekle
+                        </button>
+                        <a href="ilan-panosu.html?groupId=${groupId}" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-xs hover:border-tsMavi transition-colors flex items-center justify-center gap-1.5">
+                            <span>📌</span> İlan Ver
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -5367,10 +5377,42 @@ function checkAndPurgeExpiredArchives() {
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAndPurgeExpiredArchives);
-} else {
-    checkAndPurgeExpiredArchives();
+function openAddParticipantModal() {
+    const modal = document.getElementById('add-participant-modal');
+    if (!modal) return;
+
+    const codeEl = document.getElementById('participant-invite-code');
+    const linkEl = document.getElementById('participant-invite-link');
+
+    const code = (currentGroup && (currentGroup.inviteCode || currentGroup.code)) ? (currentGroup.inviteCode || currentGroup.code) : 'MP-8950';
+    const link = `${window.location.origin}/proje-gruplari.html?code=${code}`;
+
+    if (codeEl) codeEl.innerText = code;
+    if (linkEl) linkEl.innerText = link;
+
+    modal.classList.remove('hidden');
+}
+
+function closeAddParticipantModal() {
+    const modal = document.getElementById('add-participant-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copyParticipantCode() {
+    const code = (currentGroup && (currentGroup.inviteCode || currentGroup.code)) ? (currentGroup.inviteCode || currentGroup.code) : 'MP-8950';
+    navigator.clipboard.writeText(code).then(() => {
+        if (typeof showToast === 'function') showToast("📋 Davet Kodu Kopyalandı!", "success");
+        else alert("📋 Davet Kodu Kopyalandı!");
+    });
+}
+
+function copyParticipantLink() {
+    const code = (currentGroup && (currentGroup.inviteCode || currentGroup.code)) ? (currentGroup.inviteCode || currentGroup.code) : 'MP-8950';
+    const link = `${window.location.origin}/proje-gruplari.html?code=${code}`;
+    navigator.clipboard.writeText(link).then(() => {
+        if (typeof showToast === 'function') showToast("🔗 Davet Bağlantısı Kopyalandı!", "success");
+        else alert("🔗 Davet Bağlantısı Kopyalandı!");
+    });
 }
 
 

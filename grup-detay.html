@@ -52,6 +52,52 @@
 
     </main>
 
+    <!-- MODAL: YENİ KATILIMCI EKLE / DAVET KODU & LINKI -->
+    <div id="add-participant-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <span>👥</span> Yeni Katılımcı / Üye Ekle
+                </h3>
+                <button onclick="closeAddParticipantModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <p class="text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Takım arkadaşlarınızı bu gruba davet etmek için özel davet kodunu veya katılım bağlantısını paylaşın:
+                </p>
+
+                <!-- DAVET KODU -->
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <label class="block font-semibold text-slate-400 text-[11px]">🔑 Özel Davet Kodu</label>
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="participant-invite-code" class="font-mono text-sm font-extrabold text-tsMavi tracking-wider">MP-8950</span>
+                        <button onclick="copyParticipantCode()" class="px-3.5 py-1.5 rounded-xl bg-tsMavi text-white font-bold text-xs shadow hover:opacity-90 transition-all flex items-center gap-1">
+                            📋 Kopyala
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KATILIM BAĞLANTI LİNKİ -->
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <label class="block font-semibold text-slate-400 text-[11px]">🔗 Doğrudan Katılım Linki</label>
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="participant-invite-link" class="font-mono text-[11px] truncate text-slate-600 dark:text-slate-300 max-w-[200px]">https://...</span>
+                        <button onclick="copyParticipantLink()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow hover:opacity-90 transition-all flex items-center gap-1 shrink-0">
+                            🔗 Linki Kopyala
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button onclick="closeAddParticipantModal()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                    Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: YENİ GÖREV EKLE -->
     <div id="add-task-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
