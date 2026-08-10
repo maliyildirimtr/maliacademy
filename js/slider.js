@@ -103,18 +103,8 @@ function initHeroSlider() {
 
 // 3 VARSAYILAN KARTIN FIRESTORE'DA OLDUĞUNU KONTROL ET VE OTOMATİK DÜZELT
 function ensureDefaultCardsInFirestore() {
-    if (typeof db === 'undefined' || !db || !db.collection) return;
-    
-    const batch = db.batch();
-    DEFAULT_INITIAL_CARDS.forEach((card, index) => {
-        const ref = db.collection("announcements").doc(`system-card-${index}`);
-        batch.set(ref, {
-            ...card,
-            isProtected: true,
-            createdAt: new Date(1700000000000 + index * 1000).toISOString()
-        }, { merge: true });
-    });
-    batch.commit().catch(err => console.error("Otomatik seed hatası:", err));
+    // Statik kartların veritabanını kirletmemesi için otomatik seed devre dışı bırakıldı
+    return;
 }
 
 // MANÜEL VARSAYILAN KARTLARI GERİ YÜKLEME

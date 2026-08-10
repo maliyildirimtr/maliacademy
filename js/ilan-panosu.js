@@ -123,11 +123,27 @@ function loadAnnouncements() {
     if (typeof db !== 'undefined' && db) {
         db.collection("announcements").onSnapshot((snapshot) => {
             if (!snapshot || snapshot.empty) {
-                renderSampleAnnouncements(grid);
+                renderEmptyState(grid);
                 return;
             }
 
-            let items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let rawItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Delete legacy system-card entries from Firestore announcements collection
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (doc.id.startsWith('system-card-') || data.isProtected || (data.title && (data.title.includes('Mantıksal Devre Tasarımı') || data.title.includes('Açık Kaynak Mühendislik')))) {
+                    db.collection("announcements").doc(doc.id).delete().catch(() => {});
+                }
+            });
+
+            // Filter out system cards and mock items
+            let items = rawItems.filter(item => {
+                if (item.id.startsWith('system-card-') || item.isProtected) return false;
+                const t = (item.title || '').toLowerCase();
+                if (t.includes('mantıksal devre tasarımı') || t.includes('açık kaynak mühendislik') || t === 'aaaa' || t === 'aaa') return false;
+                return true;
+            });
             
             // Client-side sort by timestamp/createdAt
             items.sort((a, b) => {
@@ -135,6 +151,11 @@ function loadAnnouncements() {
                 const tB = b.createdAt && typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : (b.createdAt && b.createdAt.seconds ? b.createdAt.seconds * 1000 : 0);
                 return tB - tA;
             });
+
+            if (items.length === 0) {
+                renderEmptyState(grid);
+                return;
+            }
 
             let html = "";
             items.forEach((item) => {
