@@ -68,7 +68,9 @@ function renderCourseUI(course) {
     const container = document.getElementById('course-detail-container');
     if (!container) return;
 
-    const loggedIn = typeof isAdmin === 'function' && isAdmin();
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    const adminState = typeof isAdmin === 'function' && isAdmin();
+    const canEditCourse = adminState || (user && course.authorUid === user.uid);
     const iconStr = typeof renderIcon === 'function' ? renderIcon(course.icon) : (course.icon || '⚡');
 
     container.innerHTML = `
@@ -80,10 +82,11 @@ function renderCourseUI(course) {
                 <div>
                     <h1 class="text-3xl font-extrabold tracking-tight">${course.title}</h1>
                     <p class="text-slate-500 text-xs mt-1 font-mono">${course.code || 'Genel Notlar'}</p>
+                    ${course.authorName ? `<p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">👤 Ekleyen: <span class="font-bold text-slate-300">${course.authorName}</span></p>` : ''}
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                ${loggedIn ? `
+                ${canEditCourse ? `
                     <button onclick="openTopicModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-semibold shadow-md flex items-center gap-1.5">
                         <span>＋</span> Yeni Konu Ekle
                     </button>
@@ -108,10 +111,10 @@ function renderCourseUI(course) {
             </div>
         </div>
     `;
-    loadTopics();
+    loadTopics(canEditCourse);
 }
 
-function renderTopicsGrid(topicsList) {
+function renderTopicsGrid(topicsList, canEditCourse = false) {
     const topicsGrid = document.getElementById('topics-grid');
     if (!topicsGrid) return;
 
@@ -125,7 +128,6 @@ function renderTopicsGrid(topicsList) {
     fetchUserProgressAndRenderBar(totalTopics);
 
     let html = "";
-    const loggedIn = typeof isAdmin === 'function' && isAdmin();
 
     topicsList.forEach((topic, index) => {
         const topicId = topic.id;
@@ -136,8 +138,8 @@ function renderTopicsGrid(topicsList) {
         html += `
             <a href="konu-detay.html?courseId=${courseId}&topicId=${topicId}" class="group relative rounded-2xl border ${isCompleted ? 'border-emerald-500/50 dark:border-emerald-500/40' : 'border-slate-200 dark:border-slate-800'} bg-white dark:bg-slate-900/60 overflow-hidden hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer">
                 
-                ${loggedIn ? `
-                    <div class="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.preventDefault(); event.stopPropagation();">
+                ${canEditCourse ? `
+                    <div class="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.preventDefault(); event.stopPropagation();">
                         ${index > 0 ? `<button onclick="moveTopic('${topicId}', ${topic.orderIndex}, ${topicsList[index-1].orderIndex}, '${topicsList[index-1].id}')" title="Yukarı Taşı" class="text-xs text-white hover:text-tsMavi px-1">⬅</button>` : ''}
                         ${index < topicsList.length - 1 ? `<button onclick="moveTopic('${topicId}', ${topic.orderIndex}, ${topicsList[index+1].orderIndex}, '${topicsList[index+1].id}')" title="Aşağı Taşı" class="text-xs text-white hover:text-tsMavi px-1">➡</button>` : ''}
                         <button onclick="openTopicModal('${topicId}', '${(topic.title||'').replace(/'/g, "\\'")}', '${topic.videoUrl || ''}')" title="Düzenle" class="text-xs text-yellow-400 hover:text-yellow-300 px-1">✏️</button>
@@ -179,28 +181,41 @@ function renderTopicsGrid(topicsList) {
     topicsGrid.innerHTML = html;
 }
 
-function loadTopics() {
+function loadTopics(canEditCourse = false) {
     if (typeof db !== 'undefined') {
-        db.collection("courses").doc(courseId).collection("topics").orderBy("orderIndex", "asc").onSnapshot((snapshot) => {
-            let topics = [];
-            if (!snapshot.empty) {
-                snapshot.docs.forEach((doc) => {
-                    topics.push({ id: doc.id, ...doc.data() });
-                });
-            }
+        const fetchTopics = (collName) => {
+            db.collection(collName).doc(courseId).collection("topics").orderBy("orderIndex", "asc").onSnapshot((snapshot) => {
+                let topics = [];
+                if (!snapshot.empty) {
+                    snapshot.docs.forEach((doc) => {
+                        topics.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+                if (topics.length > 0) {
+                    renderTopicsGrid(topics, canEditCourse);
+                } else {
+                    if (collName === 'academy_courses') {
+                        fetchTopics('courses');
+                    } else {
+                        if (typeof SYSTEMVERILOG_TOPICS !== 'undefined' && courseId === 'systemverilog-kursu') {
+                            renderTopicsGrid(SYSTEMVERILOG_TOPICS, canEditCourse);
+                        } else {
+                            renderTopicsGrid([], canEditCourse);
+                        }
+                    }
+                }
+            }, () => {
+                if (collName === 'academy_courses') {
+                    fetchTopics('courses');
+                } else if (typeof SYSTEMVERILOG_TOPICS !== 'undefined' && courseId === 'systemverilog-kursu') {
+                    renderTopicsGrid(SYSTEMVERILOG_TOPICS, canEditCourse);
+                }
+            });
+        };
 
-            if (topics.length === 0 && typeof SYSTEMVERILOG_TOPICS !== 'undefined' && courseId === 'systemverilog-kursu') {
-                topics = SYSTEMVERILOG_TOPICS;
-            }
-
-            renderTopicsGrid(topics);
-        }, (err) => {
-            if (typeof SYSTEMVERILOG_TOPICS !== 'undefined' && courseId === 'systemverilog-kursu') {
-                renderTopicsGrid(SYSTEMVERILOG_TOPICS);
-            }
-        });
+        fetchTopics('academy_courses');
     } else if (typeof SYSTEMVERILOG_TOPICS !== 'undefined' && courseId === 'systemverilog-kursu') {
-        renderTopicsGrid(SYSTEMVERILOG_TOPICS);
+        renderTopicsGrid(SYSTEMVERILOG_TOPICS, canEditCourse);
     }
 }
 
@@ -229,13 +244,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (typeof db !== 'undefined') {
-        db.collection("courses").doc(courseId).get().then((doc) => {
+        db.collection("academy_courses").doc(courseId).get().then((doc) => {
             if (doc.exists) {
-                renderCourseUI(doc.data());
-            } else if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined' && courseId === 'systemverilog-kursu') {
-                renderCourseUI(SYSTEMVERILOG_COURSE_DATA);
+                renderCourseUI({ id: doc.id, collectionName: 'academy_courses', ...doc.data() });
             } else {
-                if (container) container.innerHTML = `<div class="text-center py-20 text-red-500">Ders bulunamadı!</div>`;
+                db.collection("courses").doc(courseId).get().then((doc2) => {
+                    if (doc2.exists) {
+                        renderCourseUI({ id: doc2.id, collectionName: 'courses', ...doc2.data() });
+                    } else if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined' && courseId === 'systemverilog-kursu') {
+                        renderCourseUI(SYSTEMVERILOG_COURSE_DATA);
+                    } else {
+                        if (container) container.innerHTML = `<div class="text-center py-20 text-red-500">Ders bulunamadı!</div>`;
+                    }
+                }).catch(() => {
+                    if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined' && courseId === 'systemverilog-kursu') {
+                        renderCourseUI(SYSTEMVERILOG_COURSE_DATA);
+                    }
+                });
             }
         }).catch(err => {
             if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined' && courseId === 'systemverilog-kursu') {
