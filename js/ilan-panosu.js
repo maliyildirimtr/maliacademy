@@ -11,7 +11,7 @@ function getCategoryBadgeClass(category) {
     }
 }
 
-function openCreateAnnouncementModal() {
+function openCreateAnnouncementModal(preselectedGroupId) {
     const user = typeof auth !== 'undefined' ? auth.currentUser : null;
     if (!user) {
         if (typeof showToast === 'function') showToast("İlan oluşturmak için lütfen önce giriş yapın!", "info");
@@ -23,78 +23,126 @@ function openCreateAnnouncementModal() {
     const noticeEl = document.getElementById('no-admin-group-notice');
     if (noticeEl) noticeEl.classList.add('hidden');
 
+    const targetGroupId = preselectedGroupId || new URLSearchParams(window.location.search).get('groupId');
+
     if (selectEl) {
         selectEl.innerHTML = `<option value="custom">⏳ Yönetici olduğunuz proje grupları yükleniyor...</option>`;
 
+        const groupMap = new Map();
+        const uid = user.uid;
+        const uEmail = (user.email || '').toLowerCase();
+        const uName = (user.displayName || (user.email ? user.email.split('@')[0] : '')).toLowerCase();
+
+        const isUserGroupAdmin = (data, gId) => {
+            if (!data) return false;
+
+            // 1. Doğrudan UID Alanları
+            if (data.leaderUid === uid || data.adminUid === uid || data.ownerUid === uid || data.authorUid === uid || data.creatorUid === uid) return true;
+
+            // 2. Lider Objeleri veya İsim Eşleşmesi
+            if (data.leader) {
+                if (typeof data.leader === 'object' && (data.leader.uid === uid || data.leader.id === uid)) return true;
+                if (typeof data.leader === 'string' && uName && data.leader.toLowerCase().includes(uName)) return true;
+            }
+
+            // 3. Rol Eşleşmesi
+            if (data.roles && typeof data.roles === 'object') {
+                const r = data.roles[uid];
+                if (r === 'admin' || r === 'owner' || r === 'co_admin' || r === 'moderator' || r === 'leader') return true;
+            }
+
+            // 4. Yönetici Yardımcısı / Moderatör Dizileri
+            if (Array.isArray(data.coAdmins) && data.coAdmins.includes(uid)) return true;
+            if (Array.isArray(data.moderators) && data.moderators.includes(uid)) return true;
+
+            // 5. Üyeler Dizisi Kontrolü (UID, E-posta veya İsim eşleşmesi + Rol)
+            if (Array.isArray(data.members)) {
+                const m = data.members.find(mem => 
+                    (mem.uid && mem.uid === uid) || 
+                    (mem.id && mem.id === uid) || 
+                    (mem.email && mem.email.toLowerCase() === uEmail) ||
+                    (mem.name && uName && mem.name.toLowerCase() === uName)
+                );
+                if (m) {
+                    const r = (m.role || '').toLowerCase();
+                    if (!r || r.includes('yönetici') || r.includes('lider') || r.includes('admin') || r.includes('kurucu') || r.includes('moderatör') || r.includes('co-admin') || data.members.length === 1) {
+                        return true;
+                    }
+                }
+            }
+
+            // 6. Özel Hedef Grup
+            if (targetGroupId && gId === targetGroupId) return true;
+
+            return false;
+        };
+
+        // 1. Aşama: LocalStorage & Ön Bellek Yerel Gruplarını Anında Taraması
+        try {
+            const locCreated = JSON.parse(localStorage.getItem('mali_created_groups') || '[]');
+            const locMy = JSON.parse(localStorage.getItem('mali_my_groups') || '[]');
+            const locAll = JSON.parse(localStorage.getItem('mali_all_groups') || '[]');
+            [...locCreated, ...locMy, ...locAll].forEach(g => {
+                if (g && g.id && isUserGroupAdmin(g, g.id)) {
+                    groupMap.set(g.id, g);
+                }
+            });
+        } catch(e) {}
+
+        if (typeof window.DEMO_GROUPS !== 'undefined' && Array.isArray(window.DEMO_GROUPS)) {
+            window.DEMO_GROUPS.forEach(g => {
+                if (g && g.id && isUserGroupAdmin(g, g.id)) {
+                    groupMap.set(g.id, g);
+                }
+            });
+        }
+
+        const renderDropdown = () => {
+            const adminGroups = Array.from(groupMap.values());
+
+            let optionsHTML = "";
+            if (adminGroups.length > 0) {
+                adminGroups.forEach((g, idx) => {
+                    const gName = g.name || g.title || 'Proje Grubu';
+                    const isSel = (targetGroupId && g.id === targetGroupId) || (!targetGroupId && idx === 0) ? 'selected' : '';
+                    optionsHTML += `<option value="${g.id}" data-name="${gName}" ${isSel}>👥 ${gName} (Yönetici)</option>`;
+                });
+                optionsHTML += `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                if (noticeEl) noticeEl.classList.add('hidden');
+            } else {
+                optionsHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
+                if (noticeEl) noticeEl.classList.remove('hidden');
+            }
+
+            selectEl.innerHTML = optionsHTML;
+            if (targetGroupId && groupMap.has(targetGroupId)) selectEl.value = targetGroupId;
+        };
+
+        // Yerel Verileri Anında Render Et
+        renderDropdown();
+
+        // 2. Aşama: Canlı Firestore `groups` ve `project_groups` Koleksiyonlarını Sorgula
         if (typeof db !== 'undefined' && db && db.collection) {
             const fetchP1 = db.collection("project_groups").get().catch(() => ({ docs: [] }));
             const fetchP2 = db.collection("groups").get().catch(() => ({ docs: [] }));
 
             Promise.all([fetchP1, fetchP2]).then(([snap1, snap2]) => {
-                const groupMap = new Map();
-                const uid = user.uid;
-
-                const filterAdminGroup = (doc) => {
-                    const data = doc.data();
-                    if (!data) return false;
-
-                    // 1. Kurucu / Yönetici / Lider Kontrolü (adminUid, ownerUid, authorUid, leaderUid, leader.uid, roles[uid] === 'admin')
-                    const isCreator = (data.adminUid === uid) || (data.ownerUid === uid) || (data.authorUid === uid) || (data.leaderUid === uid) || (data.leader && data.leader.uid === uid);
-                    const hasAdminRole = data.roles && (data.roles[uid] === 'admin' || data.roles[uid] === 'owner');
-
-                    // 2. Yönetici Yardımcısı / Moderatör Kontrolü (coAdmins, moderators dizileri veya roles[uid] === 'co_admin')
-                    const isCoAdmin = (Array.isArray(data.coAdmins) && data.coAdmins.includes(uid)) || 
-                                      (Array.isArray(data.moderators) && data.moderators.includes(uid)) ||
-                                      (data.roles && (data.roles[uid] === 'co_admin' || data.roles[uid] === 'moderator'));
-
-                    // 3. Üyeler dizisindeki rol kontrolü (Yönetici, Lider, Yönetici Yardımcısı)
-                    let isMemberAdmin = false;
-                    if (Array.isArray(data.members)) {
-                        const m = data.members.find(mem => mem.uid === uid || mem.id === uid);
-                        if (m && (m.role === 'Yönetici' || m.role === 'Lider' || m.role === 'Yönetici Yardımcısı' || m.role === 'Admin' || m.role === 'Co-Admin')) {
-                            isMemberAdmin = true;
-                        }
-                    }
-
-                    return isCreator || hasAdminRole || isCoAdmin || isMemberAdmin;
-                };
-
                 if (snap1 && snap1.docs) {
                     snap1.docs.forEach(d => {
-                        if (filterAdminGroup(d)) groupMap.set(d.id, { id: d.id, ...d.data() });
+                        const data = d.data();
+                        if (isUserGroupAdmin(data, d.id)) groupMap.set(d.id, { id: d.id, ...data });
                     });
                 }
                 if (snap2 && snap2.docs) {
                     snap2.docs.forEach(d => {
-                        if (filterAdminGroup(d)) groupMap.set(d.id, { id: d.id, ...d.data() });
+                        const data = d.data();
+                        if (isUserGroupAdmin(data, d.id)) groupMap.set(d.id, { id: d.id, ...data });
                     });
                 }
-
-                const adminGroups = Array.from(groupMap.values());
-
-                let optionsHTML = "";
-                if (adminGroups.length > 0) {
-                    adminGroups.forEach((g, idx) => {
-                        const gName = g.name || g.title || 'Proje Grubu';
-                        const isSel = (targetGroupId && g.id === targetGroupId) || (!targetGroupId && idx === 0) ? 'selected' : '';
-                        optionsHTML += `<option value="${g.id}" data-name="${gName}" ${isSel}>👥 ${gName} (Yönetici)</option>`;
-                    });
-                    optionsHTML += `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
-                    if (noticeEl) noticeEl.classList.add('hidden');
-                } else {
-                    optionsHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
-                    if (noticeEl) noticeEl.classList.remove('hidden');
-                }
-
-                selectEl.innerHTML = optionsHTML;
-                if (targetGroupId) selectEl.value = targetGroupId;
+                renderDropdown();
             }).catch(() => {
-                selectEl.innerHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
-                if (noticeEl) noticeEl.classList.remove('hidden');
+                renderDropdown();
             });
-        } else {
-            selectEl.innerHTML = `<option value="custom" selected>＋ Özel / Bağımsız İlan Grubu</option>`;
-            if (noticeEl) noticeEl.classList.remove('hidden');
         }
     }
 
