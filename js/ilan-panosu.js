@@ -128,61 +128,32 @@ function loadAnnouncements() {
                 openAnnouncementDetailModal(targetId);
             }
         }, (err) => {
-            console.warn("Firestore announcements okuma uyarısı, örnek ilanlar yükleniyor:", err);
-            renderSampleAnnouncements(grid);
+            console.warn("Firestore announcements okuma uyarısı:", err);
+            renderEmptyState(grid);
         });
     } else {
-        renderSampleAnnouncements(grid);
+        renderEmptyState(grid);
     }
 }
 
-function renderSampleAnnouncements(grid) {
-    const samples = [
-        {
-            id: 'sample-1',
-            category: 'TEKNOFEST 2026',
-            title: 'Döner Kanat İHA - Gömülü Yazılım & Otonom Kontrol',
-            description: 'Sürü İHA ve görüntü işleme entegrasyonu için STM32 & C++ bilen takım arkadaşı arıyoruz. Bütçe ve sponsorluk hazır.',
-            authorName: 'Mehmet Ali Yıldırım',
-            createdAt: null
-        },
-        {
-            id: 'sample-2',
-            category: 'Bitirme Projesi',
-            title: 'FPGA Tabanlı RISC-V İşlemci Tasarımı',
-            description: 'SystemVerilog ve Vivado tecrübesi olan bitirme projesi ekip arkadaşı aranıyor. Donanım doğrulama ve testbench hazırlığı üzerine çalışılacak.',
-            authorName: 'Ahmet Yılmaz',
-            createdAt: null
-        },
-        {
-            id: 'sample-3',
-            category: 'Çalışma Grubu',
-            title: 'İşaretler ve Sistemler Final Sınav Kampı',
-            description: 'Haftalık 2 oturum Discord soru çözüm grubu. Laplace & Fourier dönüşümleri çıkmış vize final soru çözümü yapılacaktır.',
-            authorName: 'Caner Öztürk',
-            createdAt: null
-        }
-    ];
-
-    grid.innerHTML = samples.map(item => `
-        <div onclick="openAnnouncementDetailModal('${item.id}')" class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 relative overflow-hidden cursor-pointer group">
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded-lg border text-xs font-bold ${getCategoryBadgeClass(item.category)}">${item.category}</span>
-                    <span class="text-[11px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded font-mono">Örnek İlan</span>
-                </div>
-                <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">${item.title}</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">${item.description}</p>
-                </div>
+function renderEmptyState(grid) {
+    if (!grid) return;
+    grid.innerHTML = `
+        <div class="col-span-full py-16 px-6 text-center space-y-4 max-w-md mx-auto">
+            <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-3xl flex items-center justify-center mx-auto text-slate-400 shadow-inner">
+                📢
             </div>
-
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                <span class="text-slate-400 font-mono">👤 ${item.authorName}</span>
-                <span class="font-bold text-tsMavi group-hover:translate-x-1 transition-transform">İncele & Katıl →</span>
+            <div class="space-y-1">
+                <h4 class="font-bold text-base text-slate-800 dark:text-slate-200">Henüz yayınlanmış bir ilan bulunmuyor.</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">İlk ilanı siz oluşturun, takım arkadaşlarınızı bulun ve projenizi hayata geçirin!</p>
+            </div>
+            <div>
+                <button onclick="openCreateAnnouncementModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-1.5">
+                    <span>＋</span> İlk İlanı Siz Oluşturun
+                </button>
             </div>
         </div>
-    `).join('');
+    `;
 }
 
 function openAnnouncementDetailModal(announcementId) {
