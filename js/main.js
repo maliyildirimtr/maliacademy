@@ -713,22 +713,45 @@ function handleNotificationResponse(notificationId, announcementId, senderUid, a
         }
 
         if (action === 'accepted') {
+            const memberObj = {
+                uid: senderUid,
+                name: nData.senderName || 'Kullanıcı',
+                photo: nData.senderPhoto || '',
+                role: 'Üye',
+                joinedAt: new Date().toISOString()
+            };
+
+            const targetGroupId = nData.groupId || null;
+            if (targetGroupId && targetGroupId !== 'custom') {
+                db.collection("project_groups").doc(targetGroupId).update({
+                    members: firebase.firestore.FieldValue.arrayUnion(memberObj),
+                    membersCount: firebase.firestore.FieldValue.increment(1)
+                }).catch(() => {
+                    db.collection("groups").doc(targetGroupId).update({
+                        members: firebase.firestore.FieldValue.arrayUnion(memberObj),
+                        membersCount: firebase.firestore.FieldValue.increment(1)
+                    }).catch(() => {});
+                });
+            }
+
             db.collection("announcements").doc(announcementId).get().then(adoc => {
                 const aData = adoc.exists ? adoc.data() : {};
                 const inviteLink = aData.inviteLink || '';
-                const annTitle = nData.announcementTitle || aData.title || 'İlan';
+                const displayGrpName = nData.groupName || aData.groupName || nData.announcementTitle || 'Grubunuz';
 
                 db.collection("notifications").add({
                     announcementId: announcementId,
-                    announcementTitle: annTitle,
+                    groupId: targetGroupId || 'custom',
+                    groupName: displayGrpName,
+                    announcementTitle: aData.title || nData.announcementTitle || 'İlan',
                     targetUserUid: senderUid,
                     senderUid: auth.currentUser.uid,
-                    message: `'${annTitle}' grubuna katılım isteğiniz kabul edildi! Katılım Linkiniz: ${inviteLink || 'Profil detaylarınız üzerinden iletişim kurulacaktır.'}`,
+                    message: `'${displayGrpName}' grubuna katılım isteğiniz kabul edildi! Gruba üye olarak eklendiniz.${inviteLink ? ' Katılım Linkiniz: ' + inviteLink : ''}`,
                     inviteLink: inviteLink,
                     status: 'accepted',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(() => {
-                    if (typeof showToast === 'function') showToast("✓ Katılma isteği kabul edildi!", "success");
+                    if (typeof showToast === 'function') showToast("✓ Katılma isteği kabul edildi ve üye gruba eklendi!", "success");
                 });
             });
         } else if (action === 'rejected') {

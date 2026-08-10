@@ -18,6 +18,37 @@ function openCreateAnnouncementModal() {
         if (typeof openAuthModal === 'function') openAuthModal();
         return;
     }
+
+    const selectEl = document.getElementById('announcement-project-group');
+    if (selectEl) {
+        selectEl.innerHTML = `<option value="">⏳ Proje gruplarınız yükleniyor...</option>`;
+
+        if (typeof db !== 'undefined' && db && db.collection) {
+            const fetchP1 = db.collection("project_groups").where("authorUid", "==", user.uid).get().catch(() => ({ docs: [] }));
+            const fetchP2 = db.collection("groups").where("authorUid", "==", user.uid).get().catch(() => ({ docs: [] }));
+
+            Promise.all([fetchP1, fetchP2]).then(([snap1, snap2]) => {
+                const groupMap = new Map();
+                if (snap1 && snap1.docs) snap1.docs.forEach(d => groupMap.set(d.id, { id: d.id, ...d.data() }));
+                if (snap2 && snap2.docs) snap2.docs.forEach(d => groupMap.set(d.id, { id: d.id, ...d.data() }));
+
+                const foundGroups = Array.from(groupMap.values());
+
+                let optionsHTML = "";
+                if (foundGroups.length > 0) {
+                    foundGroups.forEach(g => {
+                        const gName = g.name || g.title || 'Proje Grubu';
+                        optionsHTML += `<option value="${g.id}" data-name="${gName}">👥 ${gName}</option>`;
+                    });
+                }
+                optionsHTML += `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+                selectEl.innerHTML = optionsHTML;
+            });
+        } else {
+            selectEl.innerHTML = `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
+        }
+    }
+
     const modal = document.getElementById('announcement-create-modal');
     if (modal) modal.classList.remove('hidden');
 }
@@ -64,6 +95,7 @@ function loadAnnouncements() {
                     dateStr = item.createdAt.toDate().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
                 }
                 const badgeClass = getCategoryBadgeClass(item.category);
+                const grpBadgeHTML = item.groupName ? `<span class="text-[11px] font-bold text-tsMavi block mb-1">👥 ${item.groupName}</span>` : '';
 
                 html += `
                     <div onclick="openAnnouncementDetailModal('${id}')" class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 relative overflow-hidden cursor-pointer group">
@@ -73,6 +105,7 @@ function loadAnnouncements() {
                                 <span class="text-[11px] text-slate-400 font-mono">${dateStr}</span>
                             </div>
                             <div>
+                                ${grpBadgeHTML}
                                 <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">${item.title}</h3>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">${item.description}</p>
                             </div>
@@ -212,7 +245,8 @@ function renderAnnouncementDetailUI(id, data) {
 
         <div class="space-y-3">
             <h2 class="text-2xl font-extrabold tracking-tight">${data.title}</h2>
-            <div class="flex items-center gap-2 text-xs text-slate-400">
+            <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-400">
+                ${data.groupName ? `<span class="px-3 py-1 rounded-xl bg-tsMavi/10 text-tsMavi border border-tsMavi/20 font-bold flex items-center gap-1">👥 Bağlı Grup: ${data.groupName}</span>` : ''}
                 <span>👤 İlan Sahibi: <strong class="text-slate-200">${data.authorName || 'Anonim'}</strong></span>
             </div>
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
@@ -380,6 +414,8 @@ function submitJoinRequest(e, announcementId) {
 
     const targetAuthorUid = currentAnnouncementData ? currentAnnouncementData.authorUid : null;
     const annTitle = currentAnnouncementData ? currentAnnouncementData.title : 'İlan';
+    const groupId = currentAnnouncementData ? (currentAnnouncementData.groupId || 'custom') : 'custom';
+    const groupName = currentAnnouncementData ? (currentAnnouncementData.groupName || annTitle) : annTitle;
 
     db.collection("announcements").doc(announcementId).collection("requests").doc(user.uid).set({
         applicantUid: user.uid,
@@ -392,12 +428,14 @@ function submitJoinRequest(e, announcementId) {
         if (targetAuthorUid && targetAuthorUid !== user.uid) {
             db.collection("notifications").add({
                 announcementId: announcementId,
+                groupId: groupId,
+                groupName: groupName,
                 announcementTitle: annTitle,
                 targetUserUid: targetAuthorUid,
                 senderUid: user.uid,
                 senderName: user.displayName || user.email.split('@')[0],
                 senderPhoto: user.photoURL || '',
-                message: `${user.displayName || user.email.split('@')[0]} '${annTitle}' ekibinize katılmak istiyor.`,
+                message: `${user.displayName || user.email.split('@')[0]} '${groupName}' grubunuza katılmak istiyor.`,
                 status: 'pending',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).catch(() => {});
