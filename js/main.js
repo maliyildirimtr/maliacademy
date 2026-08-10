@@ -157,8 +157,9 @@ function getUserAvatarHTML(user, sizeClass = "w-7 h-7 text-xs") {
     if (!user) {
         return `<div class="${sizeClass} rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 font-bold flex items-center justify-center shrink-0">👤</div>`;
     }
-    if (user.photoURL && user.photoURL.startsWith('http')) {
-        return `<img src="${user.photoURL}" alt="Profil" class="${sizeClass} rounded-full object-cover border border-tsMavi shadow-sm shrink-0">`;
+    const photo = user.photoURL || user.customPhotoURL;
+    if (photo && (photo.startsWith('http') || photo.startsWith('data:image'))) {
+        return `<img src="${photo}" alt="Profil" class="${sizeClass} rounded-full object-cover border border-tsMavi shadow-sm shrink-0">`;
     }
     const initials = getUserInitials(user);
     return `<div class="${sizeClass} rounded-full bg-gradient-to-tr from-tsBordo via-rose-600 to-tsMavi text-white font-extrabold flex items-center justify-center border border-tsMavi/40 shadow-sm shrink-0 select-none">${initials}</div>`;
@@ -757,6 +758,24 @@ if (typeof auth !== 'undefined' && auth) {
                 }
                 if (typeof SSO !== 'undefined') SSO.onLogin(user);
                 listenUserNotifications(user);
+                
+                if (typeof db !== 'undefined' && db && db.collection) {
+                    db.collection("users").doc(user.uid).get().then(doc => {
+                        if (doc.exists && doc.data().photoURL) {
+                            user.customPhotoURL = doc.data().photoURL;
+                            const userBtn = document.getElementById('user-profile-btn');
+                            if (userBtn) {
+                                const avatarHTML = getUserAvatarHTML(user, "w-7 h-7 text-xs");
+                                const nameStr = user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+                                userBtn.innerHTML = `
+                                    ${avatarHTML}
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${nameStr}</span>
+                                    <span class="text-[10px] text-slate-400">▾</span>
+                                `;
+                            }
+                        }
+                    }).catch(() => {});
+                }
                 
                 // 3. Modalları Otomatik Kapat
                 document.querySelectorAll('.login-modal, #auth-modal').forEach(m => m.classList.add('hidden'));
@@ -1498,31 +1517,33 @@ async function saveCroppedProfilePicture() {
             try {
                 let downloadURL = null;
 
-                // 1. Storage yüklemesi dene
+                // 1. Firebase Storage'a Yükle (profile_pictures/{uid}.jpg)
                 if (typeof firebase !== 'undefined' && firebase.storage) {
                     try {
                         const storageRef = firebase.storage().ref(`profile_pictures/${user.uid}.jpg`);
-                        await storageRef.put(blob, { contentType: 'image/jpeg' });
-                        downloadURL = await storageRef.getDownloadURL();
+                        const snapshot = await storageRef.put(blob, { contentType: 'image/jpeg' });
+                        downloadURL = await snapshot.ref.getDownloadURL();
                     } catch (storageErr) {
-                        console.warn("Firebase Storage yükleme uyarısı, DataURL alternatifi kullanılıyor:", storageErr);
+                        console.warn("Firebase Storage yükleme uyarısı:", storageErr);
                     }
                 }
 
-                // Alternatif: 400x400 yüksek kaliteli compressed DataURL
-                if (!downloadURL) {
-                    downloadURL = canvas.toDataURL('image/jpeg', 0.85);
+                // 2. Eğer Storage'dan HTTPS URL elde edildiyse Firebase Auth profilini güncelle
+                if (downloadURL && downloadURL.startsWith('http')) {
+                    await user.updateProfile({ photoURL: downloadURL });
+                } else {
+                    // Storage erişimi kısıtlıysa compressed Base64 DataURL fallback yap
+                    downloadURL = canvas.toDataURL('image/jpeg', 0.80);
+                    user.customPhotoURL = downloadURL;
+                    // NOT: Base64 string "Photo URL too long" hatasına yol açtığı için user.updateProfile'a verilmez.
                 }
 
-                // 2. Firebase Auth Profilini Güncelle
-                await user.updateProfile({ photoURL: downloadURL });
-
-                // 3. Firestore Kullanıcı Dokümanını Güncelle
+                // 3. Firestore Kullanıcı Dokümanını Güncelle (Hem HTTPS hem DataURL için geçerlidir)
                 if (typeof db !== 'undefined' && db && db.collection) {
                     try {
                         await db.collection("users").doc(user.uid).set({
                             photoURL: downloadURL,
-                            updatedAt: new Date().toISOString()
+                            updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
                         }, { merge: true });
                     } catch (dbErr) {
                         console.warn("Firestore kullanıcı güncelleme uyarısı:", dbErr);
