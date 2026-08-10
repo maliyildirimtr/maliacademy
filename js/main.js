@@ -180,10 +180,23 @@ function renderNavbar(activePage, currentUser) {
     if (user) {
         authHeaderRightHTML = `
             <div class="relative">
-                <button title="Bildirimler" onclick="alert('🔔 3 Yeni ders ve duyuru bildiriminiz var.')" class="p-2 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative transition-colors">
+                <button id="notification-bell-btn" title="Bildirimler" onclick="toggleNotificationDropdown()" class="p-2 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative transition-colors">
                     <span>🔔</span>
-                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">3</span>
+                    <span id="notification-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">0</span>
                 </button>
+
+                <!-- BİLDİRİM PANOLARI DROPDOWN -->
+                <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl z-50 p-4 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                        <h4 class="font-bold text-xs flex items-center gap-1.5">
+                            <span>🔔</span> Bildirim Panosu
+                        </h4>
+                        <span id="notification-dropdown-count" class="text-[10px] text-slate-400 font-mono">0 Okunmamış</span>
+                    </div>
+                    <div id="notification-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                        <div class="py-6 text-center text-xs text-slate-400">Bildirim bulunmuyor.</div>
+                    </div>
+                </div>
             </div>
 
             <div class="relative">
@@ -572,6 +585,168 @@ if (document.readyState === 'loading') {
 
 document.addEventListener('DOMContentLoaded', initNavbar);
 
+let notificationUnsubscribe = null;
+
+function toggleNotificationDropdown() {
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) dropdown.classList.toggle('hidden');
+}
+
+function listenUserNotifications(user) {
+    if (!user || typeof db === 'undefined' || !db) return;
+    if (notificationUnsubscribe) notificationUnsubscribe();
+
+    notificationUnsubscribe = db.collection("notifications")
+        .where("targetUserUid", "==", user.uid)
+        .onSnapshot(snapshot => {
+            const badge = document.getElementById('notification-badge');
+            const countLabel = document.getElementById('notification-dropdown-count');
+            const list = document.getElementById('notification-list');
+
+            if (!snapshot || snapshot.empty) {
+                if (badge) badge.classList.add('hidden');
+                if (countLabel) countLabel.innerText = "0 Bildirim";
+                if (list) list.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">Henüz bildiriminiz yok.</div>`;
+                return;
+            }
+
+            let notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            notifications.sort((a, b) => {
+                const tA = a.createdAt && typeof a.createdAt.toMillis === 'function' ? a.createdAt.toMillis() : 0;
+                const tB = b.createdAt && typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : 0;
+                return tB - tA;
+            });
+
+            const pendingCount = notifications.filter(n => n.status === 'pending').length;
+            if (badge) {
+                if (pendingCount > 0) {
+                    badge.innerText = pendingCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            if (countLabel) countLabel.innerText = `${notifications.length} Bildirim`;
+
+            if (list) {
+                let html = "";
+                notifications.forEach(n => {
+                    const dateStr = n.createdAt && typeof n.createdAt.toDate === 'function' ? new Date(n.createdAt.toDate()).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'Az önce';
+                    
+                    if (n.status === 'pending') {
+                        html += `
+                            <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-amber-500">📩 Katılma İsteği</span>
+                                    <span class="text-[10px] text-slate-400">${dateStr}</span>
+                                </div>
+                                <p class="text-slate-700 dark:text-slate-300 leading-snug">${n.message}</p>
+                                <div class="flex justify-end gap-2 pt-1">
+                                    <button onclick="handleNotificationResponse('${n.id}', '${n.announcementId || ''}', '${n.senderUid || ''}', 'rejected')" class="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-[11px] font-bold">✕ Reddet</button>
+                                    <button onclick="handleNotificationResponse('${n.id}', '${n.announcementId || ''}', '${n.senderUid || ''}', 'accepted')" class="px-3 py-1 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all text-[11px] font-bold shadow-sm">✓ Kabul Et</button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (n.status === 'accepted') {
+                        html += `
+                            <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-emerald-500">🎉 İsteğiniz Onaylandı!</span>
+                                    <span class="text-[10px] text-slate-400">${dateStr}</span>
+                                </div>
+                                <p class="text-slate-700 dark:text-slate-300 leading-snug">${n.message}</p>
+                                ${n.inviteLink ? `
+                                    <div class="pt-1">
+                                        <a href="${n.inviteLink}" target="_blank" class="px-3 py-1 rounded-lg bg-emerald-500 text-white font-bold text-[11px] inline-block shadow">Gruba Katıl ↗</a>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else if (n.status === 'rejected') {
+                        html += `
+                            <div class="p-3 rounded-2xl bg-red-500/10 border border-red-500/20 space-y-1 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-red-400">✕ İsteğiniz Reddedildi</span>
+                                    <span class="text-[10px] text-slate-400">${dateStr}</span>
+                                </div>
+                                <p class="text-slate-600 dark:text-slate-400 leading-snug">${n.message}</p>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold">ℹ️ Bilgilendirme</span>
+                                    <span class="text-[10px] text-slate-400">${dateStr}</span>
+                                </div>
+                                <p class="text-slate-600 dark:text-slate-300 leading-snug">${n.message}</p>
+                            </div>
+                        `;
+                    }
+                });
+                list.innerHTML = html;
+            }
+        }, (err) => {
+            console.warn("Bildirim okuma hatası:", err);
+        });
+}
+
+function handleNotificationResponse(notificationId, announcementId, senderUid, action) {
+    if (typeof db === 'undefined' || !db) return;
+
+    db.collection("notifications").doc(notificationId).get().then(doc => {
+        if (!doc.exists) return;
+        const nData = doc.data();
+
+        db.collection("notifications").doc(notificationId).update({
+            status: action,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        if (announcementId && senderUid) {
+            db.collection("announcements").doc(announcementId).collection("requests").doc(senderUid).update({
+                status: action,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(() => {});
+        }
+
+        if (action === 'accepted') {
+            db.collection("announcements").doc(announcementId).get().then(adoc => {
+                const aData = adoc.exists ? adoc.data() : {};
+                const inviteLink = aData.inviteLink || '';
+                const annTitle = nData.announcementTitle || aData.title || 'İlan';
+
+                db.collection("notifications").add({
+                    announcementId: announcementId,
+                    announcementTitle: annTitle,
+                    targetUserUid: senderUid,
+                    senderUid: auth.currentUser.uid,
+                    message: `'${annTitle}' grubuna katılım isteğiniz kabul edildi! Katılım Linkiniz: ${inviteLink || 'Profil detaylarınız üzerinden iletişim kurulacaktır.'}`,
+                    inviteLink: inviteLink,
+                    status: 'accepted',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    if (typeof showToast === 'function') showToast("✓ Katılma isteği kabul edildi!", "success");
+                });
+            });
+        } else if (action === 'rejected') {
+            const annTitle = nData.announcementTitle || 'İlan';
+            db.collection("notifications").add({
+                announcementId: announcementId,
+                announcementTitle: annTitle,
+                targetUserUid: senderUid,
+                senderUid: auth.currentUser.uid,
+                message: `'${annTitle}' grubuna katılım isteğiniz ilan sahibi tarafından bu dönem için kabul edilemedi.`,
+                status: 'rejected',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                if (typeof showToast === 'function') showToast("Katılma isteği reddedildi.", "info");
+            });
+        }
+    });
+}
+
 if (typeof auth !== 'undefined' && auth) {
     auth.onAuthStateChanged(async (user) => {
         try {
@@ -581,6 +756,7 @@ if (typeof auth !== 'undefined' && auth) {
                     _cachedUserEmailHash = await computeSHA256(user.email.toLowerCase().trim());
                 }
                 if (typeof SSO !== 'undefined') SSO.onLogin(user);
+                listenUserNotifications(user);
                 
                 // 3. Modalları Otomatik Kapat
                 document.querySelectorAll('.login-modal, #auth-modal').forEach(m => m.classList.add('hidden'));

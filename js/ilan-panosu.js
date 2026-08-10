@@ -80,7 +80,7 @@ function loadAnnouncements() {
 
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                             <span class="text-slate-400 font-mono flex items-center gap-1">👤 ${item.authorName || 'Kullanıcı'}</span>
-                            <span class="font-bold text-tsMavi group-hover:translate-x-1 transition-transform flex items-center gap-1">İncele & Katıl →</span>
+                            <span class="font-bold text-tsMavi group-hover:translate-x-1 transition-transform flex items-center gap-1">Detayları Gör →</span>
                         </div>
                     </div>
                 `;
@@ -378,6 +378,9 @@ function submitJoinRequest(e, announcementId) {
     const submitBtn = document.getElementById('submit-join-btn');
     if (submitBtn) submitBtn.innerText = "Gönderiliyor...";
 
+    const targetAuthorUid = currentAnnouncementData ? currentAnnouncementData.authorUid : null;
+    const annTitle = currentAnnouncementData ? currentAnnouncementData.title : 'İlan';
+
     db.collection("announcements").doc(announcementId).collection("requests").doc(user.uid).set({
         applicantUid: user.uid,
         applicantName: user.displayName || user.email.split('@')[0],
@@ -386,11 +389,27 @@ function submitJoinRequest(e, announcementId) {
         status: 'pending',
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(() => {
+        if (targetAuthorUid && targetAuthorUid !== user.uid) {
+            db.collection("notifications").add({
+                announcementId: announcementId,
+                announcementTitle: annTitle,
+                targetUserUid: targetAuthorUid,
+                senderUid: user.uid,
+                senderName: user.displayName || user.email.split('@')[0],
+                senderPhoto: user.photoURL || '',
+                message: `${user.displayName || user.email.split('@')[0]} '${annTitle}' ekibinize katılmak istiyor.`,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(() => {});
+        }
         if (typeof showToast === 'function') showToast("🚀 Katılma isteğiniz başarıyla gönderildi!", "success");
     }).catch(err => {
         alert("Hata oluştu: " + err.message);
     }).finally(() => {
-        if (submitBtn) submitBtn.innerText = "Katılma İsteği Gönder";
+        if (submitBtn) {
+            submitBtn.innerText = "✓ İstek Gönderildi";
+            submitBtn.disabled = true;
+        }
     });
 }
 
