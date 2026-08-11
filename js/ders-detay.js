@@ -1,6 +1,13 @@
 const urlParams = new URLSearchParams(window.location.search);
 const courseId = urlParams.get('id') || 'systemverilog-kursu';
 let completedTopicIds = new Set();
+let currentCourseData = null;
+
+function canEditCurrentCourse() {
+    if (typeof isAdmin === 'function' && isAdmin()) return true;
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    return user && currentCourseData && currentCourseData.authorUid === user.uid;
+}
 
 function getYouTubeId(url) {
     if(!url) return null;
@@ -49,7 +56,7 @@ function fetchUserProgressAndRenderBar(totalTopics) {
 }
 
 function openTopicModal(editId = null, currentTitle = '', currentVideo = '') {
-    if(typeof isAdmin === 'function' && !isAdmin()) return;
+    if(!canEditCurrentCourse()) return;
     document.getElementById('edit-topic-id').value = editId || '';
     document.getElementById('topic-title').value = currentTitle;
     document.getElementById('topic-video').value = currentVideo;
@@ -68,6 +75,7 @@ function renderCourseUI(course) {
     const container = document.getElementById('course-detail-container');
     if (!container) return;
 
+    currentCourseData = course;
     const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
     const adminState = typeof isAdmin === 'function' && isAdmin();
     const canEditCourse = adminState || (user && course.authorUid === user.uid);
@@ -220,7 +228,7 @@ function loadTopics(canEditCourse = false) {
 }
 
 function moveTopic(currentId, currentOrder, targetOrder, targetId) {
-    if(typeof isAdmin === 'function' && !isAdmin()) return;
+    if(!canEditCurrentCourse()) return;
     if (typeof db !== 'undefined') {
         db.collection("courses").doc(courseId).collection("topics").doc(currentId).update({ orderIndex: targetOrder });
         db.collection("courses").doc(courseId).collection("topics").doc(targetId).update({ orderIndex: currentOrder });
@@ -228,7 +236,7 @@ function moveTopic(currentId, currentOrder, targetOrder, targetId) {
 }
 
 function deleteTopic(topicId, title) {
-    if(typeof isAdmin === 'function' && !isAdmin()) return;
+    if(!canEditCurrentCourse()) return;
     if (confirm(`"${title}" konusunu silmek istediğinize emin misiniz?`)) {
         if (typeof db !== 'undefined') {
             db.collection("courses").doc(courseId).collection("topics").doc(topicId).delete();
@@ -275,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (topicForm) {
         topicForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            if(typeof isAdmin === 'function' && !isAdmin()) return;
+            if(!canEditCurrentCourse()) return;
 
             const editId = document.getElementById('edit-topic-id').value;
             const title = document.getElementById('topic-title').value;

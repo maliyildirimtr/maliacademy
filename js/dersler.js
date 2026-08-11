@@ -12,11 +12,9 @@ function renderAcademyUserPanel() {
 
         panel.innerHTML = `
             <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                ${adminState ? `
-                    <button onclick="openAddCourseModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-semibold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center gap-1">
-                        <span>＋</span> Ders Ekle
-                    </button>
-                ` : ''}
+                <button onclick="handleAddCourseClick()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-semibold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center gap-1">
+                    <span>＋</span> Ders Ekle
+                </button>
 
                 <!-- KULLANICI ADI & PROFİL RESMİ BUTONU -->
                 <button type="button" onclick="${adminState ? '' : 'openProfileModal()'}" title="${adminState ? '' : 'Kullanıcı Adını / Profil Fotoğrafını Değiştir'}" class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all flex items-center gap-2 ${adminState ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 cursor-default' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-tsMavi hover:text-tsMavi cursor-pointer'}">
