@@ -16,11 +16,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-    <!-- Favicon / Sekme İkonu -->
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2">
+        <!-- Favicon / Sekme İkonu (Cache-Busting dahil) -->
     <link rel="shortcut icon" href="assets/favicon.ico?v=2">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192x192.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=2">
     <meta name="theme-color" content="#580018">
+
+    <!-- Google Schema Logo Tanımlama -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Mali Academy",
+      "url": "https://academy.maliyildirimtr.com",
+      "logo": "https://academy.maliyildirimtr.com/assets/favicon-192x192.png"
+    }
+    </script>
 </head>
 <body data-page="araclar" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
 
