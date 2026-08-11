@@ -4978,6 +4978,26 @@ function handleSaveTask(e) {
     if (typeof db !== 'undefined' && db && db.collection) {
         db.collection("groups").doc(groupId).collection("tasks").add(newTask).then(() => {
             closeAddTaskModal();
+
+            // Bildirim Gönderme
+            const assignedMember = (currentGroup && currentGroup.members) ? currentGroup.members.find(m => m.name === assignee) : null;
+            if (assignedMember && assignedMember.uid) {
+                const currentUser = getCurrentUser();
+                if (assignedMember.uid !== (currentUser ? currentUser.uid : '')) {
+                    const currentUserName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : "Bir yönetici";
+                    db.collection("notifications").add({
+                        title: "Yepyeni Bir Göreviniz Var 🎯",
+                        message: `${currentUserName} tarafınca size bir proje görevi atandı: "${title}"`,
+                        receiverUid: assignedMember.uid,
+                        senderUid: currentUser ? currentUser.uid : null,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: 'unread',
+                        type: 'task_assigned',
+                        groupId: groupId
+                    });
+                }
+            }
+
             if (firebase && firebase.firestore && firebase.firestore.FieldValue) {
                 db.collection("groups").doc(groupId).update({
                     tasksTotal: firebase.firestore.FieldValue.increment(1)

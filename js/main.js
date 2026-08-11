@@ -623,7 +623,7 @@ function listenUserNotifications(user) {
                 return tB - tA;
             });
 
-            const pendingCount = notifications.filter(n => n.status === 'pending').length;
+            const pendingCount = notifications.filter(n => n.status === 'pending' || n.status === 'unread').length;
             if (badge) {
                 if (pendingCount > 0) {
                     badge.innerText = pendingCount;
@@ -652,6 +652,21 @@ function listenUserNotifications(user) {
                                     <button onclick="handleNotificationResponse('${n.id}', '${n.announcementId || ''}', '${n.senderUid || ''}', 'rejected')" class="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-[11px] font-bold">✕ Reddet</button>
                                     <button onclick="handleNotificationResponse('${n.id}', '${n.announcementId || ''}', '${n.senderUid || ''}', 'accepted')" class="px-3 py-1 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all text-[11px] font-bold shadow-sm">✓ Kabul Et</button>
                                 </div>
+                            </div>
+                        `;
+                    } else if (n.type === 'task_assigned') {
+                        html += `
+                            <div class="p-3 rounded-2xl ${n.status === 'unread' ? 'bg-tsMavi/10 border border-tsMavi/20' : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700'} space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold ${n.status === 'unread' ? 'text-tsMavi' : 'text-slate-500'}">🎯 Yeni Görev</span>
+                                    <span class="text-[10px] text-slate-400">${dateStr}</span>
+                                </div>
+                                <p class="text-slate-700 dark:text-slate-300 leading-snug">${n.message}</p>
+                                ${n.status === 'unread' ? `
+                                    <div class="flex justify-end gap-2 pt-1">
+                                        <button onclick="markNotificationRead('${n.id}')" class="px-3 py-1 rounded-lg bg-tsMavi text-white hover:bg-sky-500 transition-all text-[11px] font-bold shadow-sm">✓ Okudum</button>
+                                    </div>
+                                ` : ''}
                             </div>
                         `;
                     } else if (n.status === 'accepted') {
@@ -696,6 +711,12 @@ function listenUserNotifications(user) {
         }, (err) => {
             console.warn("Bildirim okuma hatası:", err);
         });
+}
+
+window.markNotificationRead = function(notificationId) {
+    if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection("notifications").doc(notificationId).update({ status: 'read' });
+    }
 }
 
 function handleNotificationResponse(notificationId, announcementId, senderUid, action) {
