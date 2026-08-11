@@ -163,7 +163,7 @@ function handleGroupCardClick(event, groupId) {
     if (isUserGroupMember(group)) {
         window.location.href = `grup-detay.html?id=${groupId}`;
     } else {
-        openJoinModalForGroup(group);
+        openApplyGroupModal(group.id, group.name);
     }
 }
 
@@ -281,7 +281,7 @@ function renderGroupsUI(groups) {
 
                     <div class="pt-2 flex items-center justify-between">
                         <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            ${isMember ? 'Çalışma Alanına Git →' : '🔑 Davet Kodu Gir & Katıl →'}
+                            ${isMember ? 'Çalışma Alanına Git →' : '📩 Katılmak İçin Başvur →'}
                         </span>
                     </div>
                 </div>

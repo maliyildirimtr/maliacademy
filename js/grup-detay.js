@@ -249,9 +249,6 @@ function renderWorkspaceUI() {
                                 <span class="px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi font-bold text-xs border border-tsMavi/20">
                                     ${currentGroup.category || 'Genel'}
                                 </span>
-                                <button onclick="copyInviteCode('${currentGroup.inviteCode || 'MP-8492'}')" title="Kodu Kopyala" class="text-xs font-mono bg-slate-100 dark:bg-[#1c2830] px-3 py-1 rounded-xl text-slate-700 dark:text-slate-300 hover:text-tsMavi border border-slate-300 dark:border-slate-700 transition-colors">
-                                    🔑 Davet Kodu: <strong class="text-slate-900 dark:text-slate-100">${currentGroup.inviteCode || 'MP-8492'}</strong> 📋
-                                </button>
                             </div>
                             <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 truncate">${currentGroup.name || 'Proje Çalışma Alanı'}</h1>
                             ${lookingRolesBadges}
@@ -803,7 +800,7 @@ function loadApplications() {
     if (!container) return;
 
     if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("groups").doc(groupId).collection("applications").onSnapshot((snapshot) => {
+        db.collection(currentGroupCollection || "groups").doc(groupId).collection("applications").onSnapshot((snapshot) => {
             let apps = [];
             if (!snapshot.empty) {
                 snapshot.docs.forEach(doc => {
@@ -854,16 +851,17 @@ function renderApplicationsList(apps) {
     container.innerHTML = html;
 }
 
-function acceptApplication(appId, uid, name, email, role) {
+function acceptApplication(appId, applicantUid, name, email, role) {
     if (!isUserAuthorized()) return;
-    const members = currentGroup.members || [];
-    if (!members.some(m => m.uid === uid || m.email === email)) {
-        members.push({ uid, name, email, role: 'Üye', joinedAt: new Date().toISOString() });
-    }
-
-    if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("groups").doc(groupId).update({ members, membersCount: members.length }).then(() => {
-            db.collection("groups").doc(groupId).collection("applications").doc(appId).update({ status: 'accepted' });
+    
+    if (typeof db !== 'undefined') {
+        const newMember = { uid: applicantUid, name: name, email: email, role: 'Üye', joinedAt: new Date().toISOString() };
+        
+        db.collection(currentGroupCollection || "groups").doc(groupId).update({
+            members: firebase.firestore.FieldValue.arrayUnion(newMember),
+            membersCount: firebase.firestore.FieldValue.increment(1)
+        }).then(() => {
+            db.collection(currentGroupCollection || "groups").doc(groupId).collection("applications").doc(appId).update({ status: 'accepted' });
             alert(`✅ ${name} başvuru onaylanarak gruba üye eklendi!`);
             renderWorkspaceUI();
         });
@@ -873,7 +871,7 @@ function acceptApplication(appId, uid, name, email, role) {
 function rejectApplication(appId) {
     if (!isUserAuthorized()) return;
     if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("groups").doc(groupId).collection("applications").doc(appId).update({ status: 'rejected' });
+        db.collection(currentGroupCollection || "groups").doc(groupId).collection("applications").doc(appId).update({ status: 'rejected' });
     }
 }
 
