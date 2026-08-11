@@ -92,13 +92,18 @@ function loadCourses() {
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-3 line-clamp-2 leading-relaxed">${course.description || ''}</p>
                     </div>
 
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
-                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            ${course.contentUrl ? 'İçeriği Aç / İndir ↗' : 'İçeriği İncele (<span id="topic-count-' + courseId + '">...</span>) →'}
-                        </span>
-                        <span class="text-[10px] font-medium text-slate-400 flex items-center gap-1">
-                            👤 ${course.authorName || 'Mali Academy'}
-                        </span>
+                    <div class="pt-5 mt-auto border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between gap-2">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-tsMavi font-bold flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
+                                ${course.contentUrl ? 'İçeriği Aç / İndir' : 'İçeriği İncele'} 
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                            </span>
+                            ${!course.contentUrl ? `<span class="text-[10px] text-slate-400 font-medium" id="topic-count-${courseId}">...</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-[110px]" title="${course.authorName || 'Mali Academy'}">
+                            <span>👤</span>
+                            <span class="truncate">${course.authorName || 'Mali Academy'}</span>
+                        </div>
                     </div>
                 </div>
             `;
