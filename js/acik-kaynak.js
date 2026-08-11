@@ -128,6 +128,19 @@ function createKitCard(kit) {
 }
 
 // Modal Fonksiyonları
+function checkAuthOrPrompt() {
+    const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
+    if (!user) {
+        if (typeof openAuthModal === 'function') {
+            openAuthModal();
+        } else {
+            alert("Bu işlemi gerçekleştirmek için lütfen giriş yapın veya kayıt olun.");
+        }
+        return false;
+    }
+    return true;
+}
+
 function openAddResourceModal() {
     if (!checkAuthOrPrompt()) return;
     const modal = document.getElementById('add-resource-modal');
