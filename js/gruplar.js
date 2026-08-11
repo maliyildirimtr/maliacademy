@@ -87,6 +87,7 @@ function loadGroupsList() {
             allGroups = groups;
             renderGroupsUI(allGroups);
             updateStatsBar(allGroups);
+            checkInviteCodeFromUrl();
         }, (err) => {
             console.warn("Firestore gruplar çekilemedi, demo gruplar gösteriliyor:", err);
             allGroups = DEMO_GROUPS;
@@ -480,6 +481,35 @@ function handleJoinGroup(e) {
         }
     }
 }
+
+function checkInviteCodeFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code) return;
+
+    if (window._inviteCodeChecked) return;
+    window._inviteCodeChecked = true;
+
+    const targetGroup = allGroups.find(g => (g.inviteCode || '').trim().toUpperCase() === code.trim().toUpperCase());
+    if (targetGroup) {
+        if (isUserGroupMember(targetGroup)) {
+            window.location.href = `grup-detay.html?id=${targetGroup.id}`;
+        } else {
+            openJoinModalForGroup(targetGroup);
+            const inputCodeEl = document.getElementById('invite-code-input');
+            if (inputCodeEl) {
+                inputCodeEl.value = code;
+                const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
+                if (user) {
+                    setTimeout(() => handleJoinGroup(), 300);
+                } else {
+                    alert("🔑 Davet linki ile geldiniz! Gruba katılmak için lütfen giriş yapın.");
+                }
+            }
+        }
+    }
+}
+
 
 // YENİ GRUP OLUŞTURMA SÜRECİ
 function handleCreateGroup(e) {
