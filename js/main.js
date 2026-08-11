@@ -245,8 +245,8 @@ function renderNavbar(activePage, currentUser) {
             </button>
 
             <a href="index.html" class="flex items-center gap-2 text-base md:text-lg font-extrabold tracking-wider uppercase select-none cursor-pointer">
-                <span class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-black shadow-md">MALI</span>
-                <span class="text-slate-900 dark:text-slate-100">ACADEMY</span>
+                <img src="assets/favicon.svg" alt="Mali Academy Logo" class="w-9 h-9 rounded-xl shadow-sm">
+                <span class="text-slate-900 dark:text-slate-100 mt-0.5">MALI ACADEMY</span>
             </a>
         </div>
 
