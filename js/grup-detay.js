@@ -2185,6 +2185,46 @@ function changeMemberRole(uid, newRole) {
     }
 }
 
+function removeMember(uid, name) {
+    if (!currentGroup || !currentGroup.members) return;
+    
+    if (!isUserAdmin()) {
+        alert("Üye silme yetkiniz yok!");
+        return;
+    }
+
+    if (!confirm(`${name || 'Bu üye'} isimli üyeyi gruptan çıkarmak istediğinize emin misiniz?`)) {
+        return;
+    }
+
+    const initialLength = currentGroup.members.length;
+    currentGroup.members = currentGroup.members.filter(m => m.uid !== uid);
+
+    if (currentGroup.members.length === initialLength) return;
+
+    if (typeof db !== 'undefined' && db && db.collection && groupId) {
+        db.collection('groups').doc(groupId).update({
+            members: currentGroup.members
+        }).then(() => {
+            const contentArea = document.getElementById('tab-content-area');
+            if (contentArea) renderOverviewTab(contentArea);
+            
+            // Başarı bildirimi
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:10px 22px;border-radius:12px;font-size:13px;font-weight:700;z-index:999999;box-shadow:0 4px 16px rgba(16,185,129,0.4);';
+            toast.textContent = '✓ Üye gruptan çıkarıldı!';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }).catch(err => {
+            console.error('Üye silinemedi:', err);
+            alert('Üye silinirken bir hata oluştu: ' + (err.message || err));
+        });
+    } else {
+        const contentArea = document.getElementById('tab-content-area');
+        if (contentArea) renderOverviewTab(contentArea);
+    }
+}
+
 function saveGroupSettings() {
     const nameInput = document.getElementById('gs-name-input');
     const descInput = document.getElementById('gs-desc-input');
