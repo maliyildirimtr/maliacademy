@@ -137,8 +137,8 @@ async function handleAddDocument(event) {
             finalFileInfo = `${ext} • ${sizeMB} MB`;
 
             // Storage'a Yükleme İşlemi
-            const storageRef = window.storage.ref();
-            const fileRef = storageRef.child(`exam_prep_resources/${user.uid}/${Date.now()}_${file.name}`);
+            const storageRef = firebase.storage().ref();
+            const fileRef = storageRef.child(`sinav_belgeleri/${user.uid}/${Date.now()}_${file.name}`);
             
             const uploadTask = fileRef.put(file);
             
