@@ -2,6 +2,13 @@ const urlParams = new URLSearchParams(window.location.search);
 const courseId = urlParams.get('courseId');
 const topicId = urlParams.get('topicId');
 let isTopicCompleted = false;
+let currentCourseAuthorUid = null;
+
+function canEditCurrentTopic() {
+    if (typeof isAdmin === 'function' && isAdmin()) return true;
+    const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    return user && currentCourseAuthorUid === user.uid;
+}
 
 function getYouTubeId(url) {
     if(!url) return null;
@@ -339,15 +346,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (typeof db !== 'undefined') {
-        db.collection("courses").doc(courseId).collection("topics").doc(topicId).onSnapshot((doc) => {
-            if (!doc.exists) {
-                if (container) container.innerHTML = `<div class="text-center py-20 text-red-500 font-bold">Aradığınız konu veritabanında bulunamadı!</div>`;
-                return;
-            }
+        const fetchTopic = () => {
+            db.collection("courses").doc(courseId).collection("topics").doc(topicId).onSnapshot((doc) => {
+                if (!doc.exists) {
+                    if (container) container.innerHTML = `<div class="text-center py-20 text-red-500 font-bold">Aradığınız konu veritabanında bulunamadı!</div>`;
+                    return;
+                }
 
-            const topic = doc.data();
-            const ytId = getYouTubeId(topic.videoUrl);
-            const loggedInAdmin = typeof isAdmin === 'function' && isAdmin();
+                const topic = doc.data();
+                const ytId = getYouTubeId(topic.videoUrl);
+                const canEdit = canEditCurrentTopic();
 
             const linkList = topic.linkList || (topic.linkUrl ? [{ title: topic.linkTitle || 'Harici Bağlantı', url: topic.linkUrl }] : []);
             const pdfList = topic.pdfList || (topic.pdfUrl ? [{ title: 'Ders Notu (PDF)', url: topic.pdfUrl }] : []);
@@ -364,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ⭕ Tamamlandı Olarak İşaretle
                             </button>
 
-                            ${loggedInAdmin ? `
+                            ${canEdit ? `
                                 <button id="open-edit-btn" class="px-4 py-2.5 rounded-xl bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-semibold hover:bg-yellow-500 hover:text-black transition-all">
                                     ⚙️ Düzenle
                                 </button>
@@ -488,14 +496,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }, (err) => {
             if (container) container.innerHTML = `<div class="text-center py-20 text-red-500 font-bold">Veri Çekme Hatası: ${err.message}</div>`;
         });
+        };
+
+        Promise.all([
+            db.collection("academy_courses").doc(courseId).get().catch(() => ({ exists: false })),
+            db.collection("courses").doc(courseId).get().catch(() => ({ exists: false }))
+        ]).then(([academyDoc, courseDoc]) => {
+            if (academyDoc.exists) currentCourseAuthorUid = academyDoc.data().authorUid;
+            else if (courseDoc.exists) currentCourseAuthorUid = courseDoc.data().authorUid;
+            fetchTopic();
+        });
     }
 
     const editTopicForm = document.getElementById('edit-topic-form');
     if (editTopicForm) {
         editTopicForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const user = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
-            if (!user && (typeof isAdmin === 'function' && !isAdmin())) return;
+            if (!canEditCurrentTopic()) return;
 
             const videoUrl = document.getElementById('input-video-url').value;
 
