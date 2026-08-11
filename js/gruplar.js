@@ -535,11 +535,7 @@ function handleCreateGroup(e) {
             members: [
                 { uid: creatorUid, name: creatorName, email: creatorEmail, role: "Yönetici", joinedAt: new Date().toISOString() }
             ],
-            milestones: [
-                { id: "m1", text: "Proje Mimarisi ve Gereksinim Analizi", status: "completed" },
-                { id: "m2", text: "Donanım / Yazılım Geliştirme Fazı", status: "in_progress" },
-                { id: "m3", text: "Test, Doğrulama ve Canlıya Alma", status: "planned" }
-            ],
+            milestones: [],
             tasksDone: 0,
             tasksTotal: 0,
             createdAt: timestamp
