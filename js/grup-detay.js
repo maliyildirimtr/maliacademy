@@ -656,32 +656,39 @@ function renderOverviewTab(container) {
             ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
 
+        const canEdit = isAdminUser && m.role !== 'Yönetici' && m.role !== 'Lider';
+
         membersHTML += `
-            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-tsBordo to-tsMavi text-white font-bold text-xs flex items-center justify-center shadow-sm">
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
+                    <div class="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-tr from-tsBordo to-tsMavi text-white font-bold text-xs flex items-center justify-center shadow-sm">
                         ${(m.name || 'Üye').substring(0, 2).toUpperCase()}
                     </div>
-                    <div>
-                        <p class="font-bold text-xs text-slate-900 dark:text-slate-100">${m.name}</p>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400">${m.email || ''}</p>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate" title="${m.name}">${m.name}</p>
+                        ${m.email ? `<p class="text-[10px] text-slate-500 dark:text-slate-400 truncate" title="${m.email}">${m.email}</p>` : ''}
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border ${roleColor}">
-                        ${m.role || 'Üye'}
-                    </span>
-
-                    ${(isAdminUser && m.role !== 'Yönetici') ? `
-                        <select onchange="changeMemberRole('${m.uid}', this.value)" class="text-[10px] font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 focus:outline-none">
-                            <option value="Yönetici Yardımcısı" ${m.role === 'Yönetici Yardımcısı' ? 'selected' : ''}>Yönetici Yrd.</option>
-                            <option value="Üye" ${m.role === 'Üye' ? 'selected' : ''}>Üye</option>
-                        </select>
-                        <button onclick="removeMember('${m.uid}', '${m.name}')" title="Gruptan Çıkar" class="text-xs text-rose-500 hover:text-rose-700 p-1">
-                            🗑️
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    ${canEdit ? `
+                        <div class="relative group">
+                            <select onchange="changeMemberRole('${m.uid}', this.value)" class="appearance-none text-[10px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg pl-2.5 pr-6 py-1 focus:outline-none focus:border-tsMavi cursor-pointer transition-colors shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                                <option value="Yönetici Yardımcısı" ${m.role === 'Yönetici Yardımcısı' ? 'selected' : ''}>Yönetici Yrd.</option>
+                                <option value="Üye" ${m.role === 'Üye' ? 'selected' : ''}>Üye</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-400">
+                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                        <button onclick="removeMember('${m.uid}', '${m.name}')" title="Gruptan Çıkar" class="text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-1.5 rounded-lg transition-colors flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
-                    ` : ''}
+                    ` : `
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border ${roleColor} whitespace-nowrap shadow-sm">
+                            ${m.role || 'Üye'}
+                        </span>
+                    `}
                 </div>
             </div>
         `;
