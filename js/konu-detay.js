@@ -372,11 +372,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ⭕ Tamamlandı Olarak İşaretle
                             </button>
 
-                            ${canEdit ? `
-                                <button id="open-edit-btn" class="px-4 py-2.5 rounded-xl bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-semibold hover:bg-yellow-500 hover:text-black transition-all">
-                                    ⚙️ Düzenle
-                                </button>
-                            ` : ''}
+                            <button id="open-edit-btn" class="${canEdit ? '' : 'hidden'} px-4 py-2.5 rounded-xl bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-semibold hover:bg-yellow-500 hover:text-black transition-all">
+                                ⚙️ Düzenle
+                            </button>
 
                             <a href="ders-detay.html?id=${courseId}" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                                 ← Konulara Dön
@@ -560,6 +558,11 @@ document.addEventListener('DOMContentLoaded', () => {
             checkUserProgress();
             updateCommentFormUI();
             loadComments();
+            const btn = document.getElementById('open-edit-btn');
+            if (btn) {
+                if (canEditCurrentTopic()) btn.classList.remove('hidden');
+                else btn.classList.add('hidden');
+            }
         });
     }
 });

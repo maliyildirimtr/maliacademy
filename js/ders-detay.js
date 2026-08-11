@@ -230,8 +230,9 @@ function loadTopics(canEditCourse = false) {
 function moveTopic(currentId, currentOrder, targetOrder, targetId) {
     if(!canEditCurrentCourse()) return;
     if (typeof db !== 'undefined') {
-        db.collection("courses").doc(courseId).collection("topics").doc(currentId).update({ orderIndex: targetOrder });
-        db.collection("courses").doc(courseId).collection("topics").doc(targetId).update({ orderIndex: currentOrder });
+        const coll = currentCourseData ? (currentCourseData.collectionName || 'academy_courses') : 'courses';
+        db.collection(coll).doc(courseId).collection("topics").doc(currentId).update({ orderIndex: targetOrder });
+        db.collection(coll).doc(courseId).collection("topics").doc(targetId).update({ orderIndex: currentOrder });
     }
 }
 
@@ -239,7 +240,8 @@ function deleteTopic(topicId, title) {
     if(!canEditCurrentCourse()) return;
     if (confirm(`"${title}" konusunu silmek istediğinize emin misiniz?`)) {
         if (typeof db !== 'undefined') {
-            db.collection("courses").doc(courseId).collection("topics").doc(topicId).delete();
+            const coll = currentCourseData ? (currentCourseData.collectionName || 'academy_courses') : 'courses';
+            db.collection(coll).doc(courseId).collection("topics").doc(topicId).delete();
         }
     }
 }
@@ -289,8 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = document.getElementById('topic-title').value;
             const videoUrl = document.getElementById('topic-video').value;
 
+            const coll = currentCourseData ? (currentCourseData.collectionName || 'academy_courses') : 'courses';
             if (editId) {
-                db.collection("courses").doc(courseId).collection("topics").doc(editId).update({
+                db.collection(coll).doc(courseId).collection("topics").doc(editId).update({
                     title: title,
                     videoUrl: videoUrl
                 }).then(() => closeTopicModal());
@@ -301,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     orderIndex: Date.now(),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
-                db.collection("courses").doc(courseId).collection("topics").add(newTopic).then(() => closeTopicModal());
+                db.collection(coll).doc(courseId).collection("topics").add(newTopic).then(() => closeTopicModal());
             }
         });
     }
@@ -310,6 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.onAuthStateChanged(() => {
             const topicCards = document.querySelectorAll('#topics-grid a');
             fetchUserProgressAndRenderBar(topicCards.length);
+            if (currentCourseData) {
+                renderCourseUI(currentCourseData);
+                loadTopics(canEditCurrentCourse());
+            }
         });
     }
 });
