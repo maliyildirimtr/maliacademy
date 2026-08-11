@@ -105,7 +105,7 @@ function openCreateAnnouncementModal(preselectedGroupId) {
                 adminGroups.forEach((g, idx) => {
                     const gName = g.name || g.title || 'Proje Grubu';
                     const isSel = (targetGroupId && g.id === targetGroupId) || (!targetGroupId && idx === 0) ? 'selected' : '';
-                    optionsHTML += `<option value="${g.id}" data-name="${gName}" ${isSel}>👥 ${gName} (Yönetici)</option>`;
+                    optionsHTML += `<option value="${g.id}" data-name="${gName}" ${isSel}>👥 ${gName} (Yetkili)</option>`;
                 });
                 optionsHTML += `<option value="custom">＋ Özel / Bağımsız İlan Grubu</option>`;
                 if (noticeEl) noticeEl.classList.add('hidden');

@@ -664,7 +664,7 @@ function renderOverviewTab(container) {
                     </div>
                     <div>
                         <p class="font-bold text-xs text-slate-900 dark:text-slate-100">${m.name}</p>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400">${m.email || 'Takım Üyesi'}</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">${m.email || ''}</p>
                     </div>
                 </div>
 
@@ -770,6 +770,7 @@ function renderOverviewTab(container) {
                     </div>
 
                     <!-- KATILIMCI EKLE & İLAN VER BUTONLARI -->
+                    ${isAuth ? `
                     <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
                         <button onclick="openAddParticipantModal()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5">
                             <span>＋</span> Yeni Katılımcı Ekle
@@ -778,6 +779,7 @@ function renderOverviewTab(container) {
                             <span>📌</span> İlan Ver
                         </a>
                     </div>
+                    ` : ''}
                 </div>
             </div>
         </div>
@@ -2148,6 +2150,38 @@ function removeGroupPP() {
         const initials = ((currentGroup && currentGroup.name) || 'G').slice(0, 2).toUpperCase();
         preview.innerHTML = initials;
         preview.dataset.newPhoto = '__REMOVE__';
+    }
+}
+
+function changeMemberRole(uid, newRole) {
+    if (!currentGroup || !currentGroup.members) return;
+    
+    // Yalnızca Yönetici veya Lider rol değiştirebilir
+    if (!isUserAdmin()) {
+        alert("Üye rolünü değiştirme yetkiniz yok!");
+        return;
+    }
+
+    const memberIndex = currentGroup.members.findIndex(m => m.uid === uid);
+    if (memberIndex === -1) return;
+
+    // Rolü güncelle
+    currentGroup.members[memberIndex].role = newRole;
+
+    if (typeof db !== 'undefined' && db && db.collection && groupId) {
+        db.collection('groups').doc(groupId).update({
+            members: currentGroup.members
+        }).then(() => {
+            // Başarı durumunda Tab'i yeniden render et (dropdown vb. için)
+            const contentArea = document.getElementById('tab-content-area');
+            if (contentArea) renderOverviewTab(contentArea);
+        }).catch(err => {
+            console.error('Rol güncellenemedi:', err);
+            alert('Rol güncellenirken bir hata oluştu: ' + (err.message || err));
+        });
+    } else {
+        const contentArea = document.getElementById('tab-content-area');
+        if (contentArea) renderOverviewTab(contentArea);
     }
 }
 
