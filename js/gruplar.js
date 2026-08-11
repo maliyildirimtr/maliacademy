@@ -109,20 +109,24 @@ function updateStatsBar(groups) {
     let fallbackTotal = 0;
 
     groups.forEach(g => {
-        if (g.members && Array.isArray(g.members) && g.members.length > 0) {
-            // Firestore'dan gelen gerçek gruplarda üyelerin UID veya emaillerini topla
+        if (Array.isArray(g.members)) {
+            // Firestore'dan gelen gerçek gruplarda üyelerin benzersiz kimliklerini topla
             g.members.forEach(m => {
-                const identifier = m.uid || m.email || m.name;
+                // Öncelik sırası: E-posta > UID > İsim
+                let identifier = m.email ? m.email.trim().toLowerCase() : null;
+                if (!identifier && m.uid) identifier = m.uid.trim();
+                if (!identifier && m.name) identifier = m.name.trim().toLowerCase();
+                
                 if (identifier) uniqueMembers.add(identifier);
             });
         } else {
-            // Eğer detaylı üye listesi yoksa (örn: DEMO_GROUPS) eski mantıkla sayı topla
+            // Eski (members dizisi olmayan) gruplar için sayısal değer
             fallbackTotal += (g.membersCount || 1);
         }
     });
 
-    // Toplam üye sayısı = Eşsiz üye sayısı + (Eğer detay verisi olmayan demo gruplar varsa onların toplamı)
-    const totalMembers = uniqueMembers.size > 0 ? (uniqueMembers.size + fallbackTotal) : fallbackTotal;
+    // Toplam üye sayısı
+    const totalMembers = uniqueMembers.size + fallbackTotal;
 
     if (groupCountEl) groupCountEl.innerText = groups.length;
     if (memberCountEl) memberCountEl.innerText = totalMembers > 0 ? totalMembers : 0;
