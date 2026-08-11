@@ -14,6 +14,7 @@ let groupMessages = [];
 let groupDocuments = [];
 let groupApplications = [];
 let currentArchiveFilter = 'all';
+let currentGroupCollection = "groups";
 
 // YEDEK DEMO TEMİZ VERİLER
 const DEMO_TASKS = [];
