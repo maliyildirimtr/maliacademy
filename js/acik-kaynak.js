@@ -157,7 +157,7 @@ function handleAddResource(event) {
     event.preventDefault();
     if (!checkAuthOrPrompt()) return;
 
-    const user = getCurrentUser();
+    const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
     if (!user) return;
 
     const btn = document.getElementById('btn-add-resource');
