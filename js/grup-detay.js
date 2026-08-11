@@ -4989,7 +4989,7 @@ function handleSaveTask(e) {
                     db.collection("notifications").add({
                         title: "Yepyeni Bir Göreviniz Var 🎯",
                         message: `${currentUserName} tarafınca size bir proje görevi atandı: "${title}"`,
-                        receiverUid: assignedMember.uid,
+                        targetUserUid: assignedMember.uid,
                         senderUid: currentUser ? currentUser.uid : null,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         status: 'unread',
