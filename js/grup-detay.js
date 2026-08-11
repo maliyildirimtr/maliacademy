@@ -4977,7 +4977,7 @@ function handleSaveTask(e) {
     };
 
     if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("groups").doc(groupId).collection("tasks").add(newTask).then(() => {
+        db.collection(currentGroupCollection).doc(groupId).collection("tasks").add(newTask).then((taskRef) => {
             closeAddTaskModal();
 
             // Bildirim Gönderme
@@ -4994,7 +4994,8 @@ function handleSaveTask(e) {
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         status: 'unread',
                         type: 'task_assigned',
-                        groupId: groupId
+                        groupId: groupId,
+                        taskId: taskRef.id
                     });
                 }
             }

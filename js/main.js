@@ -664,7 +664,8 @@ function listenUserNotifications(user) {
                                 <p class="text-slate-700 dark:text-slate-300 leading-snug">${n.message}</p>
                                 ${n.status === 'unread' ? `
                                     <div class="flex justify-end gap-2 pt-1">
-                                        <button onclick="markNotificationRead('${n.id}')" class="px-3 py-1 rounded-lg bg-tsMavi text-white hover:bg-sky-500 transition-all text-[11px] font-bold shadow-sm">✓ Okudum</button>
+                                        <button onclick="window.location.href='grup-detay.html?id=${n.groupId}'" class="px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all text-[11px] font-bold shadow-sm">Grubu Ziyaret Et</button>
+                                        <button onclick="markNotificationRead('${n.id}', '${n.groupId}', '${n.taskId}')" class="px-3 py-1 rounded-lg bg-tsMavi text-white hover:bg-sky-500 transition-all text-[11px] font-bold shadow-sm">✓ Okudum</button>
                                     </div>
                                 ` : ''}
                             </div>
@@ -713,9 +714,22 @@ function listenUserNotifications(user) {
         });
 }
 
-window.markNotificationRead = function(notificationId) {
+window.markNotificationRead = function(notificationId, groupId, taskId) {
     if (typeof db !== 'undefined' && db && db.collection) {
         db.collection("notifications").doc(notificationId).update({ status: 'read' });
+        
+        if (groupId && taskId) {
+            // Update task status to "devam_ediyor"
+            db.collection("project_groups").doc(groupId).collection("tasks").doc(taskId).update({
+                status: 'devam_ediyor',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(() => {
+                db.collection("groups").doc(groupId).collection("tasks").doc(taskId).update({
+                    status: 'devam_ediyor',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(() => {});
+            });
+        }
     }
 }
 
