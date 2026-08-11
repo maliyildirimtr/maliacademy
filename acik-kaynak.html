@@ -53,7 +53,10 @@
                     </p>
                 </div>
 
-                <div>
+                <div class="flex items-center gap-3">
+                    <button onclick="openAddResourceModal()" class="px-5 py-2.5 rounded-xl bg-tsMavi text-white font-bold text-xs hover:bg-blue-600 transition-colors inline-flex items-center gap-2 shadow-sm">
+                        <span>＋</span> Kaynak Ekle
+                    </button>
                     <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs hover:bg-slate-800 transition-colors border border-slate-700 inline-flex items-center gap-2 shadow-sm">
                         <span>🐱</span> GitHub Repolarına Git ↗
                     </a>
@@ -62,80 +65,61 @@
         </div>
 
         <!-- KİT KARTLARI GRİDİ -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-            <!-- 1. KİT: SYSTEMVERILOG RISC-V CORE -->
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold">SystemVerilog</span>
-                        <span class="text-xs text-slate-400 font-mono">v1.4</span>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">32-Bit RV32I RISC-V İşlemci Çekirdeği Kiti</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">5 aşamalı boru hattı (Pipeline) mimarisine sahip açık kaynak SystemVerilog çekirdeği. Vivado & ModelSim testbench simülasyon kodları içerir.</p>
-                    </div>
-                    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto">
-                        git clone https://github.com/maliyildirimtr/riscv-sv.git
-                    </div>
-                </div>
-                
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-400 font-mono">MIT Lisansı</span>
-                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
-                </div>
-            </div>
-
-            <!-- 2. KİT: STM32 FREERTOS TEMEL PROJE ŞABLONU -->
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-500 border border-sky-500/20 text-xs font-bold">STM32 & FreeRTOS</span>
-                        <span class="text-xs text-slate-400 font-mono">v2.0</span>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">STM32F4 Gerçek Zamanlı Gömülü Şablon Kit</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">Task senkronizasyon mekanizmaları, Kuyruk (Queue) ve Semaför konfigürasyonu tamamlanmış hazır STM32CubeIDE başlangıç kiti.</p>
-                    </div>
-                    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto">
-                        git clone https://github.com/maliyildirimtr/stm32-freertos.git
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-400 font-mono">Apache 2.0</span>
-                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
-                </div>
-            </div>
-
-            <!-- 3. KİT: PYTHON SIGNAL PROCESSING & DSP TOOLKIT -->
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold">Python DSP</span>
-                        <span class="text-xs text-slate-400 font-mono">v1.1</span>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">İşaret İşleme & Filtre Tasarım Kütüphanesi</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">SciPy ve NumPy tabanlı FIR/IIR dijital filtre tasarım aracı, FFT spektrum analizi ve Kalman filtresi uygulama kütüphanesi.</p>
-                    </div>
-                    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto">
-                        pip install mali-dsp-toolkit
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-400 font-mono">MIT Lisansı</span>
-                    <a href="https://github.com/maliyildirimtr" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
-                </div>
-            </div>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="kit-cards-grid">
+            <!-- Dynamically populated via js/acik-kaynak.js -->
         </div>
 
     </main>
 
+    <!-- KAYNAK EKLE MODAL -->
+    <div id="add-resource-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeAddResourceModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden pointer-events-auto border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
+                <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/20">
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <span>📦</span> Yeni Kaynak Ekle
+                    </h3>
+                    <button onclick="closeAddResourceModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="p-5 overflow-y-auto">
+                    <form id="add-resource-form" onsubmit="handleAddResource(event)" class="space-y-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Proje / Kaynak Adı</label>
+                            <input type="text" id="res-title" required placeholder="Örn: Açık Kaynak Görüntü İşleme" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors">
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Kategori</label>
+                            <input type="text" id="res-category" required placeholder="Örn: Yazılım, Donanım, Yapay Zeka" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors">
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Açıklama</label>
+                            <textarea id="res-description" required rows="3" placeholder="Projeniz ne işe yarıyor?" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors resize-none"></textarea>
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Proje / Kurulum Linki</label>
+                            <input type="url" id="res-link" required placeholder="GitHub, Drive veya diğer bağlantı" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors">
+                        </div>
+                        
+                        <div class="pt-4 flex gap-3">
+                            <button type="button" onclick="closeAddResourceModal()" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">İptal</button>
+                            <button type="submit" id="btn-add-resource" class="flex-1 px-4 py-2.5 rounded-xl bg-tsMavi text-white font-bold text-sm hover:bg-blue-600 transition-colors shadow-md">Kaynağı Ekle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/firebase.js"></script>
     <script src="js/sso.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/acik-kaynak.js"></script>
 </body>
 </html>
