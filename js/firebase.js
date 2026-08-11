@@ -14,6 +14,7 @@
 
 var auth = null;
 var db = null;
+var storage = null;
 var googleProvider = null;
 
 try {
@@ -46,6 +47,9 @@ try {
                 });
             }
         }
+        if (firebase.storage) {
+            storage = firebase.storage();
+        }
     }
 } catch (err) {
     console.warn("Firebase başlatma uyarısı:", err);
@@ -53,4 +57,5 @@ try {
 
 window.auth = auth;
 window.db = db;
+window.storage = storage;
 window.googleProvider = googleProvider;
