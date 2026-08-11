@@ -105,13 +105,27 @@ function updateStatsBar(groups) {
     const groupCountEl = document.getElementById('stat-group-count');
     const memberCountEl = document.getElementById('stat-member-count');
 
-    let totalMembers = 0;
+    const uniqueMembers = new Set();
+    let fallbackTotal = 0;
+
     groups.forEach(g => {
-        totalMembers += (g.membersCount || 1);
+        if (g.members && Array.isArray(g.members) && g.members.length > 0) {
+            // Firestore'dan gelen gerçek gruplarda üyelerin UID veya emaillerini topla
+            g.members.forEach(m => {
+                const identifier = m.uid || m.email || m.name;
+                if (identifier) uniqueMembers.add(identifier);
+            });
+        } else {
+            // Eğer detaylı üye listesi yoksa (örn: DEMO_GROUPS) eski mantıkla sayı topla
+            fallbackTotal += (g.membersCount || 1);
+        }
     });
 
+    // Toplam üye sayısı = Eşsiz üye sayısı + (Eğer detay verisi olmayan demo gruplar varsa onların toplamı)
+    const totalMembers = uniqueMembers.size > 0 ? (uniqueMembers.size + fallbackTotal) : fallbackTotal;
+
     if (groupCountEl) groupCountEl.innerText = groups.length;
-    if (memberCountEl) memberCountEl.innerText = totalMembers;
+    if (memberCountEl) memberCountEl.innerText = totalMembers > 0 ? totalMembers : 0;
 }
 
 // KULLANICI GRUP ÜYELİĞİ / LİDERLİĞİ KONTROLÜ
