@@ -245,8 +245,10 @@ function renderNavbar(activePage, currentUser) {
             </button>
 
             <a href="index.html" class="flex items-center gap-1.5 md:gap-2 group select-none cursor-pointer">
-                <img src="assets/brand-logo.png" alt="Mali Academy Logo" class="w-9 h-9 md:w-11 md:h-11 object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300">
-                <div class="flex flex-col justify-center leading-none mt-0.5 -space-y-0.5 md:-space-y-1">
+                <div class="relative rounded-[14px] md:rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm overflow-hidden group-hover:scale-105 group-hover:shadow-md transition-all duration-300">
+                    <img src="assets/brand-logo.png" alt="Mali Academy Logo" class="w-9 h-9 md:w-11 md:h-11 object-cover">
+                </div>
+                <div class="flex flex-col justify-center leading-none mt-0.5 -space-y-0.5 md:-space-y-1 ml-1">
                     <span class="font-black text-[14px] md:text-[18px] tracking-tight text-tsBordo dark:text-rose-400">Mali</span>
                     <span class="font-black text-[14px] md:text-[18px] tracking-tight text-tsBordo dark:text-rose-400">Academy</span>
                 </div>
