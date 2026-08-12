@@ -143,6 +143,16 @@
                             <p id="upload-progress-text" class="text-[10px] text-slate-500 text-right">0%</p>
                         </div>
 
+                        <!-- Yasal Sorumluluk Onayı -->
+                        <div class="space-y-1.5 pt-2">
+                            <label class="flex items-start gap-2 cursor-pointer">
+                                <input type="checkbox" id="doc-legal-consent" required class="mt-0.5 rounded border-slate-300 text-tsMavi focus:ring-tsMavi">
+                                <span class="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">
+                                    Yüklediğim belgenin telif haklarına ve akademik dürüstlük kurallarına uygun olduğunu, içeriğin tüm yasal ve idari sorumluluğunun tarafıma ait olduğunu kabul ve beyan ederim. Onaysız veya telif hakkı ihlali içeren belgeler silinecektir.
+                                </span>
+                            </label>
+                        </div>
+
                         <div class="pt-4 flex gap-3">
                             <button type="button" onclick="closeAddDocumentModal()" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">İptal</button>
                             <button type="submit" id="btn-add-doc" class="flex-1 px-4 py-2.5 rounded-xl bg-tsMavi text-white font-bold text-sm hover:bg-blue-600 transition-colors shadow-md">Belgeyi Ekle</button>
@@ -156,6 +166,6 @@
     <script src="js/firebase.js?v=2"></script>
     <script src="js/sso.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/sinav-hazirlik.js"></script>
+    <script src="js/sinav-hazirlik.js?v=2"></script>
 </body>
 </html>

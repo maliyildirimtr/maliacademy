@@ -2,38 +2,6 @@
 // SINAV & VİZE HAZIRLIK - DİNAMİK LİSTELEME VE YÜKLEME
 // ==========================================
 
-const DEFAULT_EXAMS = [
-    {
-        id: "static_1",
-        title: "Karnaugh Haritaları & Flip-Flop Vize Çözümleri",
-        category: "Mantık Devreleri",
-        description: "Bileşimsel ve ardışıl devre tasarımları, durum diyagramları azaltma vize sınavı çözümlü çalışma seti.",
-        fileInfo: "PDF • 4.2 MB",
-        link: "dersler.html",
-        addedBy: "Sistem",
-        timestamp: new Date().getTime()
-    },
-    {
-        id: "static_2",
-        title: "Assembly Kod Örnekleri & Interrupt Final Seti",
-        category: "Mikroişlemciler",
-        description: "8086 / ARM mimarisi komut setleri, kesme (Interrupt) rutinleri ve bellek haritalama soru çözümleri.",
-        fileInfo: "PDF • 6.8 MB",
-        link: "dersler.html",
-        addedBy: "Sistem",
-        timestamp: new Date().getTime() - 1000
-    },
-    {
-        id: "static_3",
-        title: "Fourier & Laplace Dönüşümü Örnek Çözümler",
-        category: "İşaretler & Sistemler",
-        description: "Sürekli ve ayrık zamanlı LTI sistemler, Konvolüsyon integrali ve Z-Dönüşümü vize/final hazırlık notları.",
-        fileInfo: "PDF • 8.1 MB",
-        link: "dersler.html",
-        addedBy: "Sistem",
-        timestamp: new Date().getTime() - 2000
-    }
-];
 
 let dynamicExams = [];
 let allExams = [];
@@ -88,9 +56,10 @@ function toggleUploadType() {
 async function handleAddDocument(event) {
     event.preventDefault();
     
-    const user = window.auth ? window.auth.currentUser : null;
+    let user = null;
+    if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
     if (!user) {
-        alert("Lütfen giriş yapın.");
+        alert("Bu işlem için Firebase oturumunuzun aktif olması gerekiyor. Sayfayı yenileyip giriş yaptığınızdan emin olun.");
         return;
     }
 
@@ -98,10 +67,16 @@ async function handleAddDocument(event) {
     const category = document.getElementById("doc-category").value;
     const description = document.getElementById("doc-description").value.trim();
     const uploadType = document.getElementById("doc-upload-type").value;
+    const legalConsent = document.getElementById("doc-legal-consent");
     const submitBtn = document.getElementById("btn-add-doc");
 
     if (!title || !category || !description) {
         alert("Lütfen zorunlu alanları doldurun.");
+        return;
+    }
+
+    if (legalConsent && !legalConsent.checked) {
+        alert("Lütfen yasal sorumluluk metnini onaylayın.");
         return;
     }
 
@@ -179,12 +154,13 @@ async function handleAddDocument(event) {
             description: description,
             fileInfo: finalFileInfo,
             link: finalLink,
-            addedBy: user.displayName || user.email.split('@')[0],
+            addedBy: user.displayName || (user.email ? user.email.split('@')[0] : 'Öğrenci'),
             uid: user.uid,
+            status: "pending", // Admin onayı bekliyor
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert("Belge başarıyla eklendi!");
+        alert("Belge başarıyla eklendi! Yönetici onayından sonra herkese açık olarak listelenecektir.");
         closeAddDocumentModal();
 
     } catch (error) {
@@ -211,42 +187,97 @@ function renderExams() {
     
     grid.innerHTML = "";
     
-    allExams.forEach(docItem => {
-        const colors = getCategoryColors(docItem.category);
-        
-        // addedBy bilgisi gösterme
-        let addedByHtml = "";
-        if (docItem.addedBy && docItem.addedBy !== "Sistem") {
-            addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Ekleyen: ${docItem.addedBy}</div>`;
-        }
+    const currentUser = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+    const admin = typeof window.isAdmin === 'function' ? window.isAdmin() : false;
 
-        const html = `
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="px-2.5 py-1 rounded-lg ${colors} border text-xs font-bold">${docItem.category}</span>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">${docItem.title}</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">${docItem.description}</p>
-                        ${addedByHtml}
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">${docItem.fileInfo}</span>
-                    <a href="${docItem.link}" ${docItem.link.startsWith('http') ? 'target="_blank" rel="noopener noreferrer"' : ''} class="font-bold text-tsMavi hover:underline">İncele →</a>
-                </div>
+    if (allExams.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full py-12 text-center text-slate-500">
+                <div class="text-4xl mb-3">📄</div>
+                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300">Henüz bir sınav belgesi bulunmuyor</h3>
+                <p class="text-sm mt-1">İlk belgeyi siz ekleyin ve topluluğa destek olun!</p>
             </div>
         `;
-        grid.innerHTML += html;
+        return;
+    }
+
+    allExams.forEach(docItem => {
+        // Görünürlük Kuralı: Onaylı belgeler VEYA ekleyen kişinin kendisi VEYA Admin
+        if (docItem.status === 'approved' || (currentUser && docItem.uid === currentUser.uid) || admin) {
+            const colors = getCategoryColors(docItem.category);
+            
+            let statusBadge = "";
+            if (docItem.status === 'pending') {
+                statusBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">Onay Bekliyor</span>`;
+            }
+
+            let adminControls = "";
+            if (admin && docItem.status === 'pending') {
+                adminControls = `
+                    <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex gap-2">
+                        <button onclick="approveResource('${docItem.id}')" class="flex-1 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors">Onayla</button>
+                        <button onclick="rejectResource('${docItem.id}')" class="flex-1 px-3 py-1.5 bg-rose-500 text-white rounded-lg text-xs font-bold hover:bg-rose-600 transition-colors">Reddet / Sil</button>
+                    </div>
+                `;
+            }
+
+            let addedByHtml = "";
+            if (docItem.addedBy && docItem.addedBy !== "Sistem") {
+                addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium flex items-center gap-1 justify-between">
+                    <span>Ekleyen: ${docItem.addedBy}</span>
+                    ${statusBadge}
+                </div>`;
+            } else if (statusBadge) {
+                addedByHtml = `<div class="mt-2 text-[10px] flex items-center justify-end">${statusBadge}</div>`;
+            }
+
+            const html = `
+                <div class="p-6 rounded-3xl border ${docItem.status === 'pending' ? 'border-amber-500/40 border-dashed' : 'border-slate-200 dark:border-slate-800'} bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 relative">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg ${colors} border text-xs font-bold">${docItem.category}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">${docItem.title}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">${docItem.description}</p>
+                            ${addedByHtml}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">${docItem.fileInfo}</span>
+                            <a href="${docItem.link}" ${docItem.link.startsWith('http') ? 'target="_blank" rel="noopener noreferrer"' : ''} class="font-bold text-tsMavi hover:underline">İncele →</a>
+                        </div>
+                        ${adminControls}
+                    </div>
+                </div>
+            `;
+            grid.innerHTML += html;
+        }
     });
 }
+
+window.approveResource = function(id) {
+    if (!confirm("Bu belgeyi onaylamak istediğinize emin misiniz?")) return;
+    if (window.db) {
+        window.db.collection("exam_prep_resources").doc(id).update({ status: 'approved' })
+            .catch(err => alert("Hata: " + err.message));
+    }
+};
+
+window.rejectResource = function(id) {
+    if (!confirm("Bu belgeyi reddetmek ve silmek istediğinize emin misiniz?")) return;
+    if (window.db) {
+        window.db.collection("exam_prep_resources").doc(id).delete()
+            .catch(err => alert("Hata: " + err.message));
+    }
+};
 
 function loadResources() {
     if (!window.db) {
         console.warn("Firestore db is not initialized yet.");
-        allExams = [...DEFAULT_EXAMS];
+        allExams = [];
         renderExams();
         return;
     }
@@ -254,10 +285,10 @@ function loadResources() {
     window.db.collection("exam_prep_resources")
         .orderBy("timestamp", "desc")
         .onSnapshot((snapshot) => {
-            dynamicExams = [];
+            allExams = [];
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                dynamicExams.push({
+                allExams.push({
                     id: doc.id,
                     title: data.title,
                     category: data.category,
@@ -265,19 +296,15 @@ function loadResources() {
                     fileInfo: data.fileInfo || "Belge",
                     link: data.link,
                     addedBy: data.addedBy,
+                    uid: data.uid,
+                    status: data.status || 'approved', // Eski veriler varsa onaylı varsay
                     timestamp: data.timestamp ? data.timestamp.toMillis() : Date.now()
                 });
             });
 
-            // Statik verilerle birleştirip tarihe göre sırala
-            allExams = [...DEFAULT_EXAMS, ...dynamicExams];
-            allExams.sort((a, b) => b.timestamp - a.timestamp);
-            
             renderExams();
         }, (error) => {
             console.error("Kaynakları çekerken hata:", error);
-            // Hata olsa bile statikleri gösterelim
-            allExams = [...DEFAULT_EXAMS];
             renderExams();
         });
 }
