@@ -128,7 +128,30 @@ function createKitCard(kit) {
 }
 
 // Modal Fonksiyonları
-function checkAuthOrPrompt() {
+window.toggleResourceUploadType = function() {
+    const uploadType = document.getElementById("res-upload-type") ? document.getElementById("res-upload-type").value : 'file';
+    const fileContainer = document.getElementById("res-file-container");
+    const linkContainer = document.getElementById("res-link-container");
+    const fileInput = document.getElementById("res-file");
+    const linkInput = document.getElementById("res-link");
+
+    if (uploadType === "file") {
+        if (fileContainer) fileContainer.classList.remove("hidden");
+        if (linkContainer) linkContainer.classList.add("hidden");
+        if (fileInput) fileInput.required = true;
+        if (linkInput) linkInput.required = false;
+    } else {
+        if (fileContainer) fileContainer.classList.add("hidden");
+        if (linkContainer) linkContainer.classList.remove("hidden");
+        if (fileInput) fileInput.required = false;
+        if (linkInput) linkInput.required = true;
+    }
+
+    const progressContainer = document.getElementById("res-upload-progress-container");
+    if (progressContainer) progressContainer.classList.add("hidden");
+}
+
+window.openAddResourceModal = function() {
     let user = null;
     if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
     if (!user && typeof SSO !== 'undefined') user = SSO.getSSOUser();
@@ -139,69 +162,138 @@ function checkAuthOrPrompt() {
         } else {
             alert("Bu işlemi gerçekleştirmek için lütfen giriş yapın veya kayıt olun.");
         }
-        return false;
+        return;
     }
-    return true;
-}
-
-function openAddResourceModal() {
-    if (!checkAuthOrPrompt()) return;
+    
     const modal = document.getElementById('add-resource-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+        modal.classList.remove('hidden');
+        const form = document.getElementById('add-resource-form');
+        if (form) form.reset();
+        if (typeof window.toggleResourceUploadType === 'function') window.toggleResourceUploadType();
+    }
 }
 
-function closeAddResourceModal() {
+window.closeAddResourceModal = function() {
     const modal = document.getElementById('add-resource-modal');
     if (modal) modal.classList.add('hidden');
-    document.getElementById('add-resource-form').reset();
+    const form = document.getElementById('add-resource-form');
+    if (form) form.reset();
 }
 
-function handleAddResource(event) {
+window.handleAddResource = async function(event) {
     event.preventDefault();
-    if (!checkAuthOrPrompt()) return;
 
     let user = null;
     if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
     if (!user && typeof SSO !== 'undefined') user = SSO.getSSOUser();
     
-    if (!user) return;
-
-    const btn = document.getElementById('btn-add-resource');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = \`Yükleniyor...\`;
-    btn.disabled = true;
-
-    const title = document.getElementById('res-title').value.trim();
-    const category = document.getElementById('res-category').value.trim();
-    const description = document.getElementById('res-description').value.trim();
-    const link = document.getElementById('res-link').value.trim();
-
-    if (!title || !category || !description || !link) {
-        alert("Lütfen tüm alanları doldurun.");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+    if (!user) {
+        alert("Lütfen giriş yapın.");
         return;
     }
 
-    const newResource = {
-        title,
-        category,
-        description,
-        link,
-        authorUid: user.uid,
-        authorName: user.displayName || user.email.split('@')[0],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    const title = document.getElementById('res-title').value.trim();
+    const category = document.getElementById('res-category').value;
+    const description = document.getElementById('res-description').value.trim();
+    const uploadType = document.getElementById('res-upload-type') ? document.getElementById('res-upload-type').value : 'link';
+    const legalConsent = document.getElementById('res-legal-consent');
+    const btn = document.getElementById('btn-add-resource');
 
-    db.collection("open_source_resources").add(newResource).then(() => {
-        closeAddResourceModal();
+    if (!title || !category || !description) {
+        alert("Lütfen tüm zorunlu alanları doldurun.");
+        return;
+    }
+
+    if (legalConsent && !legalConsent.checked) {
+        alert("Lütfen yasal sorumluluk metnini onaylayın.");
+        return;
+    }
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `Yükleniyor...`;
+    btn.disabled = true;
+
+    try {
+        let finalLink = "";
+        let finalVersion = "v1.0";
+
+        if (uploadType === "file") {
+            const fileInput = document.getElementById("res-file");
+            const file = fileInput ? fileInput.files[0] : null;
+            if (!file) {
+                alert("Lütfen bir dosya seçin.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            if (file.size > 15 * 1024 * 1024) {
+                alert("Dosya boyutu 15 MB'tan büyük olamaz. Lütfen Drive/GitHub linki seçeneğini kullanın.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            const storageRef = firebase.storage().ref();
+            const fileRef = storageRef.child(`acik_kaynak_dosyalari/${user.uid}/${Date.now()}_${file.name}`);
+            const uploadTask = fileRef.put(file);
+
+            const progressContainer = document.getElementById("res-upload-progress-container");
+            const progressBar = document.getElementById("res-upload-progress-bar");
+            const progressText = document.getElementById("res-upload-progress-text");
+            if (progressContainer) progressContainer.classList.remove("hidden");
+
+            await new Promise((resolve, reject) => {
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        if (progressBar) progressBar.style.width = progress + '%';
+                        if (progressText) progressText.innerText = Math.round(progress) + '%';
+                    }, 
+                    (error) => {
+                        console.error("Yükleme Hatası:", error);
+                        reject(error);
+                    }, 
+                    async () => {
+                        finalLink = await uploadTask.snapshot.ref.getDownloadURL();
+                        resolve();
+                    }
+                );
+            });
+        } else {
+            finalLink = document.getElementById("res-link").value.trim();
+            if (!finalLink) {
+                alert("Lütfen geçerli bir bağlantı adresi girin.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+        }
+
+        const newResource = {
+            title,
+            category,
+            description,
+            link: finalLink,
+            version: finalVersion,
+            authorUid: user.uid,
+            authorName: user.displayName || (user.email ? user.email.split('@')[0] : 'Geliştirici'),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (typeof db !== 'undefined' && db && db.collection) {
+            await db.collection("open_source_resources").add(newResource);
+            alert("Kaynak başarıyla eklendi!");
+            closeAddResourceModal();
+        } else {
+            alert("Veritabanı bağlantısı kurulamadı.");
+        }
+    } catch (error) {
+        console.error("Kaynak ekleme hatası:", error);
+        alert("Bir hata oluştu: " + error.message);
+    } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
-        // renderKits() will be called automatically by onSnapshot
-    }).catch(error => {
-        console.error(error);
-        alert("Kaynak eklenirken bir hata oluştu.");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
+    }
 }
