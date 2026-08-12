@@ -79,13 +79,12 @@ main {
 .academy-card,
 .module-card,
 .card-modern,
-.stats-card,
 .announcement-card,
 .course-card {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
-    padding: 24px !important;
+    padding: 20px !important;
     background: rgba(255, 255, 255, 0.85) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
@@ -95,6 +94,17 @@ main {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     position: relative !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+@media (min-width: 640px) {
+    .academy-card,
+    .module-card,
+    .card-modern,
+    .announcement-card,
+    .course-card {
+        padding: 24px !important;
+    }
 }
 
 html.dark .academy-card,
@@ -108,15 +118,33 @@ html.dark .course-card {
     box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* İSTATİSTİK KARTLARI İÇ İSTİSNA (DİKEY DEĞİL YAN YANA FLEX & HİZALAMA) */
+/* İSTATİSTİK KARTLARI ÖZEL RESPONSIVE & TAŞMA ENGELLEME KURALLARI */
 .stats-card {
+    display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 16px !important;
-    padding: 20px 24px !important;
-    min-height: 96px !important;
-    height: auto !important;
+    gap: 12px !important;
+    padding: 16px 18px !important;
+    min-height: 88px !important;
+    height: 100% !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    box-sizing: border-box !important;
     overflow: hidden !important;
+}
+
+@media (min-width: 640px) {
+    .stats-card {
+        gap: 16px !important;
+        padding: 20px 24px !important;
+        min-height: 96px !important;
+    }
 }
 
 .stats-card > div:first-child {
@@ -131,6 +159,7 @@ html.dark .course-card {
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
+    margin: 0 !important;
 }
 
 /* 2. ETKİLEŞİM VE HOVER (FARETLE ÜZERİNE GELME) EFEKTLERİ */
