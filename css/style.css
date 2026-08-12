@@ -108,12 +108,21 @@ html.dark .course-card {
     box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* İSTATİSTİK KARTLARI İÇ İSTİSNA (DİKEY DEĞİL YAN YANA FLEX) */
+/* İSTATİSTİK KARTLARI İÇ İSTİSNA (DİKEY DEĞİL YAN YANA FLEX & HİZALAMA) */
 .stats-card {
     flex-direction: row !important;
     align-items: center !important;
-    gap: 14px !important;
-    min-height: 100px !important;
+    gap: 16px !important;
+    padding: 20px 24px !important;
+    min-height: 96px !important;
+    height: auto !important;
+    overflow: hidden !important;
+}
+
+.stats-card > div:first-child {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
 }
 
 .stats-card h4,
