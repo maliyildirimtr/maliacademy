@@ -70,3 +70,22 @@ header a {
 main {
     padding-top: 100px !important;
 }
+
+/* İstatistik Kartları (Stats Section) Esnek Yükseklik ve Metin Sarma Kuralları */
+.stats-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 20px 16px !important;
+    min-height: 100px !important;
+    height: auto !important;
+    box-sizing: border-box;
+}
+
+.stats-card h4,
+.stats-card p {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+}
