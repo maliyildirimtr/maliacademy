@@ -2,36 +2,6 @@
 // HERO SLIDER & DUYURU YÖNETİMİ (js/slider.js)
 // ==========================================
 
-const DEFAULT_INITIAL_CARDS = [
-    {
-        icon: "⚡",
-        badge: "🚀 Öne Çıkan Eğitim",
-        title: "Mantıksal Devre Tasarımı & SystemVerilog Kursu Yayında!",
-        description: "FPGA mimarileri, SystemVerilog, Vivado & ModelSim simülasyonları ile 13+ kapsamlı akademik ders modülü ve uygulama notları.",
-        buttonText: "Ders İçeriğini İncele →",
-        targetUrl: "dersler.html",
-        isProtected: true
-    },
-    {
-        icon: "👥",
-        badge: "🤝 Proje & Takım Çalışması",
-        title: "Proje Grupları & Takım Arkadaşı Bulma Platformu",
-        description: "FPGA, Yapay Zeka, Gömülü Sistemler ve Bitirme Projesi takımlarına katılın veya kendi grubunuzu oluşturup ortak çalışın.",
-        buttonText: "Proje Gruplarını Gör →",
-        targetUrl: "proje-gruplari.html",
-        isProtected: true
-    },
-    {
-        icon: "🧮",
-        badge: "🛠️ Mühendislik Kitleri",
-        title: "Açık Kaynak Mühendislik Araçları & Kitler",
-        description: "AGNO/GANO hesaplama, bilimsel hesap makinesi, direnç renk kodları ve mantık devresi hesaplama araçları.",
-        buttonText: "Araçları Kullan →",
-        targetUrl: "araclar.html",
-        isProtected: true
-    }
-];
-
 let allSlides = [];
 let currentSlideIndex = 0;
 let slideInterval = null;
@@ -43,119 +13,20 @@ let hasDraggedSignificant = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     initHeroSlider();
+    setupAuthObserverForAdminButton();
 });
 
-// SLIDER BAŞLATICI & FIRESTORE KART OKUMA / GERİ YÜKLEME
-function initHeroSlider() {
-    setupDragAndDropEvents();
-
-    if (typeof db !== 'undefined' && db && db.collection) {
-        // 3 Varsayılan kartın veritabanında var olduğunu garanti et ve test verilerini temizle
-        ensureDefaultCardsInFirestore();
-
-        db.collection("announcements").orderBy("createdAt", "asc").onSnapshot((snapshot) => {
-            let loadedSlides = [];
-            if (!snapshot.empty) {
-                snapshot.docs.forEach((doc) => {
-                    const data = doc.data();
-                    const title = (data.title || '').trim().toLowerCase();
-                    const desc = (data.description || '').trim().toLowerCase();
-
-                    // "aaaa" vb. test kartlarını Firestore'dan sil ve akışa alma
-                    if (title === 'aaaa' || desc === 'aaaa' || title === 'aaa' || title === 'aa') {
-                        db.collection("announcements").doc(doc.id).delete().catch(e => {});
-                        return;
-                    }
-
-                    loadedSlides.push({
-                        id: doc.id,
-                        ...data,
-                        isProtected: doc.id.startsWith('system-card-') || data.isProtected === true
-                    });
-                });
-            }
-
-            if (loadedSlides.length === 0) {
-                loadedSlides = DEFAULT_INITIAL_CARDS.map((c, i) => ({ id: `system-card-${i}`, ...c, isProtected: true }));
-            }
-
-            allSlides = loadedSlides;
+// AUTH DURUMU DEĞİŞTİĞİNDE ADMİN BUTONUNU VE SLIDER KONTROLLERİNİ GÜNCELLE
+function setupAuthObserverForAdminButton() {
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().onAuthStateChanged(() => {
+            checkAdminButtonVisibility();
             renderSliderUI();
-            if (typeof isAdmin === 'function' && isAdmin()) {
-                renderAdminAnnouncementsList(loadedSlides);
-            }
-        }, (err) => {
-            console.warn("Firestore okuma hatası, yerel varsayılan kartlar gösteriliyor:", err);
-            allSlides = DEFAULT_INITIAL_CARDS.map((c, i) => ({ id: `system-card-${i}`, ...c, isProtected: true }));
-            renderSliderUI();
-            if (typeof isAdmin === 'function' && isAdmin()) {
-                renderAdminAnnouncementsList(allSlides);
-            }
         });
-    } else {
-        allSlides = DEFAULT_INITIAL_CARDS.map((c, i) => ({ id: `system-card-${i}`, ...c, isProtected: true }));
-        renderSliderUI();
-        if (typeof isAdmin === 'function' && isAdmin()) {
-            renderAdminAnnouncementsList(allSlides);
-        }
     }
 }
 
-// 3 VARSAYILAN KARTIN FIRESTORE'DA OLDUĞUNU KONTROL ET VE OTOMATİK DÜZELT
-function ensureDefaultCardsInFirestore() {
-    // Statik kartların veritabanını kirletmemesi için otomatik seed devre dışı bırakıldı
-    return;
-}
-
-// MANÜEL VARSAYILAN KARTLARI GERİ YÜKLEME
-function restoreDefaultCards() {
-    if (typeof isAdmin === 'function' && !isAdmin()) {
-        alert("Bu işlem yalnızca Yönetici (Admin) yetkisine açıktır.");
-        return;
-    }
-
-    if (!confirm("İlk 3 varsayılan kart (Ben Kimim, Dersler, Mali Academy) veritabanına yeniden yüklenecektir. Devam etmek istiyor musunuz?")) return;
-
-    if (typeof db !== 'undefined' && db && db.collection) {
-        const batch = db.batch();
-        DEFAULT_INITIAL_CARDS.forEach((card, index) => {
-            const ref = db.collection("announcements").doc(`system-card-${index}`);
-            batch.set(ref, {
-                ...card,
-                isProtected: true,
-                createdAt: new Date(1700000000000 + index * 1000).toISOString()
-            }, { merge: true });
-        });
-
-        batch.commit().then(() => {
-            alert("✅ İlk 3 varsayılan kart başarıyla geri yüklendi!");
-        }).catch(err => {
-            console.error("Geri yükleme hatası:", err);
-            alert("❌ Kartlar geri yüklenirken bir hata oluştu.");
-        });
-    } else {
-        allSlides = DEFAULT_INITIAL_CARDS.map((c, i) => ({ id: `system-card-${i}`, ...c, isProtected: true }));
-        renderSliderUI();
-        alert("✅ İlk 3 varsayılan kart yerel akışa geri yüklendi!");
-    }
-}
-
-// SLIDER ARAYÜZÜNÜ VE TRANSITION SLIDE TRACK'İ ÇİZME
-function renderSliderUI() {
-    const track = document.getElementById('slider-track');
-    const dotsContainer = document.getElementById('slider-dots');
-    const countBadge = document.getElementById('slider-count-badge');
-
-    if (!track) return;
-
-    if (currentSlideIndex >= allSlides.length) {
-        currentSlideIndex = 0;
-    }
-
-    if (countBadge) {
-        countBadge.innerText = `${currentSlideIndex + 1} / ${allSlides.length}`;
-    }
-
+function checkAdminButtonVisibility() {
     const adminBtn = document.getElementById('admin-announcement-btn');
     if (adminBtn) {
         if (typeof isAdmin === 'function' && isAdmin()) {
@@ -166,25 +37,85 @@ function renderSliderUI() {
             adminBtn.classList.remove('inline-flex');
         }
     }
+}
 
-    // SLIDER TRACK FORMATI
+// SLIDER BAŞLATICI & FIRESTORE REALTIME DİNLEYİCİ
+function initHeroSlider() {
+    setupDragAndDropEvents();
+    checkAdminButtonVisibility();
+
+    if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection("announcements").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+            let loadedSlides = [];
+            if (!snapshot.empty) {
+                snapshot.docs.forEach((doc) => {
+                    loadedSlides.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+            }
+            allSlides = loadedSlides;
+            renderSliderUI();
+        }, (err) => {
+            console.warn("Firestore announcements okuma hatası:", err);
+            allSlides = [];
+            renderSliderUI();
+        });
+    } else {
+        allSlides = [];
+        renderSliderUI();
+    }
+}
+
+// SLIDER ARAYÜZÜNÜ ÇİZME
+function renderSliderUI() {
+    checkAdminButtonVisibility();
+    const track = document.getElementById('slider-track');
+    const dotsContainer = document.getElementById('slider-dots');
+    const countBadge = document.getElementById('slider-count-badge');
+
+    if (!track) return;
+
+    // BOŞ DURUM KONTROLÜ (DUYURU YOKSA)
+    if (!allSlides || allSlides.length === 0) {
+        stopAutoSlide();
+        if (countBadge) countBadge.innerText = "0 / 0";
+        if (dotsContainer) dotsContainer.innerHTML = "";
+        
+        track.className = "w-full";
+        track.innerHTML = `
+            <div class="w-full p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-center space-y-3 py-12 shadow-sm backdrop-blur-md">
+                <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl">📢</div>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Henüz yayınlanmış bir duyuru bulunmuyor.</p>
+                <p class="text-xs text-slate-500">Yöneticiler üstteki "+ Duyuru Ekle" butonunu kullanarak duyuru yayınlayabilir.</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (currentSlideIndex >= allSlides.length) {
+        currentSlideIndex = 0;
+    }
+
+    if (countBadge) {
+        countBadge.innerText = `${currentSlideIndex + 1} / ${allSlides.length}`;
+    }
+
+    const userIsAdmin = (typeof isAdmin === 'function' && isAdmin());
+
     track.className = "flex w-full transition-transform duration-500 ease-out cursor-grab active:cursor-grabbing select-none";
 
     let slidesHTML = "";
     allSlides.forEach((slide) => {
-        const icon = slide.icon || "📢";
-        const badge = slide.badge || "Duyuru";
+        const category = slide.category || slide.badge || "Duyuru";
+        const icon = slide.icon || getIconForCategory(category);
         const title = slide.title || "Duyuru Başlığı";
         const desc = slide.description || "";
-        const buttonText = slide.buttonText || "Detaylar ↗";
-        const targetUrl = slide.targetUrl || "#";
-        const isAnchor = targetUrl.startsWith('#');
-        const isExternal = targetUrl.startsWith('http');
+        const buttonText = slide.buttonText || "Detayları İncele →";
+        const targetUrl = slide.link || slide.targetUrl || "";
 
-        let buttonOnClick = "";
-        if (isAnchor) {
-            buttonOnClick = `onclick="scrollToAboutDetails(event)"`;
-        }
+        const isExternal = targetUrl.startsWith('http');
 
         slidesHTML += `
             <div class="w-full shrink-0 flex-none px-1">
@@ -193,9 +124,9 @@ function renderSliderUI() {
                     <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
 
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                        <div class="space-y-3 max-w-2xl">
+                        <div class="space-y-3 max-w-2xl text-left">
                             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold w-fit">
-                                <span>${icon}</span> ${badge}
+                                <span>${icon}</span> ${category}
                             </div>
                             
                             <h2 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-snug">
@@ -207,10 +138,23 @@ function renderSliderUI() {
                             </p>
                         </div>
 
-                        <div class="shrink-0 flex items-center gap-3">
-                            <a href="${targetUrl}" ${buttonOnClick} ${isExternal ? 'target="_blank" rel="noopener noreferrer"' : ''} class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-lg shadow-tsBordo/20 hover:opacity-90 transition-all flex items-center gap-2 drag-prevent-click">
+                        <div class="shrink-0 flex items-center gap-2 flex-wrap">
+                            ${targetUrl ? `
+                            <a href="${targetUrl}" ${isExternal ? 'target="_blank" rel="noopener noreferrer"' : ''} class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-lg shadow-tsBordo/20 hover:opacity-90 transition-all flex items-center gap-2 drag-prevent-click">
                                 ${buttonText}
                             </a>
+                            ` : ''}
+
+                            ${userIsAdmin ? `
+                            <div class="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-800">
+                                <button onclick="editAnnouncement('${slide.id}')" title="Duyuruyu Düzenle" class="px-3 py-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white border border-amber-500/20 font-bold transition-all text-xs flex items-center gap-1 cursor-pointer">
+                                    ✏️ Düzenle
+                                </button>
+                                <button onclick="deleteAnnouncement('${slide.id}')" title="Duyuruyu Sil" class="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 font-bold transition-all text-xs flex items-center gap-1 cursor-pointer">
+                                    🗑️ Sil
+                                </button>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -235,14 +179,23 @@ function renderSliderUI() {
     startAutoSlide();
 }
 
+function getIconForCategory(cat) {
+    if (!cat) return "📢";
+    if (cat.includes("Sınav")) return "✍️";
+    if (cat.includes("İçerik") || cat.includes("Eğitim")) return "🚀";
+    if (cat.includes("Yarışma")) return "🏆";
+    if (cat.includes("Takım") || cat.includes("Proje")) return "🤝";
+    return "📢";
+}
+
 function updateTrackPosition() {
     const track = document.getElementById('slider-track');
     if (!track) return;
     track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
 }
 
-// SLIDER KONTROL FONKSİYONLARI
 function goToSlide(index) {
+    if (!allSlides || allSlides.length === 0) return;
     if (index < 0) index = allSlides.length - 1;
     if (index >= allSlides.length) index = 0;
     currentSlideIndex = index;
@@ -271,11 +224,11 @@ function renderDotsUI() {
 }
 
 function nextSlide() {
-    goToSlide(currentSlideIndex + 1);
+    if (allSlides && allSlides.length > 0) goToSlide(currentSlideIndex + 1);
 }
 
 function prevSlide() {
-    goToSlide(currentSlideIndex - 1);
+    if (allSlides && allSlides.length > 0) goToSlide(currentSlideIndex - 1);
 }
 
 function startAutoSlide() {
@@ -293,20 +246,16 @@ function stopAutoSlide() {
     }
 }
 
-// ==========================================
-// MOUSE DRAG & TOUCH SWIPE GEÇİŞLERİ
-// ==========================================
+// SÜRÜKLEME VE DOKUNMA ETKİLEŞİMLERİ
 function setupDragAndDropEvents() {
     const container = document.getElementById('slider-container');
     if (!container) return;
 
-    // Mouse Events
     container.addEventListener('mousedown', touchStart);
     container.addEventListener('mouseup', touchEnd);
     container.addEventListener('mouseleave', touchEnd);
     container.addEventListener('mousemove', touchMove);
 
-    // Touch Events
     container.addEventListener('touchstart', touchStart, { passive: true });
     container.addEventListener('touchend', touchEnd);
     container.addEventListener('touchmove', touchMove, { passive: true });
@@ -317,6 +266,7 @@ function getPositionX(event) {
 }
 
 function touchStart(event) {
+    if (allSlides.length <= 1) return;
     stopAutoSlide();
     isDragging = true;
     hasDraggedSignificant = false;
@@ -377,23 +327,22 @@ function touchEnd(event) {
     }, 100);
 }
 
-// YUMUŞAK KAYDIRMA (SMOOTH SCROLL)
-function scrollToAboutDetails(e) {
-    if (e && e.preventDefault) e.preventDefault();
-    const el = document.getElementById('about-details');
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
 // ==========================================
-// ADMİN DUYURU / SLIDER YÖNETİMİ (KORUMALI SİSTEM KARTLARI + FULL CRUD)
+// ADMİN DUYURU CRUD FONKSİYONLARI
 // ==========================================
-function openAnnouncementModal() {
+function openAddAnnouncementModal() {
     if (typeof isAdmin === 'function' && !isAdmin()) {
         alert("Bu işlem yalnızca Yönetici (Admin) yetkisine açıktır.");
         return;
     }
+
+    resetAnnouncementForm();
+    const modalTitle = document.getElementById('announcement-modal-title');
+    const submitBtn = document.getElementById('announcement-submit-btn');
+
+    if (modalTitle) modalTitle.innerHTML = "<span>📢</span> Yeni Duyuru Yayınla";
+    if (submitBtn) submitBtn.innerHTML = "<span>🚀</span> Duyuruyu Yayınla";
+
     const modal = document.getElementById('announcement-admin-modal');
     if (modal) modal.classList.remove('hidden');
 }
@@ -405,23 +354,29 @@ function closeAnnouncementModal() {
 }
 
 function resetAnnouncementForm() {
-    const form = document.getElementById('announcement-form');
+    const form = document.getElementById('announcement-admin-form');
     const editIdInput = document.getElementById('announcement-edit-id');
-    const submitBtn = document.getElementById('announcement-submit-btn');
-    const formTitle = document.getElementById('announcement-form-title');
-    const cancelBtn = document.getElementById('announcement-cancel-edit-btn');
+    const customContainer = document.getElementById('custom-category-container');
 
     if (form) form.reset();
     if (editIdInput) editIdInput.value = "";
-    if (submitBtn) {
-        submitBtn.innerHTML = "<span>＋</span> Slider'a Ekle";
-        submitBtn.className = "px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-tsBordo to-tsMavi text-white shadow-md";
-    }
-    if (formTitle) formTitle.innerText = "Yeni Slider Kartı Ekle";
-    if (cancelBtn) cancelBtn.classList.add('hidden');
+    if (customContainer) customContainer.classList.add('hidden');
 }
 
-function handleCreateOrUpdateAnnouncement(e) {
+function toggleCustomAnnouncementCategory() {
+    const categorySelect = document.getElementById('announcement-category');
+    const customContainer = document.getElementById('custom-category-container');
+
+    if (categorySelect && customContainer) {
+        if (categorySelect.value === 'Diğer') {
+            customContainer.classList.remove('hidden');
+        } else {
+            customContainer.classList.add('hidden');
+        }
+    }
+}
+
+function handleAnnouncementSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
 
     if (typeof isAdmin === 'function' && !isAdmin()) {
@@ -432,33 +387,40 @@ function handleCreateOrUpdateAnnouncement(e) {
     const editId = document.getElementById('announcement-edit-id')?.value;
     const title = document.getElementById('announcement-title')?.value.trim();
     const desc = document.getElementById('announcement-desc')?.value.trim();
-    const badge = document.getElementById('announcement-badge')?.value.trim() || "Duyuru";
-    const icon = document.getElementById('announcement-icon')?.value.trim() || "📢";
-    const buttonText = document.getElementById('announcement-button-text')?.value.trim() || "Detaylar ↗";
-    const targetUrl = document.getElementById('announcement-target-url')?.value.trim() || "#";
+    let categorySelect = document.getElementById('announcement-category')?.value;
+    const customCategory = document.getElementById('announcement-custom-category')?.value.trim();
+    const link = document.getElementById('announcement-link')?.value.trim() || "";
+    const buttonText = document.getElementById('announcement-button-text')?.value.trim() || "Detayları İncele →";
 
     if (!title || !desc) {
-        alert("Lütfen en azından Duyuru Başlığı ve Açıklama alanlarını doldurun.");
+        alert("Lütfen başlık ve açıklama alanlarını doldurun.");
         return;
     }
+
+    let finalCategory = categorySelect;
+    if (categorySelect === 'Diğer') {
+        finalCategory = customCategory || "Duyuru";
+    }
+
+    const icon = getIconForCategory(finalCategory);
 
     const announcementData = {
         title: title,
         description: desc,
-        badge: badge,
+        category: finalCategory,
+        badge: finalCategory,
         icon: icon,
+        link: link,
+        targetUrl: link,
         buttonText: buttonText,
-        targetUrl: targetUrl,
-        updatedAt: (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
-            ? firebase.firestore.FieldValue.serverTimestamp()
-            : new Date().toISOString()
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
     if (typeof db !== 'undefined' && db && db.collection) {
-        if (editId && !editId.startsWith('local-')) {
+        if (editId) {
             // UPDATE EXISTING ANNOUNCEMENT IN FIRESTORE
             db.collection("announcements").doc(editId).update(announcementData).then(() => {
-                alert("✨ Duyuru slider kartı başarıyla güncellendi!");
+                alert("✨ Duyuru başarıyla güncellendi!");
                 closeAnnouncementModal();
             }).catch(err => {
                 console.error("Duyuru güncelleme hatası:", err);
@@ -466,13 +428,10 @@ function handleCreateOrUpdateAnnouncement(e) {
             });
         } else {
             // CREATE NEW ANNOUNCEMENT IN FIRESTORE
-            announcementData.createdAt = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
-                ? firebase.firestore.FieldValue.serverTimestamp()
-                : new Date().toISOString();
-            announcementData.isProtected = false;
+            announcementData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
             db.collection("announcements").add(announcementData).then(() => {
-                alert("✅ Yeni slider duyuru kartı başarıyla eklendi!");
+                alert("✅ Yeni duyuru başarıyla yayınlandı!");
                 closeAnnouncementModal();
             }).catch(err => {
                 console.error("Duyuru ekleme hatası:", err);
@@ -486,34 +445,43 @@ function handleCreateOrUpdateAnnouncement(e) {
 
 function editAnnouncement(id) {
     if (typeof isAdmin === 'function' && !isAdmin()) return;
+
     const target = allSlides.find(item => item.id === id);
     if (!target) return;
 
     const editIdInput = document.getElementById('announcement-edit-id');
     const titleInput = document.getElementById('announcement-title');
     const descInput = document.getElementById('announcement-desc');
-    const badgeInput = document.getElementById('announcement-badge');
-    const iconInput = document.getElementById('announcement-icon');
+    const categorySelect = document.getElementById('announcement-category');
+    const customCategoryInput = document.getElementById('announcement-custom-category');
+    const customContainer = document.getElementById('custom-category-container');
+    const linkInput = document.getElementById('announcement-link');
     const buttonTextInput = document.getElementById('announcement-button-text');
-    const targetUrlInput = document.getElementById('announcement-target-url');
+    const modalTitle = document.getElementById('announcement-modal-title');
     const submitBtn = document.getElementById('announcement-submit-btn');
-    const formTitle = document.getElementById('announcement-form-title');
-    const cancelBtn = document.getElementById('announcement-cancel-edit-btn');
 
     if (editIdInput) editIdInput.value = target.id;
     if (titleInput) titleInput.value = target.title || "";
     if (descInput) descInput.value = target.description || "";
-    if (badgeInput) badgeInput.value = target.badge || "";
-    if (iconInput) iconInput.value = target.icon || "";
-    if (buttonTextInput) buttonTextInput.value = target.buttonText || "";
-    if (targetUrlInput) targetUrlInput.value = target.targetUrl || "";
+    if (linkInput) linkInput.value = target.link || target.targetUrl || "";
+    if (buttonTextInput) buttonTextInput.value = target.buttonText || "Detayları İncele →";
 
-    if (submitBtn) {
-        submitBtn.innerHTML = "<span>✨</span> Değişiklikleri Güncelle";
-        submitBtn.className = "px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-md hover:bg-amber-600 transition-colors";
+    const cat = target.category || target.badge || "Duyuru";
+    const standardCategories = ["Duyuru", "Sınav Takvimi", "Yeni İçerik", "Yarışma"];
+
+    if (categorySelect) {
+        if (standardCategories.includes(cat)) {
+            categorySelect.value = cat;
+            if (customContainer) customContainer.classList.add('hidden');
+        } else {
+            categorySelect.value = "Diğer";
+            if (customCategoryInput) customCategoryInput.value = cat;
+            if (customContainer) customContainer.classList.remove('hidden');
+        }
     }
-    if (formTitle) formTitle.innerText = "✏️ Duyuru Kartını Düzenle";
-    if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+    if (modalTitle) modalTitle.innerHTML = "<span>✏️</span> Duyuruyu Düzenle";
+    if (submitBtn) submitBtn.innerHTML = "<span>✨</span> Değişiklikleri Güncelle";
 
     const modal = document.getElementById('announcement-admin-modal');
     if (modal) modal.classList.remove('hidden');
@@ -522,85 +490,14 @@ function editAnnouncement(id) {
 function deleteAnnouncement(id) {
     if (typeof isAdmin === 'function' && !isAdmin()) return;
 
-    const targetIdx = allSlides.findIndex(item => item.id === id);
-    const targetItem = allSlides[targetIdx];
+    if (!confirm("Bu duyuruyu silmek istediğinize emin misiniz?")) return;
 
-    if (targetIdx >= 0 && (targetIdx < 3 || targetItem?.isProtected || id.startsWith('system-card-'))) {
-        alert("🔒 Bu kart sistemin temel kartıdır ve silinemez. Ancak içeriğini dilediğiniz gibi düzenleyebilirsiniz.");
-        return;
-    }
-
-    if (!confirm("Bu duyuru slider kartını silmek istediğinize emin misiniz?")) return;
-
-    if (typeof db !== 'undefined' && db && db.collection && !id.startsWith('local-')) {
+    if (typeof db !== 'undefined' && db && db.collection) {
         db.collection("announcements").doc(id).delete().then(() => {
             alert("🗑️ Duyuru başarıyla silindi.");
         }).catch(err => {
             console.error("Duyuru silme hatası:", err);
             alert("❌ Duyuru silinirken bir hata oluştu.");
         });
-    } else {
-        allSlides = allSlides.filter(s => s.id !== id);
-        renderSliderUI();
-        renderAdminAnnouncementsList(allSlides);
     }
-}
-
-function renderAdminAnnouncementsList(slides) {
-    const listContainer = document.getElementById('admin-announcements-list');
-    if (!listContainer) return;
-
-    if (!slides || slides.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Henüz eklenmiş özel duyuru yok.</p>`;
-        return;
-    }
-
-    let html = `
-        <div class="flex items-center justify-between pb-1">
-            <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Aktif Kartlar (${slides.length})</span>
-            <button type="button" onclick="restoreDefaultCards()" title="Varsayılan 3 kartı yeniden yükle" class="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors flex items-center gap-1">
-                🔄 3 Kartı Geri Yükle
-            </button>
-        </div>
-    `;
-
-    slides.forEach((item, index) => {
-        const isProtected = index < 3 || item.isProtected === true || item.id.startsWith('system-card-');
-
-        let deleteBtnHTML = "";
-        if (isProtected) {
-            deleteBtnHTML = `
-                <span title="Temel Sistem Kartı - Silinemez" class="px-2 py-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 text-slate-500 font-semibold text-[10px] border border-slate-300/80 dark:border-slate-700 flex items-center gap-1 select-none cursor-not-allowed">
-                    🔒 Korumalı
-                </span>
-            `;
-        } else {
-            deleteBtnHTML = `
-                <button onclick="deleteAnnouncement('${item.id}')" title="Duyuruyu Sil" class="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20 font-bold transition-all text-[11px]">
-                    🗑️ Sil
-                </button>
-            `;
-        }
-
-        html += `
-            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 text-xs">
-                <div class="space-y-0.5 min-w-0 pr-2">
-                    <div class="flex items-center gap-1.5">
-                        <span class="font-bold text-tsMavi">${item.icon || '📢'} ${item.badge || 'Duyuru'}</span>
-                        ${isProtected ? '<span class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.2 rounded font-semibold">Temel Kart</span>' : ''}
-                    </div>
-                    <h4 class="font-bold text-slate-900 dark:text-slate-100 truncate">${item.title}</h4>
-                    <p class="text-[11px] text-slate-500 line-clamp-1">${item.description}</p>
-                </div>
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <button onclick="editAnnouncement('${item.id}')" title="Duyuruyu Düzenle" class="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white border border-amber-500/20 font-bold transition-all text-[11px]">
-                        ✏️ Düzenle
-                    </button>
-                    ${deleteBtnHTML}
-                </div>
-            </div>
-        `;
-    });
-
-    listContainer.innerHTML = html;
 }

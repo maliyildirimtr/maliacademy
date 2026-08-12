@@ -300,18 +300,23 @@
 
         <!-- 4. HERO SLIDER ALANI (ÖNE ÇIKAN DERSLER & DUYURULAR) -->
         <section class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div class="flex items-center justify-between">
-                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                    <span>📢</span> Öne Çıkanlar & Duyurular
-                </h2>
+            <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <span>📢</span> Öne Çıkanlar & Duyurular
+                    </h2>
+                    <button id="admin-announcement-btn" onclick="openAddAnnouncementModal()" class="hidden px-3.5 py-1.5 rounded-xl bg-tsMavi hover:bg-blue-600 text-white font-bold text-xs transition-colors items-center gap-1 shadow-sm cursor-pointer">
+                        <span>＋</span> Duyuru Ekle
+                    </button>
+                </div>
                 <div class="flex items-center gap-2">
-                    <span id="slider-count-badge" class="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">1 / 3</span>
+                    <span id="slider-count-badge" class="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">1 / 1</span>
                     <button onclick="prevSlide()" class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs">‹</button>
                     <button onclick="nextSlide()" class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs">›</button>
                 </div>
             </div>
 
-            <div class="relative overflow-hidden rounded-3xl" onmouseenter="stopAutoSlide()" onmouseleave="startAutoSlide()">
+            <div id="slider-container" class="relative overflow-hidden rounded-3xl" onmouseenter="stopAutoSlide()" onmouseleave="startAutoSlide()">
                 <div id="slider-track" class="flex w-full transition-transform duration-500 ease-out cursor-grab active:cursor-grabbing select-none">
                     <!-- Dynamic slider content loaded from js/slider.js -->
                 </div>
@@ -560,10 +565,69 @@
         </button>
     </footer>
 
+    <!-- DUYURU EKLENME / DÜZENLEME MODALI (ADMIN ONLY) -->
+    <div id="announcement-admin-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl relative text-left">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2" id="announcement-modal-title">
+                    <span>📢</span> Yeni Duyuru Yayınla
+                </h3>
+                <button type="button" onclick="closeAnnouncementModal()" class="text-slate-400 hover:text-white text-lg cursor-pointer">✕</button>
+            </div>
+            
+            <form id="announcement-admin-form" onsubmit="handleAnnouncementSubmit(event)" class="space-y-4">
+                <input type="hidden" id="announcement-edit-id">
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">Duyuru / Öne Çıkan Başlığı *</label>
+                    <input type="text" id="announcement-title" required placeholder="Örn: Mantıksal Devre Tasarımı & SystemVerilog Kursu" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">Kategori / Rozet Etiketi *</label>
+                    <select id="announcement-category" onchange="toggleCustomAnnouncementCategory()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100">
+                        <option value="Duyuru">📢 Duyuru</option>
+                        <option value="Sınav Takvimi">✍️ Sınav Takvimi</option>
+                        <option value="Yeni İçerik">🚀 Yeni İçerik</option>
+                        <option value="Yarışma">🏆 Yarışma</option>
+                        <option value="Diğer">⚙️ Diğer (Özel)</option>
+                    </select>
+                </div>
+
+                <div id="custom-category-container" class="hidden">
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">Özel Kategori / Rozet Adı *</label>
+                    <input type="text" id="announcement-custom-category" placeholder="Örn: Workshop" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">İçerik / Özet Açıklama *</label>
+                    <textarea id="announcement-desc" rows="3" required placeholder="Duyurunun detaylarını ve özet açıklamasını giriniz..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">Detay Bağlantı Linki (İsteğe Bağlı URL)</label>
+                    <input type="url" id="announcement-link" placeholder="https://..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">Buton Metni (Varsayılan: Detayları İncele →)</label>
+                    <input type="text" id="announcement-button-text" placeholder="Detayları İncele →" value="Detayları İncele →" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100">
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="closeAnnouncementModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">İptal</button>
+                    <button type="submit" id="announcement-submit-btn" class="px-5 py-2.5 rounded-xl bg-tsMavi text-white font-bold text-xs hover:bg-blue-600 transition-all shadow-md flex items-center gap-2 cursor-pointer">
+                        <span>🚀</span> Duyuruyu Yayınla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- SCRIPT'LER -->
     <script src="js/firebase.js?v=20260811v1"></script>
     <script src="js/sso.js?v=20260811v1"></script>
-    <script src="js/slider.js?v=20260811v1"></script>
+    <script src="js/slider.js?v=20260812v1"></script>
     <script src="js/main.js?v=20260811v1"></script>
     <script src="js/courses-seed.js?v=20260811v1"></script>
     <script src="js/dersler.js?v=20260811v1"></script>
