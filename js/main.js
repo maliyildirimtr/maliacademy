@@ -626,17 +626,17 @@ function listenUserNotifications(user) {
                 return tB - tA;
             });
 
-            const pendingCount = notifications.filter(n => n.status === 'pending' || n.status === 'unread').length;
+            const unreadCount = notifications.filter(n => n.read === false || n.status === 'pending' || n.status === 'unread').length;
             if (badge) {
-                if (pendingCount > 0) {
-                    badge.innerText = pendingCount;
+                if (unreadCount > 0) {
+                    badge.innerText = unreadCount;
                     badge.classList.remove('hidden');
                 } else {
                     badge.classList.add('hidden');
                 }
             }
 
-            if (countLabel) countLabel.innerText = `${notifications.length} Bildirim`;
+            if (countLabel) countLabel.innerText = `${unreadCount} Okunmamış`;
 
             if (list) {
                 let html = "";
@@ -673,6 +673,21 @@ function listenUserNotifications(user) {
                                 ` : ''}
                             </div>
                         `;
+                    } else if (n.type === 'doc_approved' || n.status === 'approved') {
+                        html += `
+                            <div class="p-3 rounded-2xl ${n.read ? 'bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700' : 'bg-emerald-500/10 border border-emerald-500/30'} space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-emerald-500">🎉 Belgeniz Onaylandı!</span>
+                                    <span class="text-[10px] text-slate-400">${dateStr}</span>
+                                </div>
+                                <p class="text-slate-700 dark:text-slate-300 leading-snug">${n.message}</p>
+                                ${!n.read ? `
+                                    <div class="flex justify-end pt-1">
+                                        <button onclick="markNotificationAsRead('${n.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-500 text-white font-bold text-[10px] hover:bg-emerald-600 transition-all shadow-sm">✓ Okundu İşaretle</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
                     } else if (n.status === 'accepted') {
                         html += `
                             <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1.5 text-xs">
@@ -700,12 +715,17 @@ function listenUserNotifications(user) {
                         `;
                     } else {
                         html += `
-                            <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1 text-xs">
+                            <div class="p-3 rounded-2xl ${n.read === false ? 'bg-tsMavi/10 border border-tsMavi/20' : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'} space-y-1 text-xs">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-bold">ℹ️ Bilgilendirme</span>
+                                    <span class="font-bold text-tsMavi">ℹ️ Bilgilendirme</span>
                                     <span class="text-[10px] text-slate-400">${dateStr}</span>
                                 </div>
                                 <p class="text-slate-600 dark:text-slate-300 leading-snug">${n.message}</p>
+                                ${n.read === false ? `
+                                    <div class="flex justify-end pt-1">
+                                        <button onclick="markNotificationAsRead('${n.id}')" class="px-2 py-0.5 rounded bg-tsMavi text-white font-bold text-[10px]">Okundu</button>
+                                    </div>
+                                ` : ''}
                             </div>
                         `;
                     }
@@ -716,6 +736,15 @@ function listenUserNotifications(user) {
             console.warn("Bildirim okuma hatası:", err);
         });
 }
+
+window.markNotificationAsRead = function(notificationId) {
+    if (typeof db !== 'undefined' && db && db.collection) {
+        db.collection("notifications").doc(notificationId).update({
+            read: true,
+            status: 'read'
+        }).catch(err => console.warn("Bildirim okundu işaretlenemedi:", err));
+    }
+};
 
 window.markNotificationRead = function(notificationId, groupId, taskId) {
     if (typeof db !== 'undefined' && db && db.collection) {

@@ -1,10 +1,68 @@
 // ==========================================
-// SINAV & VİZE HAZIRLIK - 100% LINK TABANLI SİSTEM
+// SINAV & VİZE HAZIRLIK - PDF PREVIEW & NOTIFICATION SYSTEM
 // ==========================================
 
 let allExams = [];
 
-// MODAL İŞLEMLERİ
+// GOOGLE DRIVE / LINK EMBED CONVERTOR
+function getEmbedUrl(rawUrl) {
+    if (!rawUrl) return '';
+    let url = rawUrl.trim();
+    
+    // Check if Google Drive link
+    if (url.includes('drive.google.com')) {
+        // Match /file/d/FILE_ID or ?id=FILE_ID
+        const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (fileIdMatch && fileIdMatch[1]) {
+            return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+        }
+    }
+    
+    return url;
+}
+
+// TARİH FORMATLAMA YARDIMCISI
+function formatDate(timestamp) {
+    if (!timestamp) return '';
+    let date = null;
+    if (typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+    } else if (typeof timestamp === 'number') {
+        date = new Date(timestamp);
+    } else if (timestamp.seconds) {
+        date = new Date(timestamp.seconds * 1000);
+    }
+    if (!date) return '';
+    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// BELGE ÖNİZLEME MODALI İŞLEMLERİ
+window.openPreviewDocumentModal = function(title, rawLink, category) {
+    const embedUrl = getEmbedUrl(rawLink);
+    const modal = document.getElementById('preview-doc-modal');
+    const titleEl = document.getElementById('preview-modal-title');
+    const iframeEl = document.getElementById('preview-doc-iframe');
+    const catEl = document.getElementById('preview-modal-category');
+    const extLinkEl = document.getElementById('preview-modal-external-link');
+
+    if (titleEl) titleEl.innerText = title || "Belge Önizleme";
+    if (iframeEl) iframeEl.src = embedUrl;
+    if (catEl) catEl.innerText = category ? `Ders Kategorisi: ${category}` : "Sınav Belgesi";
+    if (extLinkEl) extLinkEl.href = rawLink;
+
+    if (modal) modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+window.closePreviewDocumentModal = function() {
+    const modal = document.getElementById('preview-doc-modal');
+    const iframeEl = document.getElementById('preview-doc-iframe');
+    if (iframeEl) iframeEl.src = ''; // Stop video/iframe playback
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// BELGE EKLEME MODALI İŞLEMLERİ
 window.openAddDocumentModal = function() {
     let user = null;
     if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
@@ -78,6 +136,7 @@ window.handleAddDocument = async function(event) {
             addedBy: user.displayName || (user.email ? user.email.split('@')[0] : 'Öğrenci'),
             uid: user.uid,
             status: "pending", // Default pending admin approval
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -137,6 +196,7 @@ function renderExams() {
             pendingExams.forEach(docItem => {
                 const colors = getCategoryColors(docItem.category);
                 const targetUrl = docItem.fileUrl || docItem.link;
+                const formattedDateStr = formatDate(docItem.createdAt || docItem.timestamp);
                 const html = `
                     <div class="p-5 rounded-2xl border border-amber-500/40 bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between space-y-3">
                         <div class="space-y-2">
@@ -146,12 +206,14 @@ function renderExams() {
                             </div>
                             <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100">${docItem.title}</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${docItem.description}</p>
-                            <div class="text-[10px] text-slate-400">Ekleyen: <strong>${docItem.addedBy || 'Bilinmiyor'}</strong></div>
+                            <div class="text-[10px] text-slate-400">Ekleyen: <strong>${docItem.addedBy || 'Bilinmiyor'}</strong>${formattedDateStr ? ` • <span class="text-slate-400 dark:text-slate-500 font-normal">${formattedDateStr}</span>` : ''}</div>
                         </div>
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div class="flex items-center justify-between text-xs mb-1">
-                                <span class="text-slate-400 text-[10px] truncate max-w-[150px]">${targetUrl}</span>
-                                <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi text-[11px] hover:underline">Linki Kontrol Et ↗</a>
+                                <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docItem.category}')" class="font-bold text-tsMavi text-[11px] hover:underline flex items-center gap-1">
+                                    👁️ Önizle
+                                </button>
+                                <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-slate-500 text-[11px] hover:underline">Linki Kontrol Et ↗</a>
                             </div>
                             <div class="flex gap-2">
                                 <button onclick="approveResource('${docItem.id}')" class="flex-1 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">✓ Onayla / Yayınla</button>
@@ -184,10 +246,13 @@ function renderExams() {
     approvedExams.forEach(docItem => {
         const colors = getCategoryColors(docItem.category);
         const targetUrl = docItem.fileUrl || docItem.link;
+        const formattedDateStr = formatDate(docItem.createdAt || docItem.timestamp);
 
         let addedByHtml = "";
         if (docItem.addedBy && docItem.addedBy !== "Sistem") {
-            addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Ekleyen: ${docItem.addedBy}</div>`;
+            addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Ekleyen: ${docItem.addedBy}${formattedDateStr ? ` • <span class="text-slate-400 dark:text-slate-500 font-normal">${formattedDateStr}</span>` : ''}</div>`;
+        } else if (formattedDateStr) {
+            addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Tarih: ${formattedDateStr}</div>`;
         }
 
         const html = `
@@ -205,7 +270,10 @@ function renderExams() {
 
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <span class="text-slate-400">${docItem.fileInfo || "Bağlantı Linki"}</span>
-                    <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele ↗</a>
+                    <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docItem.category}')" class="font-bold text-tsMavi hover:underline flex items-center gap-1">
+                        <span>İncele</span>
+                        <span>↗</span>
+                    </button>
                 </div>
             </div>
         `;
@@ -213,13 +281,35 @@ function renderExams() {
     });
 }
 
+// ADMİN ONAY VE REDDETME (BİLDİRİM SİSTEMİ DAHİL)
 window.approveResource = function(id) {
-    if (!confirm("Bu belge bağlantısını onaylayıp yayınlamak istediğinize emin misiniz?")) return;
+    const docItem = allExams.find(e => e.id === id);
+    const docTitle = docItem ? docItem.title : "Belge";
+    
+    if (!confirm(`"${docTitle}" başlıklı belge bağlantısını onaylayıp yayınlamak istediğinize emin misiniz?`)) return;
+    
     const targetDb = typeof db !== 'undefined' ? db : window.db;
     if (targetDb) {
         targetDb.collection("exam_prep_resources").doc(id).update({ status: 'approved' })
             .then(() => {
-                if (typeof showToast === 'function') showToast("Belge bağlantısı onaylandı ve yayınlandı!", "success");
+                // Bildirim Gönder (Firestore notifications collection)
+                if (docItem && docItem.uid) {
+                    targetDb.collection("notifications").add({
+                        targetUserUid: docItem.uid,
+                        userId: docItem.uid,
+                        message: `'${docTitle}' başlıklı belgeniz onaylandı ve yayında!`,
+                        read: false,
+                        status: "unread",
+                        type: "doc_approved",
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(err => console.warn("Bildirim eklenemedi:", err));
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast("Belge bağlantısı onaylandı ve kullanıcıya bildirim gönderildi!", "success");
+                } else {
+                    alert("Belge bağlantısı onaylandı ve yayınlandı!");
+                }
             })
             .catch(err => alert("Hata: " + err.message));
     }
@@ -263,6 +353,7 @@ function loadResources() {
                     addedBy: data.addedBy,
                     uid: data.uid,
                     status: data.status || 'approved',
+                    createdAt: data.createdAt || data.timestamp,
                     timestamp: data.timestamp ? data.timestamp.toMillis() : Date.now()
                 });
             });

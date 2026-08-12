@@ -158,9 +158,41 @@
         </div>
     </div>
 
+    <!-- BELGE ÖNİZLEME MODALI (EMBED VIEWER) -->
+    <div id="preview-doc-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closePreviewDocumentModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden pointer-events-auto border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
+                <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/20">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-xl">📄</span>
+                        <h3 id="preview-modal-title" class="font-bold text-base text-slate-900 dark:text-slate-100 truncate">
+                            Belge Önizleme
+                        </h3>
+                    </div>
+                    <button onclick="closePreviewDocumentModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="p-4 overflow-y-auto flex-grow flex flex-col items-center justify-center min-h-[450px] bg-slate-100 dark:bg-slate-950">
+                    <iframe id="preview-doc-iframe" src="" width="100%" height="550px" class="rounded-xl border-0 shadow-sm w-full" style="border:none; border-radius:12px;" allow="autoplay"></iframe>
+                </div>
+
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+                    <span id="preview-modal-category" class="text-xs text-slate-500 font-medium">Sınav Belgesi</span>
+                    <a id="preview-modal-external-link" href="#" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-tsMavi text-white font-bold text-xs hover:bg-blue-600 transition-colors shadow-md flex items-center gap-1.5">
+                        <span>Drive'da Aç / İndir</span>
+                        <span>↗</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/firebase.js?v=2"></script>
     <script src="js/sso.js?v=2"></script>
-    <script src="js/main.js"></script>
-    <script src="js/sinav-hazirlik.js?v=6"></script>
+    <script src="js/main.js?v=3"></script>
+    <script src="js/sinav-hazirlik.js?v=7"></script>
 </body>
 </html>
