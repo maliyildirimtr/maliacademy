@@ -122,7 +122,8 @@ function toggleToolsSubmenu(e) {
     }
 }
 
-function toggleProfileDropdown() {
+function toggleProfileDropdown(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     const menu = document.getElementById('profile-dropdown-menu');
     if (menu) {
         menu.classList.toggle('hidden');
@@ -181,7 +182,7 @@ function renderNavbar(activePage, currentUser) {
     if (user) {
         authHeaderRightHTML = `
             <div class="relative">
-                <button id="notification-bell-btn" title="Bildirimler" onclick="toggleNotificationDropdown()" class="p-2 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative transition-colors">
+                <button id="notification-bell-btn" title="Bildirimler" onclick="toggleNotificationDropdown(event)" class="p-2 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative transition-colors">
                     <span>🔔</span>
                     <span id="notification-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">0</span>
                 </button>
@@ -204,7 +205,7 @@ function renderNavbar(activePage, currentUser) {
             </div>
 
             <div class="relative">
-                <button id="user-profile-btn" onclick="toggleProfileDropdown()" class="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none">
+                <button id="user-profile-btn" onclick="toggleProfileDropdown(event)" class="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none">
                     ${avatarHTML}
                     <span class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[110px]">${userName}</span>
                     <span class="text-[10px] text-slate-400">▾</span>
@@ -596,10 +597,41 @@ document.addEventListener('DOMContentLoaded', initNavbar);
 
 let notificationUnsubscribe = null;
 
-function toggleNotificationDropdown() {
-    const dropdown = document.getElementById('notification-dropdown');
+function toggleNotificationDropdown(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    const dropdown = document.getElementById('notification-dropdown') || document.getElementById('notificationDropdown');
     if (dropdown) dropdown.classList.toggle('hidden');
 }
+
+// BİLDİRİM VE PROFİL PANOLARI İÇİN GLOBAL OUTSIDE CLICK (DIŞARIYA TIKLAMA) DİNLEYİCİSİ
+document.addEventListener('click', (event) => {
+    // 1. Bildirim Panosu Dışına Tıklama Kontrolü
+    const notificationDropdown = document.querySelector('#notification-dropdown') || document.querySelector('#notificationDropdown');
+    const notificationBtn = document.querySelector('#notification-bell-btn') || document.querySelector('#notificationBtn');
+
+    if (
+        notificationDropdown &&
+        !notificationDropdown.classList.contains('hidden') &&
+        !notificationDropdown.contains(event.target) &&
+        (!notificationBtn || !notificationBtn.contains(event.target))
+    ) {
+        notificationDropdown.classList.add('hidden');
+        notificationDropdown.classList.remove('active');
+    }
+
+    // 2. Profil Menüsü Dışına Tıklama Kontrolü
+    const profileMenu = document.querySelector('#profile-dropdown-menu');
+    const profileBtn = document.querySelector('#user-profile-btn');
+
+    if (
+        profileMenu &&
+        !profileMenu.classList.contains('hidden') &&
+        !profileMenu.contains(event.target) &&
+        (!profileBtn || !profileBtn.contains(event.target))
+    ) {
+        profileMenu.classList.add('hidden');
+    }
+});
 
 function listenUserNotifications(user) {
     if (!user || typeof db === 'undefined' || !db) return;
