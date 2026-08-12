@@ -21,6 +21,23 @@ function getEmbedUrl(rawUrl) {
     return url;
 }
 
+// DİNAMİK BELGE TÜRÜ "DİĞER" INPUT TOGGLE
+window.toggleDocTypeCustom = function(selectId, containerId, inputId) {
+    const select = document.getElementById(selectId);
+    const container = document.getElementById(containerId);
+    const input = document.getElementById(inputId);
+
+    if (select && container && input) {
+        if (select.value === "Diğer") {
+            container.classList.remove('hidden');
+            input.focus();
+        } else {
+            container.classList.add('hidden');
+            input.value = '';
+        }
+    }
+}
+
 // TARİH FORMATLAMA YARDIMCISI
 function formatDate(timestamp) {
     if (!timestamp) return '';
@@ -47,7 +64,7 @@ window.openPreviewDocumentModal = function(title, rawLink, category) {
     const extLinkEl = document.getElementById('preview-modal-external-link');
 
     if (titleEl) titleEl.innerText = title || "Belge Önizleme";
-    if (catEl) catEl.innerText = category ? `Ders Kategorisi: ${category}` : "Sınav Belgesi";
+    if (catEl) catEl.innerText = category ? `Belge Türü: ${category}` : "Sınav Belgesi";
     if (extLinkEl) extLinkEl.href = rawLink;
 
     // Show spinner loader, hide iframe until fully loaded
@@ -87,11 +104,27 @@ window.openEditDocumentModal = function(id) {
     const docItem = allExams.find(e => e.id === id);
     if (!docItem) return;
 
+    const docTypeVal = docItem.documentType || docItem.category || '';
+    const standardOptions = ["Vize Soruları", "Final Soruları", "Quiz", "Ders Notu", "Konu Anlatım Notu", "Çalışma Sayfası", "Çözümlü Sorular", "Alıştırma Soruları"];
+
     document.getElementById('edit-doc-id').value = docItem.id;
     document.getElementById('edit-doc-title').value = docItem.title || '';
-    document.getElementById('edit-doc-category').value = docItem.category || 'Mantık Devreleri';
     document.getElementById('edit-doc-link').value = docItem.fileUrl || docItem.link || '';
     document.getElementById('edit-doc-description').value = docItem.description || '';
+
+    const selectEl = document.getElementById('edit-doc-category');
+    const containerEl = document.getElementById('edit-doc-type-custom-container');
+    const customInputEl = document.getElementById('edit-doc-type-custom');
+
+    if (standardOptions.includes(docTypeVal)) {
+        selectEl.value = docTypeVal;
+        containerEl.classList.add('hidden');
+        customInputEl.value = '';
+    } else {
+        selectEl.value = "Diğer";
+        containerEl.classList.remove('hidden');
+        customInputEl.value = docTypeVal;
+    }
 
     const modal = document.getElementById('edit-doc-modal');
     if (modal) modal.classList.remove('hidden');
@@ -109,7 +142,11 @@ window.handleEditDocument = async function(event) {
 
     const id = document.getElementById('edit-doc-id').value;
     const title = document.getElementById('edit-doc-title').value.trim();
-    const category = document.getElementById('edit-doc-category').value;
+    let category = document.getElementById('edit-doc-category').value;
+    if (category === "Diğer") {
+        const customVal = document.getElementById('edit-doc-type-custom').value.trim();
+        if (customVal) category = customVal;
+    }
     const link = document.getElementById('edit-doc-link').value.trim();
     const description = document.getElementById('edit-doc-description').value.trim();
     const btn = document.getElementById('btn-edit-doc');
@@ -129,6 +166,7 @@ window.handleEditDocument = async function(event) {
             await targetDb.collection("exam_prep_resources").doc(id).update({
                 title: title,
                 category: category,
+                documentType: category,
                 fileUrl: link,
                 link: link,
                 description: description,
@@ -211,6 +249,8 @@ window.openAddDocumentModal = function() {
     if (modal) {
         modal.classList.remove("hidden");
         document.getElementById("add-doc-form").reset();
+        const customContainer = document.getElementById("doc-type-custom-container");
+        if (customContainer) customContainer.classList.add("hidden");
     }
     document.body.style.overflow = 'hidden';
 }
@@ -235,7 +275,11 @@ window.handleAddDocument = async function(event) {
     }
 
     const title = document.getElementById("doc-title").value.trim();
-    const category = document.getElementById("doc-category").value;
+    let category = document.getElementById("doc-category").value;
+    if (category === "Diğer") {
+        const customVal = document.getElementById("doc-type-custom").value.trim();
+        if (customVal) category = customVal;
+    }
     const link = document.getElementById("doc-link").value.trim();
     const description = document.getElementById("doc-description").value.trim();
     const legalConsent = document.getElementById("doc-legal-consent");
@@ -259,6 +303,7 @@ window.handleAddDocument = async function(event) {
         const newDoc = {
             title: title,
             category: category,
+            documentType: category,
             description: description,
             fileUrl: link,
             link: link,
@@ -278,7 +323,7 @@ window.handleAddDocument = async function(event) {
             if (typeof showToast === 'function') {
                 showToast("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra arşivde yayınlanacaktır.", "success");
             } else {
-                alert("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra arşivde yayınlanacaktır.");
+                alert("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra yayınlanacaktır.");
             }
         } else {
             alert("Veritabanı bağlantısı bulunamadı.");
@@ -294,11 +339,11 @@ window.handleAddDocument = async function(event) {
 
 // LİSTELEME
 function getCategoryColors(category) {
-    if (category === "Mantık Devreleri") return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
-    if (category === "Mikroişlemciler") return "bg-sky-500/10 text-sky-500 border-sky-500/20";
-    if (category === "İşaretler & Sistemler") return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-    if (category === "Devre Analizi") return "bg-amber-500/10 text-amber-500 border-amber-500/20";
-    return "bg-slate-500/10 text-slate-500 border-slate-500/20";
+    const cat = (category || '').toLowerCase();
+    if (cat.includes('vize') || cat.includes('final') || cat.includes('quiz')) return "bg-rose-500/10 text-rose-500 border-rose-500/20";
+    if (cat.includes('not') || cat.includes('anlatım')) return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
+    if (cat.includes('çözüm') || cat.includes('çalışma') || cat.includes('alıştırma')) return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+    return "bg-sky-500/10 text-sky-500 border-sky-500/20";
 }
 
 function renderExams() {
@@ -328,14 +373,15 @@ function renderExams() {
             adminGrid.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-amber-600 dark:text-amber-400 italic">Onay bekleyen belge bağlantısı bulunmuyor.</div>`;
         } else {
             pendingExams.forEach(docItem => {
-                const colors = getCategoryColors(docItem.category);
+                const docTypeLabel = docItem.documentType || docItem.category;
+                const colors = getCategoryColors(docTypeLabel);
                 const targetUrl = docItem.fileUrl || docItem.link;
                 const formattedDateStr = formatDate(docItem.createdAt || docItem.timestamp);
                 const html = `
                     <div class="p-5 rounded-2xl border border-amber-500/40 bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between space-y-3">
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="px-2 py-0.5 rounded-md ${colors} border text-[10px] font-bold">${docItem.category}</span>
+                                <span class="px-2 py-0.5 rounded-md ${colors} border text-[10px] font-bold">${docTypeLabel}</span>
                                 <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Onay Bekliyor</span>
                             </div>
                             <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100">${docItem.title}</h4>
@@ -344,7 +390,7 @@ function renderExams() {
                         </div>
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div class="flex items-center justify-between text-xs mb-1">
-                                <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docItem.category}')" class="font-bold text-tsMavi text-[11px] hover:underline flex items-center gap-1">
+                                <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docTypeLabel}')" class="font-bold text-tsMavi text-[11px] hover:underline flex items-center gap-1">
                                     👁️ Önizle
                                 </button>
                                 <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-slate-500 text-[11px] hover:underline">Linki Kontrol Et ↗</a>
@@ -378,7 +424,8 @@ function renderExams() {
     }
 
     approvedExams.forEach(docItem => {
-        const colors = getCategoryColors(docItem.category);
+        const docTypeLabel = docItem.documentType || docItem.category;
+        const colors = getCategoryColors(docTypeLabel);
         const targetUrl = docItem.fileUrl || docItem.link;
         const formattedDateStr = formatDate(docItem.createdAt || docItem.timestamp);
 
@@ -422,7 +469,7 @@ function renderExams() {
             <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="px-2.5 py-1 rounded-lg ${colors} border text-xs font-bold">${docItem.category}</span>
+                        <span class="px-2.5 py-1 rounded-lg ${colors} border text-xs font-bold">${docTypeLabel}</span>
                         ${isOwner ? `<span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold">Belgeniz</span>` : ''}
                     </div>
                     <div>
@@ -435,7 +482,7 @@ function renderExams() {
                 <div class="space-y-2">
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                         <span class="text-slate-400">${docItem.fileInfo || "Bağlantı Linki"}</span>
-                        <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docItem.category}')" class="font-bold text-tsMavi hover:underline flex items-center gap-1">
+                        <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docTypeLabel}')" class="font-bold text-tsMavi hover:underline flex items-center gap-1">
                             <span>İncele</span>
                             <span>↗</span>
                         </button>
@@ -513,6 +560,7 @@ function loadResources() {
                     id: doc.id,
                     title: data.title,
                     category: data.category,
+                    documentType: data.documentType || data.category || "Belge",
                     description: data.description,
                     fileInfo: data.fileInfo || "Bağlantı Linki",
                     fileUrl: data.fileUrl || data.link,

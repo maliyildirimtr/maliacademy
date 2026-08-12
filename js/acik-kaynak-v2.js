@@ -192,6 +192,22 @@ function createKitCard(kit) {
     `;
 }
 
+window.toggleResourceDocTypeCustom = function() {
+    const select = document.getElementById('res-category');
+    const container = document.getElementById('res-type-custom-container');
+    const input = document.getElementById('res-type-custom');
+
+    if (select && container && input) {
+        if (select.value === "Diğer") {
+            container.classList.remove('hidden');
+            input.focus();
+        } else {
+            container.classList.add('hidden');
+            input.value = '';
+        }
+    }
+}
+
 // Modal Fonksiyonları
 window.openAddResourceModal = function() {
     let user = null;
@@ -212,6 +228,8 @@ window.openAddResourceModal = function() {
         modal.classList.remove('hidden');
         const form = document.getElementById('add-resource-form');
         if (form) form.reset();
+        const customContainer = document.getElementById('res-type-custom-container');
+        if (customContainer) customContainer.classList.add('hidden');
     }
 }
 
@@ -235,7 +253,11 @@ window.handleAddResource = async function(event) {
     }
 
     const title = document.getElementById('res-title').value.trim();
-    const category = document.getElementById('res-category').value;
+    let category = document.getElementById('res-category').value;
+    if (category === "Diğer") {
+        const customVal = document.getElementById('res-type-custom').value.trim();
+        if (customVal) category = customVal;
+    }
     const link = document.getElementById('res-link').value.trim();
     const description = document.getElementById('res-description').value.trim();
     const legalConsent = document.getElementById('res-legal-consent');
