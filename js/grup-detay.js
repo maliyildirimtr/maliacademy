@@ -1799,8 +1799,18 @@ function renderKanbanColumns(tasks) {
                 </span>
                 <span class="text-[10px] text-slate-600 dark:text-slate-400 font-medium">👤 ${t.assignee || 'Atanmadı'}</span>
             </div>
-            <h5 class="font-bold text-xs text-slate-900 dark:text-slate-100">${t.title}</h5>
-            <p class="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">${t.description || ''}</p>
+            
+            <div>
+                <h5 class="font-bold text-xs text-slate-900 dark:text-slate-100">${t.title}</h5>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-1">${t.description || ''}</p>
+            </div>
+            
+            <div class="text-[9px] text-slate-500 dark:text-slate-400 space-y-0.5 border-t border-slate-100 dark:border-slate-800/80 pt-2">
+                <div class="flex justify-between"><span>Atayan:</span> <span class="font-medium text-slate-700 dark:text-slate-300">${t.creatorName || 'Bilinmiyor'}</span></div>
+                <div class="flex justify-between"><span>Tarih:</span> <span>${t.createdAt ? new Date(t.createdAt.seconds ? t.createdAt.seconds * 1000 : t.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' }) : 'Belirtilmedi'}</span></div>
+                ${t.status === 'completed' && t.completedAt ? `<div class="flex justify-between text-emerald-600 dark:text-emerald-400"><span>Tamamlandı:</span> <span>${new Date(t.completedAt.seconds ? t.completedAt.seconds * 1000 : t.completedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })}</span></div>` : ''}
+            </div>
+            
             <div class="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between gap-1">
                 ${(t.assigneeUid === currentUserId || !t.assigneeUid) && t.status !== 'todo' ? `<button onclick="updateTaskStatus('${t.id}', 'todo')" class="text-[10px] text-slate-500 dark:text-slate-400 hover:text-tsMavi font-semibold">⬅ Yapılacak</button>` : '<span></span>'}
                 ${(t.assigneeUid === currentUserId || !t.assigneeUid) && t.status !== 'in_progress' ? `<button onclick="updateTaskStatus('${t.id}', 'in_progress')" class="text-[10px] text-tsMavi hover:underline font-semibold">Sürüyor ➡</button>` : '<span></span>'}
@@ -1832,9 +1842,11 @@ function renderKanbanColumns(tasks) {
 
 function updateTaskStatus(taskId, newStatus) {
     if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("groups").doc(groupId).collection("tasks").doc(taskId).update({
-            status: newStatus
-        }).catch(err => console.log(err));
+        let updateData = { status: newStatus };
+        if (newStatus === 'completed') {
+            updateData.completedAt = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString();
+        }
+        db.collection("groups").doc(groupId).collection("tasks").doc(taskId).update(updateData).catch(err => console.log(err));
     }
 }
 
@@ -4972,6 +4984,7 @@ function handleSaveTask(e) {
 
     const currentUser = getCurrentUser();
     const creatorUid = currentUser ? currentUser.uid : null;
+    const creatorName = currentUser ? (currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Kullanıcı')) : 'Sistem';
     const assignedMember = (currentGroup && currentGroup.members) ? currentGroup.members.find(m => m.name === assignee) : null;
     const assigneeUid = assignedMember ? assignedMember.uid : null;
 
@@ -4983,6 +4996,7 @@ function handleSaveTask(e) {
         status: "todo",
         createdAt: timestamp,
         creatorUid: creatorUid,
+        creatorName: creatorName,
         assigneeUid: assigneeUid
     };
 
