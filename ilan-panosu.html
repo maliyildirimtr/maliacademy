@@ -38,25 +38,55 @@
 
     <main class="max-w-6xl mx-auto px-4 py-10 flex-grow w-full space-y-8">
         
-        <!-- HEADER SECTION -->
-        <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
-            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
-            
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="space-y-2 max-w-2xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-bold w-fit">
-                        <span>📢</span> Topluluk Panosu
+        <!-- HERO BANNER (INDEX STYLE) -->
+        <div class="relative overflow-hidden rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+            <!-- Background glows -->
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-tsBordo/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- SOL TARAF -->
+                <div class="lg:col-span-8 space-y-5 text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-bold text-amber-400 backdrop-blur-md shadow-sm">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                        📢 Topluluk Panosu
                     </div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Akademik & Proje İlan Panosu</h1>
-                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-slate-100">
+                        Akademik & Proje <span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">İlan Panosu</span>
+                    </h1>
+
+                    <p class="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
                         TEKNOFEST ekipleri, Bitirme Projesi (Capstone) takım arkadaşı arayanlar, sınav çalışma grupları ve mühendislik yarışma duyuruları.
                     </p>
+
+                    <div class="pt-2 flex items-center gap-3">
+                        <button onclick="openCreateAnnouncementModal()" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#2563eb] to-indigo-600 text-white font-bold text-xs sm:text-sm hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg hover:shadow-blue-500/25 flex items-center gap-2 group cursor-pointer">
+                            <span>＋</span> Yeni İlan Oluştur
+                            <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <button onclick="openCreateAnnouncementModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-lg shadow-tsBordo/20 hover:opacity-90 transition-all inline-flex items-center gap-2">
-                        <span>＋</span> Yeni İlan Oluştur
-                    </button>
+                <!-- SAĞ TARAF -->
+                <div class="lg:col-span-4 relative hidden lg:block">
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-xl shadow-xl space-y-3 text-left">
+                        <div class="flex items-center justify-between border-b border-slate-700/50 pb-2">
+                            <span class="text-[11px] font-bold text-amber-400">Takım Arkadaşı & Staj</span>
+                            <span class="text-[10px] text-emerald-400 font-mono">Aktif</span>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-300">
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span class="font-medium text-slate-200">🚀 TEKNOFEST 2024 Takımı</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span class="font-medium text-slate-200">🎓 Capstone Projesi Üyesi</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

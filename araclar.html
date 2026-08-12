@@ -42,29 +42,56 @@
     <!-- MAIN CONTENT -->
     <main class="max-w-7xl mx-auto px-4 py-10 flex-grow w-full space-y-10">
         
-        <!-- HEADER SECTION -->
-        <div class="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 shadow-xl relative overflow-hidden space-y-4">
-            <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-tsBordo via-rose-500 to-tsMavi"></div>
-            
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                <div class="space-y-2 max-w-3xl">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold w-fit">
-                        <span>🛠️</span> Etkileşimli Uygulama Galerisi
+        <!-- HERO BANNER (INDEX STYLE) -->
+        <div class="relative overflow-hidden rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+            <!-- Background glows -->
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-tsBordo/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- SOL TARAF -->
+                <div class="lg:col-span-8 space-y-5 text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-bold text-sky-400 backdrop-blur-md shadow-sm">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        🛠️ Etkileşimli Uygulama Galerisi
                     </div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-                        Mühendislik Araçları & Uygulama Dizin Paneli
+
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-slate-100">
+                        Mühendislik Araçları & <span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Uygulama Dizin Paneli</span>
                     </h1>
-                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+
+                    <p class="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
                         Akademik ortalama simülasyonu, bilimsel hesap makineleri, elektronik renk kodu analizörleri ve dijital mantık simülatörlerini içeren canlı mühendislik araçları.
                     </p>
+
+                    <!-- KATEGORİ FİLTRE BUTONLARI -->
+                    <div class="pt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                        <button onclick="filterTools('all')" class="tool-filter-btn active px-4 py-2 rounded-xl bg-tsMavi text-white shadow-sm transition-all">Tüm Araçlar</button>
+                        <button onclick="filterTools('academic')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Akademik</button>
+                        <button onclick="filterTools('calc')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Hesaplama</button>
+                        <button onclick="filterTools('electronics')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Elektronik</button>
+                    </div>
                 </div>
 
-                <!-- KATEGORİ FİLTRE BUTONLARI -->
-                <div class="flex flex-wrap gap-2 text-xs font-semibold">
-                    <button onclick="filterTools('all')" class="tool-filter-btn active px-4 py-2 rounded-xl bg-tsMavi text-white shadow-sm transition-all">Tüm Araçlar</button>
-                    <button onclick="filterTools('academic')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Akademik</button>
-                    <button onclick="filterTools('calc')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Hesaplama</button>
-                    <button onclick="filterTools('electronics')" class="tool-filter-btn px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-tsMavi hover:text-white transition-all">Elektronik</button>
+                <!-- SAĞ TARAF -->
+                <div class="lg:col-span-4 relative hidden lg:block">
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-xl shadow-xl space-y-3 text-left">
+                        <div class="flex items-center justify-between border-b border-slate-700/50 pb-2">
+                            <span class="text-[11px] font-bold text-sky-400">Canlı Hesaplayıcılar</span>
+                            <span class="text-[10px] text-emerald-400 font-mono">100% Dijital</span>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-300">
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span class="font-medium text-slate-200">📊 ANO / AGNO Hesaplama</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span class="font-medium text-slate-200">⚡ Direnç Renk Kodları</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

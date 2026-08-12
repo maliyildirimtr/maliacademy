@@ -46,18 +46,58 @@
     <!-- MAIN CONTENT -->
     <main class="max-w-6xl mx-auto px-4 py-12 flex-grow w-full space-y-8">
         
-        <!-- ÜST BAŞLIK & DERS EKLEME PANELİ -->
-        <div class="border-b border-slate-200 dark:border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-3xl font-extrabold tracking-tight">Akademik Dersler & Eğitim Setleri</h1>
-                <p class="text-slate-500 text-xs mt-1">İçeriğine gitmek istediğiniz ders penceresine tıklayın veya topluluğa katkı sağlamak için yeni ders ekleyin.</p>
-            </div>
+        <!-- HERO BANNER (INDEX STYLE) -->
+        <div class="relative overflow-hidden rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+            <!-- Background glows -->
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-tsBordo/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- DERS & NOT EKLE BUTONU -->
-            <div id="academy-add-course-container" class="flex items-center gap-2">
-                <button type="button" onclick="handleAddCourseClick(event)" class="px-4 py-2 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer">
-                    <span>＋</span> Ders & Not Ekle
-                </button>
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- SOL TARAF -->
+                <div class="lg:col-span-8 space-y-5 text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-bold text-sky-400 backdrop-blur-md shadow-sm">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        🎓 Akademik Müfredat
+                    </div>
+
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-slate-100">
+                        Akademik Dersler & <span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Eğitim Setleri</span>
+                    </h1>
+
+                    <p class="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                        Elektrik-Elektronik, Bilgisayar Mühendisliği ve temel bilim derslerine ait video eğitim serileri, ders müfredatları ve çalışma notları.
+                    </p>
+
+                    <div id="academy-add-course-container" class="pt-2 flex items-center gap-3">
+                        <button type="button" onclick="handleAddCourseClick(event)" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#2563eb] to-indigo-600 text-white font-bold text-xs sm:text-sm hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg hover:shadow-blue-500/25 flex items-center gap-2 group cursor-pointer">
+                            <span>＋</span> Ders & Not Ekle
+                            <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SAĞ TARAF -->
+                <div class="lg:col-span-4 relative hidden lg:block">
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-xl shadow-xl space-y-3 text-left">
+                        <div class="flex items-center justify-between border-b border-slate-700/50 pb-2">
+                            <span class="text-[11px] font-bold text-sky-400">Gazi EEE Müfredatı</span>
+                            <span class="text-[10px] text-emerald-400 font-mono">100% Güncel</span>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-300">
+                            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span>⚡</span>
+                                <span class="font-medium text-slate-200">Mantık Devreleri & FPGA</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+                                <span>💻</span>
+                                <span class="font-medium text-slate-200">Mikroişlemciler & C/C++</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
