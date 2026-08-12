@@ -30,6 +30,10 @@
     <meta name="twitter:description" content="Mehmet Ali Yıldırım akademik portalı. Ders notları, proje grupları, FPGA ve gömülü sistemler eğitim platformu.">
     <meta name="twitter:site" content="@maliyildirimtr">
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Schema.org JSON-LD Structured Data -->
     <script type="application/ld+json">
@@ -75,7 +79,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-        <!-- Favicon / Sekme İkonu (Cache-Busting dahil) -->
+    <!-- Favicon / Sekme İkonu (Cache-Busting dahil) -->
     <link rel="shortcut icon" href="assets/favicon.ico?v=2">
     <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png?v=2">
     <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192x192.png?v=2">
@@ -92,28 +96,210 @@
       "logo": "https://academy.maliyildirimtr.com/assets/favicon-192x192.png"
     }
     </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+    </style>
 </head>
-<body data-page="index" class="bg-slate-50 text-slate-900 dark:bg-[#0d0f12] dark:text-slate-100 min-h-screen flex flex-col font-sans">
+<body data-page="index" class="bg-[#f8fafc] text-[#0f172a] dark:bg-[#090d16] dark:text-slate-100 min-h-screen flex flex-col antialiased">
 
     <!-- ORTAK NAVBAR CONTAINER -->
     <div id="navbar-container"></div>
 
     <!-- MAIN CONTENT HUB -->
-    <main class="max-w-6xl mx-auto px-4 py-12 flex-grow w-full space-y-10">
+    <main class="max-w-6xl mx-auto px-4 py-8 md:py-12 flex-grow w-full space-y-12">
         
-        <!-- ÜST BAŞLIK -->
-        <div class="border-b border-slate-200 dark:border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi dark:text-sky-400 border border-tsMavi/20 text-xs font-bold mb-2">
-                    <span>🎓</span> Mali Academy Portal Hub
-                </div>
-                <h1 class="text-3xl font-extrabold tracking-tight">Mehmet Ali Yıldırım Akademik Portal</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Ders notları, proje grupları, sınav hazırlık arşivi ve mühendislik araçları platformu.</p>
-            </div>
-        </div>
+        <!-- 1. HERO SECTION (KARŞILAMA EKRANI) -->
+        <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-[#0b1329] border border-slate-800 text-white p-8 md:p-12 lg:p-14 shadow-2xl">
+            <!-- Arka Plan Parlama Efektleri -->
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#580018]/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-[#2563eb]/25 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- 1. HERO SLIDER ALANI (ÖNE ÇIKAN DERSLER & DUYURULAR) -->
-        <section class="space-y-3">
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                
+                <!-- SOL TARAF (BAŞLIK & BUTONLAR) -->
+                <div class="lg:col-span-7 space-y-6 text-left">
+                    <!-- Rozet (Badge) -->
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-bold text-sky-400 backdrop-blur-md shadow-sm">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        🚀 Mali Academy Canlıda
+                    </div>
+
+                    <!-- Başlık (H1) -->
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-slate-100">
+                        Elektrik-Elektronik ve Yazılım Dünyasına <span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Doğrudan Erişim</span>
+                    </h1>
+
+                    <!-- Açıklama Paragrafı -->
+                    <p class="text-sm md:text-base text-slate-300 max-w-xl leading-relaxed">
+                        Gazi Üniversitesi ders notları, mantık devreleri projeleri ve açık kaynak kod depoları tek bir çatı altında.
+                    </p>
+
+                    <!-- Buton Grubu -->
+                    <div class="pt-2 flex flex-wrap gap-4 items-center">
+                        <a href="sinav-hazirlik.html" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#2563eb] to-indigo-600 text-white font-bold text-sm hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg hover:shadow-blue-500/25 inline-flex items-center gap-2 group">
+                            <span>📚</span> Ders Notlarını Keşfet
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </a>
+                        <a href="acik-kaynak.html" class="px-6 py-3.5 rounded-2xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-sm transition-all shadow-sm inline-flex items-center gap-2">
+                            <span>📦</span> GitHub Deposu
+                        </a>
+                    </div>
+                </div>
+
+                <!-- SAĞ TARAF (KOD / DEVRE İLLÜSTRASYONU KARTI) -->
+                <div class="lg:col-span-5 relative">
+                    <div class="p-6 rounded-3xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-xl shadow-2xl space-y-4 text-left font-mono">
+                        <div class="flex items-center justify-between border-b border-slate-700/50 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-400">riscv_core.sv</span>
+                        </div>
+                        <div class="text-xs text-slate-300 leading-relaxed space-y-1">
+                            <p><span class="text-purple-400">module</span> <span class="text-sky-400">riscv_processor</span> (</p>
+                            <p class="pl-4"><span class="text-indigo-400">input logic</span> clk, rst_n,</p>
+                            <p class="pl-4"><span class="text-indigo-400">output logic [31:0]</span> pc_out</p>
+                            <p>);</p>
+                            <p class="pl-4 text-emerald-400/80">// Mali Academy Open Source Core</p>
+                            <p class="pl-4"><span class="text-purple-400">always_ff</span> @(<span class="text-purple-400">posedge</span> clk) <span class="text-purple-400">begin</span></p>
+                            <p class="pl-8"><span class="text-amber-400">if</span> (!rst_n) pc_out &lt;= 32'h0;</p>
+                            <p class="pl-4"><span class="text-purple-400">end</span></p>
+                            <p><span class="text-purple-400">endmodule</span></p>
+                        </div>
+                        <div class="pt-3 border-t border-slate-700/50 flex items-center justify-between text-[11px]">
+                            <span class="text-emerald-400 flex items-center gap-1 font-bold">✓ SystemVerilog v1.4</span>
+                            <span class="text-slate-400">Gazi EEE • RISC-V</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. İSTATİSTİK BARI (STATS SECTION) -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm flex items-center gap-4 hover:border-blue-500/30 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-[#2563eb] dark:text-blue-400 font-extrabold text-xl md:text-2xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                    100+
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-sm md:text-base">Hazır Not & Sınav Sorusu</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Vize, final ve çözümlü föyler</p>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm flex items-center gap-4 hover:border-emerald-500/30 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-xl md:text-2xl flex items-center justify-center border border-emerald-500/20 shrink-0">
+                    100%
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-sm md:text-base">Açık Kaynak</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Öğrenci ve geliştirici dostu</p>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm flex items-center gap-4 hover:border-purple-500/30 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-extrabold text-xl md:text-2xl flex items-center justify-center border border-purple-500/20 shrink-0">
+                    7/24
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-sm md:text-base">Kesintisiz Erişim</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tüm cihazlardan anında erişim</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ANA HİZMET / MODÜL KARTLARI (NELER SUNUYORUZ?) -->
+        <section class="space-y-6">
+            <div class="text-center max-w-xl mx-auto space-y-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-[#2563eb] dark:text-blue-400 text-xs font-bold border border-blue-500/20">
+                    <span>🌟</span> Keşfedin
+                </div>
+                <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+                    Neler Sunuyoruz?
+                </h2>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400">
+                    Mali Academy'nin sunduğu kapsamlı mühendislik ve eğitim modüllerini keşfedin.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- 1. KART: Sınav Hazırlık -->
+                <div class="group p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm hover:shadow-2xl hover:border-blue-500/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-[#2563eb] dark:text-blue-400 flex items-center justify-center text-2xl font-bold border border-blue-500/20">
+                            📄
+                        </div>
+                        <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-[#2563eb] dark:group-hover:text-blue-400 transition-colors">
+                            Sınav & Vize Hazırlık
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Mantık devreleri, mikroişlemciler, işaretler ve devre analizi derslerine ait onaylı sınav ve çalışma belgeleri.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                        <a href="sinav-hazirlik.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-[#2563eb] group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
+                            <span>Git</span>
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. KART: Açık Kaynak Kit & Kodlar -->
+                <div class="group p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold border border-emerald-500/20">
+                            📦
+                        </div>
+                        <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
+                            Açık Kaynak Kit & Kodlar
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            SystemVerilog RISC-V çekirdekleri, FreeRTOS gömülü şablonlar ve Python DSP filtre kütüphaneleri.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                        <a href="acik-kaynak.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
+                            <span>Git</span>
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. KART: Akademi Topluluğu & Chat -->
+                <div class="group p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm hover:shadow-2xl hover:border-purple-500/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl font-bold border border-purple-500/20">
+                            👥
+                        </div>
+                        <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-purple-500 transition-colors">
+                            Akademi Topluluğu & Chat
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Proje grupları oluşturun, takım arkadaşları bulun, ortak Kanban panosu ve canlı bütçe takibi alanında üretin.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                        <a href="proje-gruplari.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-600 group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
+                            <span>Git</span>
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. HERO SLIDER ALANI (ÖNE ÇIKAN DERSLER & DUYURULAR) -->
+        <section class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between">
                 <h2 class="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                     <span>📢</span> Öne Çıkanlar & Duyurular
@@ -134,12 +320,12 @@
             <div id="slider-dots" class="flex justify-center items-center gap-1.5 pt-2"></div>
         </section>
 
-        <!-- 2. PLATFORM MODÜLLERİ GRID (AKADEMİK GEZİNTİ KARTLARI) -->
-        <section class="space-y-4">
+        <!-- 5. TÜM AKADEMİK GEZİNTİ MODÜLLERİ GRID -->
+        <section class="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div class="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-bold tracking-tight flex items-center gap-2">
-                        <span>🌐</span> Platform Modülleri & Akademik Gezinti
+                        <span>🛠️</span> Tüm Platform Modülleri
                     </h2>
                     <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Gitmey istediğiniz akademik hizmet veya araç modülünü seçin.</p>
                 </div>
@@ -167,47 +353,7 @@
                     </div>
                 </div>
 
-                <!-- KART 2: Sınav & Vize Hazırlık -->
-                <div onclick="window.location.href='sinav-hazirlik.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
-                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    <div>
-                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
-                            📝
-                        </div>
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Sınav Arşivi</span>
-                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Sınav & Vize Hazırlık</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                            Çıkmış vize/final soruları, çalışma kağıtları, örnek sınav çözümleri ve çalışma föyleri.
-                        </p>
-                    </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
-                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            İçeriğe Git →
-                        </span>
-                    </div>
-                </div>
-
-                <!-- KART 3: Proje Grupları -->
-                <div onclick="window.location.href='proje-gruplari.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
-                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    <div>
-                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
-                            👥
-                        </div>
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Takım Çalışması</span>
-                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Proje Grupları</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                            Takım arkadaşı ara, proje gruplarına katıl, ortak Kanban panosu ve bütçe yönetimi alanında üret.
-                        </p>
-                    </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
-                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            İçeriğe Git →
-                        </span>
-                    </div>
-                </div>
-
-                <!-- KART 4: İlan Panosu -->
+                <!-- KART 2: İlan Panosu -->
                 <div onclick="window.location.href='ilan-panosu.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
                     <div>
@@ -227,27 +373,7 @@
                     </div>
                 </div>
 
-                <!-- KART 5: Açık Kaynak Kit -->
-                <div onclick="window.location.href='acik-kaynak.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
-                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    <div>
-                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
-                            🧰
-                        </div>
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Açık Kaynak Kodlar</span>
-                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Açık Kaynak Kit</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                            FPGA IP çekirdekleri, SystemVerilog modülleri, STM32 sürücüleri ve mühendislik kütüphaneleri.
-                        </p>
-                    </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
-                        <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            İçeriğe Git →
-                        </span>
-                    </div>
-                </div>
-
-                <!-- KART 6: Mühendislik Araçları -->
+                <!-- KART 3: Mühendislik Araçları -->
                 <div onclick="window.location.href='araclar.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
                     <div>
@@ -270,7 +396,7 @@
             </div>
         </section>
 
-        <!-- 3. ÖNE ÇIKAN AKADEMİK DERSLER LİSTESİ -->
+        <!-- 6. ÖNE ÇIKAN AKADEMİK DERSLER LİSTESİ -->
         <section class="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between">
                 <div>
@@ -358,8 +484,7 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
-        <!-- MODAL: SİSTEM ALTYAPISI & GÜVENLİK BİLGİSİ -->
+    <!-- MODAL: SİSTEM ALTYAPISI & GÜVENLİK BİLGİSİ -->
     <div id="security-standards-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-2xl w-full space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             
@@ -379,7 +504,6 @@
 
             <!-- MODAL İÇERİK KARTLARI GRID -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- KART 1: Hosting & SSL -->
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2">
                     <div class="flex items-center gap-2 font-bold text-xs text-slate-900 dark:text-slate-100">
                         <span class="text-base">⚡</span> Hosting & SSL Sertifikası
@@ -389,7 +513,6 @@
                     </p>
                 </div>
 
-                <!-- KART 2: Veritabanı & Güvenlik -->
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2">
                     <div class="flex items-center gap-2 font-bold text-xs text-slate-900 dark:text-slate-100">
                         <span class="text-base">🔒</span> Veritabanı & Kimlik Doğrulama
@@ -399,7 +522,6 @@
                     </p>
                 </div>
 
-                <!-- KART 3: Teknolojiler -->
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2">
                     <div class="flex items-center gap-2 font-bold text-xs text-slate-900 dark:text-slate-100">
                         <span class="text-base">🛠️</span> Modern Web Teknolojileri
@@ -409,7 +531,6 @@
                     </p>
                 </div>
 
-                <!-- KART 4: Gizlilik & Şeffaflık -->
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2">
                     <div class="flex items-center gap-2 font-bold text-xs text-slate-900 dark:text-slate-100">
                         <span class="text-base">⚖️</span> Gizlilik & Şeffaflık Standartları
@@ -431,9 +552,9 @@
 
     <!-- FOOTER -->
     <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500">
-        <button onclick="openSecurityModal()" title="Sistem Altyapısı ve Güvenlik Standartlarını Görüntüle" class="inline-flex items-center gap-2 hover:text-tsMavi dark:hover:text-tsMavi transition-colors cursor-pointer group">
+        <button onclick="openSecurityModal()" title="Sistem Altyapısı ve Güvenlik Standartlarını Görüntüle" class="inline-flex items-center gap-2 hover:text-[#2563eb] dark:hover:text-sky-400 transition-colors cursor-pointer group">
             <span>© 2026 Mehmet Ali Yıldırım. Tüm hakları saklıdır.</span>
-            <span class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 group-hover:bg-tsMavi/10 text-slate-600 dark:text-slate-400 group-hover:text-tsMavi font-mono text-[10px] border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1">
+            <span class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 group-hover:bg-blue-500/10 text-slate-600 dark:text-slate-400 group-hover:text-[#2563eb] font-mono text-[10px] border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1">
                 <span>🛡️</span> Sistem & Güvenlik Bilgisi
             </span>
         </button>
