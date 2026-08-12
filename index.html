@@ -233,30 +233,32 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 <!-- 1. KART: Sınav Hazırlık -->
-                <div class="group p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm hover:shadow-2xl hover:border-blue-500/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5">
+                <div onclick="window.location.href='sinav-hazirlik.html'" class="academy-card group cursor-pointer">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
                     <div class="space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-[#2563eb] dark:text-blue-400 flex items-center justify-center text-2xl font-bold border border-blue-500/20">
+                        <div class="card-icon-box">
                             📄
                         </div>
-                        <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-[#2563eb] dark:group-hover:text-blue-400 transition-colors">
+                        <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-tsMavi transition-colors">
                             Sınav & Vize Hazırlık
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Mantık devreleri, mikroişlemciler, işaretler ve devre analizi derslerine ait onaylı sınav ve çalışma belgeleri.
                         </p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                        <a href="sinav-hazirlik.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-[#2563eb] group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
-                            <span>Git</span>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-auto">
+                        <div class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-[#2563eb] group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
+                            <span>İçeriğe Git</span>
                             <span class="group-hover:translate-x-1 transition-transform">→</span>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 2. KART: Açık Kaynak Kit & Kodlar -->
-                <div class="group p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5">
+                <div onclick="window.location.href='acik-kaynak.html'" class="academy-card group cursor-pointer">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
                     <div class="space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold border border-emerald-500/20">
+                        <div class="card-icon-box">
                             📦
                         </div>
                         <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
@@ -266,18 +268,19 @@
                             SystemVerilog RISC-V çekirdekleri, FreeRTOS gömülü şablonlar ve Python DSP filtre kütüphaneleri.
                         </p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                        <a href="acik-kaynak.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
-                            <span>Git</span>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-auto">
+                        <div class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
+                            <span>İçeriğe Git</span>
                             <span class="group-hover:translate-x-1 transition-transform">→</span>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 3. KART: Akademi Topluluğu & Chat -->
-                <div class="group p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm hover:shadow-2xl hover:border-purple-500/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5">
+                <div onclick="window.location.href='proje-gruplari.html'" class="academy-card group cursor-pointer">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
                     <div class="space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl font-bold border border-purple-500/20">
+                        <div class="card-icon-box">
                             👥
                         </div>
                         <h3 class="font-extrabold text-lg text-slate-900 dark:text-slate-100 group-hover:text-purple-500 transition-colors">
@@ -287,11 +290,11 @@
                             Proje grupları oluşturun, takım arkadaşları bulun, ortak Kanban panosu ve canlı bütçe takibi alanında üretin.
                         </p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                        <a href="proje-gruplari.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-600 group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
-                            <span>Git</span>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-auto">
+                        <div class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-600 group-hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-between">
+                            <span>İçeriğe Git</span>
                             <span class="group-hover:translate-x-1 transition-transform">→</span>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
@@ -339,19 +342,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- KART 1: Dersler & Notlar -->
-                <div onclick="window.location.href='dersler.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                <div onclick="window.location.href='dersler.html'" class="academy-card group cursor-pointer">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    <div>
-                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                    <div class="space-y-3">
+                        <div class="card-icon-box">
                             📚
                         </div>
                         <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Eğitim Notları</span>
-                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Dersler & Notlar</h3>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-0.5">Dersler & Notlar</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                             Mühendislik ders notları, SystemVerilog/FPGA eğitim videoları ve konu özetleri.
                         </p>
                     </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/60 mt-auto">
                         <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                             İçeriğe Git →
                         </span>
@@ -359,19 +362,19 @@
                 </div>
 
                 <!-- KART 2: İlan Panosu -->
-                <div onclick="window.location.href='ilan-panosu.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                <div onclick="window.location.href='ilan-panosu.html'" class="academy-card group cursor-pointer">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    <div>
-                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                    <div class="space-y-3">
+                        <div class="card-icon-box">
                             📌
                         </div>
                         <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Duyuru & İlanlar</span>
-                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">İlan Panosu</h3>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-0.5">İlan Panosu</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                             Mühendislik staj ilanları, proje yarışmaları, akademik duyurular ve öğrenci ilan panosu.
                         </p>
                     </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/60 mt-auto">
                         <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                             İçeriğe Git →
                         </span>
@@ -379,19 +382,19 @@
                 </div>
 
                 <!-- KART 3: Mühendislik Araçları -->
-                <div onclick="window.location.href='araclar.html'" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                <div onclick="window.location.href='araclar.html'" class="academy-card group cursor-pointer">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                    <div>
-                        <div class="w-12 h-12 rounded-2xl bg-tsMavi/10 text-tsMavi flex items-center justify-center text-2xl font-bold mb-4">
+                    <div class="space-y-3">
+                        <div class="card-icon-box">
                             ⚙️
                         </div>
                         <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-tsMavi">Hesaplayıcılar</span>
-                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-1">Mühendislik Araçları</h3>
+                        <h3 class="font-bold text-lg group-hover:text-tsMavi transition-colors mt-0.5">Mühendislik Araçları</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                             AGNO/GANO hesaplama, bilimsel hesap makinesi, direnç renk kodları ve mantık devresi yardımcıları.
                         </p>
                     </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800/60 mt-auto">
                         <span class="text-xs text-tsMavi font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                             İçeriğe Git →
                         </span>

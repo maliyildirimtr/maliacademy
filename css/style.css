@@ -71,15 +71,49 @@ main {
     padding-top: 100px !important;
 }
 
-/* İstatistik Kartları (Stats Section) Esnek Yükseklik ve Metin Sarma Kuralları */
-.stats-card {
+/* ==========================================
+   MODERN KART & MODÜL KUTUSU TASARIM SİSTEMİ (UI/UX)
+   ========================================== */
+
+/* 1. KUTU (CARD) YAPISI VE İÇ BOŞLUKLAR (PADDING, GLASSMORPHISM & BORDER) */
+.academy-card,
+.module-card,
+.card-modern,
+.stats-card,
+.announcement-card,
+.course-card {
     display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    padding: 24px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+}
+
+html.dark .academy-card,
+html.dark .module-card,
+html.dark .card-modern,
+html.dark .stats-card,
+html.dark .announcement-card,
+html.dark .course-card {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* İSTATİSTİK KARTLARI İÇ İSTİSNA (DİKEY DEĞİL YAN YANA FLEX) */
+.stats-card {
+    flex-direction: row !important;
     align-items: center !important;
-    gap: 12px !important;
-    padding: 20px 16px !important;
+    gap: 14px !important;
     min-height: 100px !important;
-    height: auto !important;
-    box-sizing: border-box;
 }
 
 .stats-card h4,
@@ -88,4 +122,54 @@ main {
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
+}
+
+/* 2. ETKİLEŞİM VE HOVER (FARETLE ÜZERİNE GELME) EFEKTLERİ */
+.academy-card:hover,
+.module-card:hover,
+.card-modern:hover,
+.stats-card:hover,
+.announcement-card:hover,
+.course-card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.25) !important;
+    border-color: rgba(37, 99, 235, 0.4) !important;
+}
+
+/* 3. İÇERİK DÜZENİ VE İKON KUTULARI (GRADIENT & VİBRANT BLUE/CYAN) */
+.card-icon-box {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(14, 165, 233, 0.15) 100%) !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    color: #0284c7 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+    margin-bottom: 16px !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html.dark .card-icon-box {
+    color: #38bdf8 !important;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25) 0%, rgba(14, 165, 233, 0.25) 100%) !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+.academy-card:hover .card-icon-box,
+.module-card:hover .card-icon-box,
+.card-modern:hover .card-icon-box,
+.course-card:hover .card-icon-box {
+    transform: scale(1.08) rotate(3deg) !important;
+}
+
+/* 4. EN ALT LİNK / AKSİYON SABİTLEME (MARGIN-TOP: AUTO) */
+.card-action-footer,
+.academy-card > div:last-child,
+.module-card > div:last-child,
+.course-card > div:last-child {
+    margin-top: auto !important;
 }
