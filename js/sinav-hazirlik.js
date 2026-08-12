@@ -119,7 +119,12 @@ window.handleAddDocument = async function(event) {
             finalFileInfo = `${ext} • ${sizeMB} MB`;
 
             // Firebase Storage Yükleme
-            const storageRef = firebase.storage().ref();
+            const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
+            if (!storageObj) {
+                alert("Firebase Storage modülü hazırlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.");
+                return;
+            }
+            const storageRef = storageObj.ref();
             const fileRef = storageRef.child(`sinav_belgeleri/${user.uid}/${Date.now()}_${file.name}`);
             
             const uploadTask = fileRef.put(file);

@@ -235,7 +235,12 @@ window.handleAddResource = async function(event) {
                 return;
             }
 
-            const storageRef = firebase.storage().ref();
+            const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
+            if (!storageObj) {
+                alert("Firebase Storage modülü hazırlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.");
+                return;
+            }
+            const storageRef = storageObj.ref();
             const fileRef = storageRef.child(`acik_kaynak_dosyalari/${user.uid}/${Date.now()}_${file.name}`);
             const uploadTask = fileRef.put(file);
 
