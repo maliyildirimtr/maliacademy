@@ -1,5 +1,5 @@
 // ==========================================
-// SINAV & VİZE HAZIRLIK - PDF PREVIEW & NOTIFICATION SYSTEM
+// SINAV & VİZE HAZIRLIK - PDF PREVIEW, NOTIFICATIONS & EDIT/DELETE
 // ==========================================
 
 let allExams = [];
@@ -80,6 +80,116 @@ window.closePreviewDocumentModal = function() {
     if (loaderEl) loaderEl.classList.remove('hidden', 'opacity-0');
     if (modal) modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
+}
+
+// BELGE DÜZENLEME MODALI İŞLEMLERİ (OWNER)
+window.openEditDocumentModal = function(id) {
+    const docItem = allExams.find(e => e.id === id);
+    if (!docItem) return;
+
+    document.getElementById('edit-doc-id').value = docItem.id;
+    document.getElementById('edit-doc-title').value = docItem.title || '';
+    document.getElementById('edit-doc-category').value = docItem.category || 'Mantık Devreleri';
+    document.getElementById('edit-doc-link').value = docItem.fileUrl || docItem.link || '';
+    document.getElementById('edit-doc-description').value = docItem.description || '';
+
+    const modal = document.getElementById('edit-doc-modal');
+    if (modal) modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+window.closeEditDocumentModal = function() {
+    const modal = document.getElementById('edit-doc-modal');
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+window.handleEditDocument = async function(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('edit-doc-id').value;
+    const title = document.getElementById('edit-doc-title').value.trim();
+    const category = document.getElementById('edit-doc-category').value;
+    const link = document.getElementById('edit-doc-link').value.trim();
+    const description = document.getElementById('edit-doc-description').value.trim();
+    const btn = document.getElementById('btn-edit-doc');
+
+    if (!id || !title || !category || !link || !description) {
+        alert("Lütfen tüm alanları doldurun.");
+        return;
+    }
+
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Kaydediliyor...";
+
+    try {
+        const targetDb = typeof db !== 'undefined' ? db : window.db;
+        if (targetDb && targetDb.collection) {
+            await targetDb.collection("exam_prep_resources").doc(id).update({
+                title: title,
+                category: category,
+                fileUrl: link,
+                link: link,
+                description: description,
+                status: "pending", // CRITICAL: Re-approval required!
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            closeEditDocumentModal();
+
+            if (typeof showToast === 'function') {
+                showToast("Belgeniz güncellendi! Değişikliklerin yayına alınması için tekrar admin onayı bekleniyor.", "info");
+            } else {
+                alert("Belgeniz güncellendi! Değişikliklerin yayına alınması için tekrar admin onayı bekleniyor.");
+            }
+        }
+    } catch (error) {
+        console.error("Belge güncelleme hatası:", error);
+        alert("Güncelleme sırasında hata oluştu: " + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
+}
+
+// SİLME İŞLEMLERİ (ADMIN & OWNER)
+window.adminDeleteDocument = function(id) {
+    const docItem = allExams.find(e => e.id === id);
+    const title = docItem ? docItem.title : "Bu belge";
+    if (!confirm(`"${title}" belgesini kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("exam_prep_resources").doc(id).delete()
+            .then(() => {
+                if (typeof showToast === 'function') {
+                    showToast("Belge başarıyla silindi.", "success");
+                } else {
+                    alert("Belge başarıyla silindi.");
+                }
+            })
+            .catch(err => alert("Silme hatası: " + err.message));
+    }
+}
+
+window.ownerDeleteDocument = function(id) {
+    const docItem = allExams.find(e => e.id === id);
+    const title = docItem ? docItem.title : "Bu belge";
+    if (!confirm(`"${title}" belgenizi silmek istediğinize emin misiniz?`)) return;
+
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("exam_prep_resources").doc(id).delete()
+            .then(() => {
+                if (typeof showToast === 'function') {
+                    showToast("Belge başarıyla silindi.", "success");
+                } else {
+                    alert("Belge başarıyla silindi.");
+                }
+            })
+            .catch(err => alert("Silme hatası: " + err.message));
+    }
 }
 
 // BELGE EKLEME MODALI İŞLEMLERİ
@@ -204,6 +314,10 @@ function renderExams() {
     
     const admin = typeof window.isAdmin === 'function' ? window.isAdmin() : false;
 
+    let currentUser = null;
+    if (typeof auth !== 'undefined' && auth) currentUser = auth.currentUser;
+    if (!currentUser && typeof SSO !== 'undefined') currentUser = SSO.getSSOUser();
+
     // 1. ADMİN ONAY PANELİ (SADECE ADMİN İÇİN)
     const pendingExams = allExams.filter(e => e.status === 'pending');
     if (admin && adminContainer && adminGrid) {
@@ -275,11 +389,41 @@ function renderExams() {
             addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Tarih: ${formattedDateStr}</div>`;
         }
 
+        // Ownership & Admin Checks
+        const isOwner = currentUser && (
+            (currentUser.uid && currentUser.uid === docItem.uid) ||
+            (docItem.addedBy && currentUser.displayName === docItem.addedBy) ||
+            (currentUser.email && docItem.addedBy && currentUser.email.startsWith(docItem.addedBy))
+        );
+
+        let actionControlsHtml = "";
+        if (isOwner) {
+            actionControlsHtml = `
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                    <button onclick="openEditDocumentModal('${docItem.id}')" class="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-all text-[11px] font-bold flex items-center gap-1">
+                        ✏️ Düzenle
+                    </button>
+                    <button onclick="ownerDeleteDocument('${docItem.id}')" class="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all text-[11px] font-bold flex items-center gap-1">
+                        🗑️ Sil
+                    </button>
+                </div>
+            `;
+        } else if (admin) {
+            actionControlsHtml = `
+                <div class="flex items-center justify-end pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                    <button onclick="adminDeleteDocument('${docItem.id}')" class="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all text-[11px] font-bold flex items-center gap-1">
+                        🗑️ Sil (Admin)
+                    </button>
+                </div>
+            `;
+        }
+
         const html = `
             <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="px-2.5 py-1 rounded-lg ${colors} border text-xs font-bold">${docItem.category}</span>
+                        ${isOwner ? `<span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold">Belgeniz</span>` : ''}
                     </div>
                     <div>
                         <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">${docItem.title}</h3>
@@ -288,12 +432,15 @@ function renderExams() {
                     </div>
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">${docItem.fileInfo || "Bağlantı Linki"}</span>
-                    <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docItem.category}')" class="font-bold text-tsMavi hover:underline flex items-center gap-1">
-                        <span>İncele</span>
-                        <span>↗</span>
-                    </button>
+                <div class="space-y-2">
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">${docItem.fileInfo || "Bağlantı Linki"}</span>
+                        <button onclick="openPreviewDocumentModal('${docItem.title.replace(/'/g, "\\'")}', '${targetUrl}', '${docItem.category}')" class="font-bold text-tsMavi hover:underline flex items-center gap-1">
+                            <span>İncele</span>
+                            <span>↗</span>
+                        </button>
+                    </div>
+                    ${actionControlsHtml}
                 </div>
             </div>
         `;
