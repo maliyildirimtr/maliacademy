@@ -99,32 +99,32 @@ function renderKits() {
 }
 
 function createKitCard(kit) {
-    return \`
+    return `
         <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded-lg \${kit.categoryColor} border text-xs font-bold">\${kit.category}</span>
-                    <span class="text-xs text-slate-400 font-mono">\${kit.version}</span>
+                    <span class="px-2.5 py-1 rounded-lg ${kit.categoryColor} border text-xs font-bold">${kit.category}</span>
+                    <span class="text-xs text-slate-400 font-mono">${kit.version}</span>
                 </div>
                 <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">\${kit.title}</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">\${kit.description}</p>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">${kit.title}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">${kit.description}</p>
                 </div>
-                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto whitespace-pre-wrap flex items-center justify-between group cursor-pointer" onclick="navigator.clipboard.writeText('\${kit.command}')">
-                    <span>\${kit.command}</span>
+                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto whitespace-pre-wrap flex items-center justify-between group cursor-pointer" onclick="navigator.clipboard.writeText('${kit.command}')">
+                    <span>${kit.command}</span>
                     <span class="opacity-0 group-hover:opacity-100 transition-opacity text-tsMavi" title="Kopyala">📋</span>
                 </div>
             </div>
             
             <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <div class="flex flex-col">
-                    <span class="text-slate-400 font-mono">\${kit.license}</span>
-                    \${kit.authorName ? \`<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">\${kit.authorName}</strong></span>\` : ''}
+                    <span class="text-slate-400 font-mono">${kit.license}</span>
+                    ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">${kit.authorName}</strong></span>` : ''}
                 </div>
-                <a href="\${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
+                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
             </div>
         </div>
-    \`;
+    `;
 }
 
 // Modal Fonksiyonları
