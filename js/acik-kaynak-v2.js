@@ -1,42 +1,3 @@
-const DEFAULT_KITS = [
-    {
-        title: "32-Bit RV32I RISC-V İşlemci Çekirdeği Kiti",
-        category: "SystemVerilog",
-        version: "v1.4",
-        categoryColor: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
-        description: "5 aşamalı boru hattı (Pipeline) mimarisine sahip açık kaynak SystemVerilog çekirdeği. Vivado & ModelSim testbench simülasyon kodları içerir.",
-        command: "git clone https://github.com/maliyildirimtr/riscv-sv.git",
-        license: "MIT Lisansı",
-        link: "https://github.com/maliyildirimtr",
-        authorName: "Mali Academy",
-        status: "approved"
-    },
-    {
-        title: "STM32F4 Gerçek Zamanlı Gömülü Şablon Kit",
-        category: "STM32 & FreeRTOS",
-        version: "v2.0",
-        categoryColor: "bg-sky-500/10 text-sky-500 border-sky-500/20",
-        description: "Task senkronizasyon mekanizmaları, Kuyruk (Queue) ve Semaför konfigürasyonu tamamlanmış hazır STM32CubeIDE başlangıç kiti.",
-        command: "git clone https://github.com/maliyildirimtr/stm32-freertos.git",
-        license: "Apache 2.0",
-        link: "https://github.com/maliyildirimtr",
-        authorName: "Mali Academy",
-        status: "approved"
-    },
-    {
-        title: "İşaret İşleme & Filtre Tasarım Kütüphanesi",
-        category: "Python DSP",
-        version: "v1.1",
-        categoryColor: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-        description: "SciPy ve NumPy tabanlı FIR/IIR dijital filtre tasarım aracı, FFT spektrum analizi ve Kalman filtresi uygulama kütüphanesi.",
-        command: "pip install mali-dsp-toolkit",
-        license: "MIT Lisansı",
-        link: "https://github.com/maliyildirimtr",
-        authorName: "Mali Academy",
-        status: "approved"
-    }
-];
-
 let dynamicResources = [];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -138,15 +99,20 @@ function renderKits() {
     }
 
     // 2. HERKES İÇİN YAYINDAKİ (APPROVED) KAYNAKLAR
-    let html = "";
-    
-    // Varsayılan kitler
-    DEFAULT_KITS.forEach(kit => {
-        html += createKitCard(kit);
-    });
-
-    // Kullanıcıların eklediği onaylanmış kitler (status === 'approved')
     const approvedDynamic = dynamicResources.filter(r => r.status === 'approved');
+
+    if (approvedDynamic.length === 0) {
+        mainGrid.innerHTML = `
+            <div class="col-span-full py-12 text-center text-slate-500">
+                <div class="text-4xl mb-3">📦</div>
+                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300">Henüz onaylanmış bir açık kaynak proje bulunmuyor</h3>
+                <p class="text-sm mt-1">İlk projeyi veya kodu siz ekleyin ve topluluğa destek olun!</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = "";
     approvedDynamic.forEach(res => {
         const displayType = res.sourceType || res.category;
         const kitData = {
