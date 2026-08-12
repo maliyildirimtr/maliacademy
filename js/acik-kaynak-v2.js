@@ -129,7 +129,10 @@ function createKitCard(kit) {
 
 // Modal Fonksiyonları
 function checkAuthOrPrompt() {
-    const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
+    let user = null;
+    if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
+    if (!user && typeof SSO !== 'undefined') user = SSO.getSSOUser();
+    
     if (!user) {
         if (typeof openAuthModal === 'function') {
             openAuthModal();
@@ -157,7 +160,10 @@ function handleAddResource(event) {
     event.preventDefault();
     if (!checkAuthOrPrompt()) return;
 
-    const user = (typeof window.auth !== 'undefined' && window.auth) ? window.auth.currentUser : null;
+    let user = null;
+    if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
+    if (!user && typeof SSO !== 'undefined') user = SSO.getSSOUser();
+    
     if (!user) return;
 
     const btn = document.getElementById('btn-add-resource');
