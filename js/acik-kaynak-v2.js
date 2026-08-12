@@ -146,11 +146,12 @@ function renderKits() {
     // Kullanıcıların eklediği onaylanmış kitler (status === 'approved')
     const approvedDynamic = dynamicResources.filter(r => r.status === 'approved');
     approvedDynamic.forEach(res => {
+        const displayType = res.sourceType || res.category;
         const kitData = {
             title: res.title,
-            category: res.category,
+            category: displayType,
             version: res.version || "v1.0",
-            categoryColor: getCategoryColor(res.category),
+            categoryColor: getCategoryColor(displayType),
             description: res.description,
             command: res.link,
             license: "Kullanıcı Kaynağı",
@@ -281,6 +282,7 @@ window.handleAddResource = async function(event) {
         const newResource = {
             title: title,
             category: category,
+            sourceType: category,
             description: description,
             fileUrl: link,
             link: link,
