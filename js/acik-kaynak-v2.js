@@ -55,11 +55,12 @@ function loadResources() {
                         id: doc.id,
                         title: data.title,
                         category: data.category,
+                        sourceType: data.sourceType || data.category || "Proje",
                         description: data.description,
                         link: data.fileUrl || data.link,
                         version: data.version || "v1.0",
                         authorName: data.authorName || "Anonim",
-                        authorUid: data.authorUid,
+                        authorUid: data.authorUid || data.uid,
                         status: data.status || "approved"
                     });
                 });
@@ -76,11 +77,11 @@ function loadResources() {
 
 function getCategoryColor(category) {
     const cat = (category || '').toLowerCase();
-    if (cat.includes('yazılım') || cat.includes('software')) return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-    if (cat.includes('donanım') || cat.includes('hardware')) return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-    if (cat.includes('veri') || cat.includes('data')) return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-    if (cat.includes('yapay zeka') || cat.includes('ai')) return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-    return "bg-slate-500/10 text-slate-500 border-slate-500/20";
+    if (cat.includes('yazılım') || cat.includes('software') || cat.includes('repo')) return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+    if (cat.includes('donanım') || cat.includes('hardware') || cat.includes('devre')) return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+    if (cat.includes('fpga') || cat.includes('verilog') || cat.includes('rtl')) return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+    if (cat.includes('kütüphane') || cat.includes('kod') || cat.includes('algoritma')) return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+    return "bg-sky-500/10 text-sky-500 border-sky-500/20";
 }
 
 function renderKits() {
@@ -104,12 +105,13 @@ function renderKits() {
             adminGrid.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-amber-600 dark:text-amber-400 italic">Onay bekleyen kaynak bağlantısı bulunmuyor.</div>`;
         } else {
             pendingKits.forEach(kit => {
-                const colors = getCategoryColor(kit.category);
+                const displayType = kit.sourceType || kit.category;
+                const colors = getCategoryColor(displayType);
                 const html = `
                     <div class="p-5 rounded-2xl border border-amber-500/40 bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between space-y-3">
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="px-2 py-0.5 rounded-md ${colors} border text-[10px] font-bold">${kit.category}</span>
+                                <span class="px-2 py-0.5 rounded-md ${colors} border text-[10px] font-bold">${displayType}</span>
                                 <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Onay Bekliyor</span>
                             </div>
                             <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100">${kit.title}</h4>
@@ -148,6 +150,7 @@ function renderKits() {
     approvedDynamic.forEach(res => {
         const displayType = res.sourceType || res.category;
         const kitData = {
+            id: res.id,
             title: res.title,
             category: displayType,
             version: res.version || "v1.0",
@@ -156,7 +159,8 @@ function renderKits() {
             command: res.link,
             license: "Kullanıcı Kaynağı",
             link: res.link,
-            authorName: res.authorName || "Anonim"
+            authorName: res.authorName || "Anonim",
+            authorUid: res.authorUid || res.uid
         };
         html += createKitCard(kitData);
     });
@@ -165,12 +169,49 @@ function renderKits() {
 }
 
 function createKitCard(kit) {
+    const admin = typeof window.isAdmin === 'function' ? window.isAdmin() : false;
+    let currentUser = null;
+    if (typeof auth !== 'undefined' && auth) currentUser = auth.currentUser;
+    if (!currentUser && typeof SSO !== 'undefined') currentUser = SSO.getSSOUser();
+
+    const isOwner = currentUser && (
+        (kit.authorUid && currentUser.uid === kit.authorUid) ||
+        (kit.uid && currentUser.uid === kit.uid) ||
+        (kit.authorName && currentUser.displayName === kit.authorName) ||
+        (currentUser.email && kit.authorName && currentUser.email.startsWith(kit.authorName))
+    );
+
+    let actionControlsHtml = "";
+    if (isOwner && kit.id) {
+        actionControlsHtml = `
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <button onclick="openEditResourceModal('${kit.id}')" class="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-all text-[11px] font-bold flex items-center gap-1">
+                    ✏️ Düzenle
+                </button>
+                <button onclick="ownerDeleteResource('${kit.id}')" class="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all text-[11px] font-bold flex items-center gap-1">
+                    🗑️ Sil
+                </button>
+            </div>
+        `;
+    } else if (admin && kit.id) {
+        actionControlsHtml = `
+            <div class="flex items-center justify-end pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <button onclick="adminDeleteResource('${kit.id}')" class="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all text-[11px] font-bold flex items-center gap-1">
+                    🗑️ Sil (Admin)
+                </button>
+            </div>
+        `;
+    }
+
     return `
         <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
                     <span class="px-2.5 py-1 rounded-lg ${kit.categoryColor} border text-xs font-bold">${kit.category}</span>
-                    <span class="text-xs text-slate-400 font-mono">${kit.version}</span>
+                    <div class="flex items-center gap-1.5">
+                        ${isOwner ? `<span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold">Kaynağınız</span>` : ''}
+                        <span class="text-xs text-slate-400 font-mono">${kit.version}</span>
+                    </div>
                 </div>
                 <div>
                     <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">${kit.title}</h3>
@@ -182,12 +223,15 @@ function createKitCard(kit) {
                 </div>
             </div>
             
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                <div class="flex flex-col">
-                    <span class="text-slate-400 font-mono">${kit.license}</span>
-                    ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">${kit.authorName}</strong></span>` : ''}
+            <div class="space-y-2">
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <div class="flex flex-col">
+                        <span class="text-slate-400 font-mono">${kit.license}</span>
+                        ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">${kit.authorName}</strong></span>` : ''}
+                    </div>
+                    <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele ↗</a>
                 </div>
-                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele ↗</a>
+                ${actionControlsHtml}
             </div>
         </div>
     `;
@@ -232,13 +276,13 @@ window.openAddResourceModal = function() {
         const customContainer = document.getElementById('res-type-custom-container');
         if (customContainer) customContainer.classList.add('hidden');
     }
+    document.body.style.overflow = 'hidden';
 }
 
 window.closeAddResourceModal = function() {
     const modal = document.getElementById('add-resource-modal');
     if (modal) modal.classList.add('hidden');
-    const form = document.getElementById('add-resource-form');
-    if (form) form.reset();
+    document.body.style.overflow = 'auto';
 }
 
 window.handleAddResource = async function(event) {
@@ -315,13 +359,191 @@ window.handleAddResource = async function(event) {
     }
 }
 
+// KAYNAK DÜZENLEME MODALI İŞLEMLERİ (OWNER)
+window.openEditResourceModal = function(id) {
+    const resItem = dynamicResources.find(r => r.id === id);
+    if (!resItem) return;
+
+    const sourceTypeVal = resItem.sourceType || resItem.category || '';
+    const standardOptions = ["Açık Kaynak Proje / Repo", "Yazılım Kütüphanesi", "Donanım / Devre Tasarımı (KiCad, Proteus vb.)", "FPGA / RTL / Verilog Kodu", "Proje Şablonu (Boilerplate)", "Algoritma & Örnek Kod", "Cheat Sheet / Kod Rehberi"];
+
+    document.getElementById('edit-res-id').value = resItem.id;
+    document.getElementById('edit-res-title').value = resItem.title || '';
+    document.getElementById('edit-res-link').value = resItem.link || resItem.fileUrl || '';
+    document.getElementById('edit-res-description').value = resItem.description || '';
+
+    const selectEl = document.getElementById('edit-res-category');
+    const containerEl = document.getElementById('edit-res-type-custom-container');
+    const customInputEl = document.getElementById('edit-res-type-custom');
+
+    if (standardOptions.includes(sourceTypeVal)) {
+        selectEl.value = sourceTypeVal;
+        containerEl.classList.add('hidden');
+        customInputEl.value = '';
+    } else {
+        selectEl.value = "Diğer";
+        containerEl.classList.remove('hidden');
+        customInputEl.value = sourceTypeVal;
+    }
+
+    const legalConsentEl = document.getElementById('edit-res-legal-consent');
+    if (legalConsentEl) legalConsentEl.checked = false;
+
+    const modal = document.getElementById('edit-resource-modal');
+    if (modal) modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+window.closeEditResourceModal = function() {
+    const modal = document.getElementById('edit-resource-modal');
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+window.toggleEditResourceDocTypeCustom = function() {
+    const select = document.getElementById('edit-res-category');
+    const container = document.getElementById('edit-res-type-custom-container');
+    const input = document.getElementById('edit-res-type-custom');
+
+    if (select && container && input) {
+        if (select.value === "Diğer") {
+            container.classList.remove('hidden');
+            input.focus();
+        } else {
+            container.classList.add('hidden');
+            input.value = '';
+        }
+    }
+}
+
+window.handleEditResource = async function(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('edit-res-id').value;
+    const title = document.getElementById('edit-res-title').value.trim();
+    let category = document.getElementById('edit-res-category').value;
+    if (category === "Diğer") {
+        const customVal = document.getElementById('edit-res-type-custom').value.trim();
+        if (customVal) category = customVal;
+    }
+    const link = document.getElementById('edit-res-link').value.trim();
+    const description = document.getElementById('edit-res-description').value.trim();
+    const legalConsent = document.getElementById('edit-res-legal-consent');
+    const btn = document.getElementById('btn-edit-resource');
+
+    if (!id || !title || !category || !link || !description) {
+        alert("Lütfen tüm zorunlu alanları doldurun.");
+        return;
+    }
+
+    if (legalConsent && !legalConsent.checked) {
+        alert("Lütfen telif/içerik sorumluluğunu kabul ediniz.");
+        return;
+    }
+
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Kaydediliyor...";
+
+    try {
+        const targetDb = typeof db !== 'undefined' ? db : window.db;
+        if (targetDb && targetDb.collection) {
+            await targetDb.collection("open_source_resources").doc(id).update({
+                title: title,
+                category: category,
+                sourceType: category,
+                fileUrl: link,
+                link: link,
+                description: description,
+                status: "pending", // CRITICAL: Re-approval required!
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            closeEditResourceModal();
+
+            if (typeof showToast === 'function') {
+                showToast("Değişiklikleriniz kaydedildi, tekrar admin onayı bekleniyor.", "info");
+            } else {
+                alert("Değişiklikleriniz kaydedildi, tekrar admin onayı bekleniyor.");
+            }
+        }
+    } catch (error) {
+        console.error("Kaynak güncelleme hatası:", error);
+        alert("Güncelleme sırasında hata oluştu: " + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
+}
+
+// SİLME İŞLEMLERİ (ADMIN & OWNER)
+window.adminDeleteResource = function(id) {
+    const resItem = dynamicResources.find(r => r.id === id);
+    const title = resItem ? resItem.title : "Bu kaynak";
+    if (!confirm(`"${title}" kaynağını kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("open_source_resources").doc(id).delete()
+            .then(() => {
+                if (typeof showToast === 'function') {
+                    showToast("Kaynak başarıyla silindi.", "success");
+                } else {
+                    alert("Kaynak başarıyla silindi.");
+                }
+            })
+            .catch(err => alert("Silme hatası: " + err.message));
+    }
+}
+
+window.ownerDeleteResource = function(id) {
+    const resItem = dynamicResources.find(r => r.id === id);
+    const title = resItem ? resItem.title : "Bu kaynak";
+    if (!confirm(`"${title}" kaynağınızı silmek istediğinize emin misiniz?`)) return;
+
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("open_source_resources").doc(id).delete()
+            .then(() => {
+                if (typeof showToast === 'function') {
+                    showToast("Kaynak başarıyla silindi.", "success");
+                } else {
+                    alert("Kaynak başarıyla silindi.");
+                }
+            })
+            .catch(err => alert("Silme hatası: " + err.message));
+    }
+}
+
+// ADMİN ONAY VE REDDETME (BİLDİRİM SİSTEMİ DAHİL)
 window.approveResource = function(id) {
-    if (!confirm("Bu kaynak bağlantısını onaylayıp yayınlamak istediğinize emin misiniz?")) return;
+    const resItem = dynamicResources.find(r => r.id === id);
+    const resTitle = resItem ? resItem.title : "Açık Kaynak Proje";
+    
+    if (!confirm(`"${resTitle}" başlıklı kaynak bağlantısını onaylayıp yayınlamak istediğinize emin misiniz?`)) return;
+    
     const targetDb = typeof db !== 'undefined' ? db : window.db;
     if (targetDb) {
         targetDb.collection("open_source_resources").doc(id).update({ status: 'approved' })
             .then(() => {
-                if (typeof showToast === 'function') showToast("Kaynak bağlantısı onaylandı ve yayınlandı!", "success");
+                const targetUid = resItem ? (resItem.authorUid || resItem.uid) : null;
+                if (targetUid) {
+                    targetDb.collection("notifications").add({
+                        targetUserUid: targetUid,
+                        userId: targetUid,
+                        message: `'${resTitle}' başlıklı açık kaynak kaynağınız onaylandı ve yayına alındı! 🎉`,
+                        read: false,
+                        status: "unread",
+                        type: "resource_approved",
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(err => console.warn("Bildirim eklenemedi:", err));
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast("Kaynak onaylandı ve kullanıcıya bildirim gönderildi!", "success");
+                } else {
+                    alert("Kaynak onaylandı ve yayınlandı!");
+                }
             })
             .catch(err => alert("Hata: " + err.message));
     }

@@ -126,6 +126,9 @@ window.openEditDocumentModal = function(id) {
         customInputEl.value = docTypeVal;
     }
 
+    const legalConsentEl = document.getElementById('edit-doc-legal-consent');
+    if (legalConsentEl) legalConsentEl.checked = false;
+
     const modal = document.getElementById('edit-doc-modal');
     if (modal) modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -149,10 +152,16 @@ window.handleEditDocument = async function(event) {
     }
     const link = document.getElementById('edit-doc-link').value.trim();
     const description = document.getElementById('edit-doc-description').value.trim();
+    const legalConsent = document.getElementById('edit-doc-legal-consent');
     const btn = document.getElementById('btn-edit-doc');
 
     if (!id || !title || !category || !link || !description) {
         alert("Lütfen tüm alanları doldurun.");
+        return;
+    }
+
+    if (legalConsent && !legalConsent.checked) {
+        alert("Lütfen telif/içerik sorumluluğunu kabul ediniz.");
         return;
     }
 
@@ -177,9 +186,9 @@ window.handleEditDocument = async function(event) {
             closeEditDocumentModal();
 
             if (typeof showToast === 'function') {
-                showToast("Belgeniz güncellendi! Değişikliklerin yayına alınması için tekrar admin onayı bekleniyor.", "info");
+                showToast("Değişiklikleriniz kaydedildi, tekrar admin onayı bekleniyor.", "info");
             } else {
-                alert("Belgeniz güncellendi! Değişikliklerin yayına alınması için tekrar admin onayı bekleniyor.");
+                alert("Değişiklikleriniz kaydedildi, tekrar admin onayı bekleniyor.");
             }
         }
     } catch (error) {
