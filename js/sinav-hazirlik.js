@@ -42,22 +42,42 @@ window.openPreviewDocumentModal = function(title, rawLink, category) {
     const modal = document.getElementById('preview-doc-modal');
     const titleEl = document.getElementById('preview-modal-title');
     const iframeEl = document.getElementById('preview-doc-iframe');
+    const loaderEl = document.getElementById('preview-doc-loader');
     const catEl = document.getElementById('preview-modal-category');
     const extLinkEl = document.getElementById('preview-modal-external-link');
 
     if (titleEl) titleEl.innerText = title || "Belge Önizleme";
-    if (iframeEl) iframeEl.src = embedUrl;
     if (catEl) catEl.innerText = category ? `Ders Kategorisi: ${category}` : "Sınav Belgesi";
     if (extLinkEl) extLinkEl.href = rawLink;
+
+    // Show spinner loader, hide iframe until fully loaded
+    if (loaderEl) loaderEl.classList.remove('hidden', 'opacity-0');
+    if (iframeEl) {
+        iframeEl.classList.add('opacity-0');
+        iframeEl.src = embedUrl;
+    }
 
     if (modal) modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
 
+window.handleIframeLoaded = function() {
+    const loaderEl = document.getElementById('preview-doc-loader');
+    const iframeEl = document.getElementById('preview-doc-iframe');
+    if (loaderEl) loaderEl.classList.add('opacity-0', 'hidden');
+    if (iframeEl) iframeEl.classList.remove('opacity-0');
+}
+
 window.closePreviewDocumentModal = function() {
     const modal = document.getElementById('preview-doc-modal');
     const iframeEl = document.getElementById('preview-doc-iframe');
-    if (iframeEl) iframeEl.src = ''; // Stop video/iframe playback
+    const loaderEl = document.getElementById('preview-doc-loader');
+
+    if (iframeEl) {
+        iframeEl.src = '';
+        iframeEl.classList.add('opacity-0');
+    }
+    if (loaderEl) loaderEl.classList.remove('hidden', 'opacity-0');
     if (modal) modal.classList.add('hidden');
     document.body.style.overflow = 'auto';
 }
