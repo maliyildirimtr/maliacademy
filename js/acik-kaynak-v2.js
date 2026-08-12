@@ -8,7 +8,8 @@ const DEFAULT_KITS = [
         command: "git clone https://github.com/maliyildirimtr/riscv-sv.git",
         license: "MIT Lisansı",
         link: "https://github.com/maliyildirimtr",
-        authorName: "Mali Academy"
+        authorName: "Mali Academy",
+        status: "approved"
     },
     {
         title: "STM32F4 Gerçek Zamanlı Gömülü Şablon Kit",
@@ -19,7 +20,8 @@ const DEFAULT_KITS = [
         command: "git clone https://github.com/maliyildirimtr/stm32-freertos.git",
         license: "Apache 2.0",
         link: "https://github.com/maliyildirimtr",
-        authorName: "Mali Academy"
+        authorName: "Mali Academy",
+        status: "approved"
     },
     {
         title: "İşaret İşleme & Filtre Tasarım Kütüphanesi",
@@ -30,23 +32,36 @@ const DEFAULT_KITS = [
         command: "pip install mali-dsp-toolkit",
         license: "MIT Lisansı",
         link: "https://github.com/maliyildirimtr",
-        authorName: "Mali Academy"
+        authorName: "Mali Academy",
+        status: "approved"
     }
 ];
 
 let dynamicResources = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadResources();
+    setTimeout(loadResources, 400);
 });
 
 function loadResources() {
-    if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("open_source_resources").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb && targetDb.collection) {
+        targetDb.collection("open_source_resources").orderBy("createdAt", "desc").onSnapshot(snapshot => {
             dynamicResources = [];
             if (!snapshot.empty) {
                 snapshot.forEach(doc => {
-                    dynamicResources.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    dynamicResources.push({
+                        id: doc.id,
+                        title: data.title,
+                        category: data.category,
+                        description: data.description,
+                        link: data.fileUrl || data.link,
+                        version: data.version || "v1.0",
+                        authorName: data.authorName || "Anonim",
+                        authorUid: data.authorUid,
+                        status: data.status || "approved"
+                    });
                 });
             }
             renderKits();
@@ -69,18 +84,68 @@ function getCategoryColor(category) {
 }
 
 function renderKits() {
-    const grid = document.getElementById('kit-cards-grid');
-    if (!grid) return;
+    const mainGrid = document.getElementById('kit-cards-grid');
+    const adminContainer = document.getElementById("admin-pending-container");
+    const adminGrid = document.getElementById("admin-pending-grid");
+    const adminCountLabel = document.getElementById("admin-pending-count");
 
+    if (!mainGrid) return;
+    if (adminGrid) adminGrid.innerHTML = "";
+
+    const admin = typeof window.isAdmin === 'function' ? window.isAdmin() : false;
+
+    // 1. ADMİN ONAY PANELİ (SADECE ADMİN İÇİN)
+    const pendingKits = dynamicResources.filter(r => r.status === 'pending');
+    if (admin && adminContainer && adminGrid) {
+        adminContainer.classList.remove("hidden");
+        if (adminCountLabel) adminCountLabel.innerText = `${pendingKits.length} Bekleyen`;
+
+        if (pendingKits.length === 0) {
+            adminGrid.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-amber-600 dark:text-amber-400 italic">Onay bekleyen kaynak bağlantısı bulunmuyor.</div>`;
+        } else {
+            pendingKits.forEach(kit => {
+                const colors = getCategoryColor(kit.category);
+                const html = `
+                    <div class="p-5 rounded-2xl border border-amber-500/40 bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between space-y-3">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2 py-0.5 rounded-md ${colors} border text-[10px] font-bold">${kit.category}</span>
+                                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Onay Bekliyor</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100">${kit.title}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${kit.description}</p>
+                            <div class="text-[10px] text-slate-400">Ekleyen: <strong>${kit.authorName}</strong></div>
+                        </div>
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-slate-400 text-[10px] truncate max-w-[150px]">${kit.link}</span>
+                                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi text-[11px] hover:underline">Linki Kontrol Et ↗</a>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="approveResource('${kit.id}')" class="flex-1 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">✓ Onayla / Yayınla</button>
+                                <button onclick="rejectResource('${kit.id}')" class="flex-1 py-1.5 bg-rose-500 text-white rounded-lg text-xs font-bold hover:bg-rose-600 transition-colors shadow-sm">✕ Reddet / Sil</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                adminGrid.innerHTML += html;
+            });
+        }
+    } else if (adminContainer) {
+        adminContainer.classList.add("hidden");
+    }
+
+    // 2. HERKES İÇİN YAYINDAKİ (APPROVED) KAYNAKLAR
     let html = "";
     
-    // Varsayılan kitleri render et
+    // Varsayılan kitler
     DEFAULT_KITS.forEach(kit => {
         html += createKitCard(kit);
     });
 
-    // Kullanıcıların eklediği dinamik kitleri render et
-    dynamicResources.forEach(res => {
+    // Kullanıcıların eklediği onaylanmış kitler (status === 'approved')
+    const approvedDynamic = dynamicResources.filter(r => r.status === 'approved');
+    approvedDynamic.forEach(res => {
         const kitData = {
             title: res.title,
             category: res.category,
@@ -88,14 +153,14 @@ function renderKits() {
             categoryColor: getCategoryColor(res.category),
             description: res.description,
             command: res.link,
-            license: res.isBase64 ? "Yerel Belge" : (res.license || "Kullanıcı Kaynağı"),
+            license: "Kullanıcı Kaynağı",
             link: res.link,
             authorName: res.authorName || "Anonim"
         };
         html += createKitCard(kitData);
     });
 
-    grid.innerHTML = html;
+    mainGrid.innerHTML = html;
 }
 
 function createKitCard(kit) {
@@ -121,101 +186,13 @@ function createKitCard(kit) {
                     <span class="text-slate-400 font-mono">${kit.license}</span>
                     ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">${kit.authorName}</strong></span>` : ''}
                 </div>
-                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele / İndir ↗</a>
+                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele ↗</a>
             </div>
         </div>
     `;
 }
 
-// BASE64 FALLBACK YARDIMCI FONKSİYONU
-function readFileAsBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-    });
-}
-
-async function uploadFileOrFallback(file, folderName, userUid, onProgress) {
-    const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
-
-    if (storageObj) {
-        try {
-            const storageRef = storageObj.ref();
-            const fileRef = storageRef.child(`${folderName}/${userUid}/${Date.now()}_${file.name}`);
-            const uploadTask = fileRef.put(file);
-
-            const uploadPromise = new Promise((resolve, reject) => {
-                let bytesMoved = false;
-                const timeoutId = setTimeout(() => {
-                    if (!bytesMoved) {
-                        try { uploadTask.cancel(); } catch (e) {}
-                        reject(new Error("CORS_TIMEOUT"));
-                    }
-                }, 6000);
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        if (snapshot.bytesTransferred > 0) bytesMoved = true;
-                        if (snapshot.totalBytes > 0 && onProgress) {
-                            onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
-                        }
-                    },
-                    (err) => {
-                        clearTimeout(timeoutId);
-                        reject(err);
-                    },
-                    () => {
-                        clearTimeout(timeoutId);
-                        uploadTask.snapshot.ref.getDownloadURL()
-                            .then(url => resolve(url))
-                            .catch(err => reject(err));
-                    }
-                );
-            });
-
-            const downloadUrl = await uploadPromise;
-            return { link: downloadUrl, isBase64: false };
-        } catch (storageErr) {
-            console.warn("Storage yuklemesi basarisiz (CORS/Ağ). Base64 yedek sistemine geciliyor:", storageErr);
-        }
-    }
-
-    if (file.size <= 2 * 1024 * 1024) {
-        if (onProgress) onProgress(100);
-        const base64 = await readFileAsBase64(file);
-        return { link: base64, isBase64: true };
-    } else {
-        throw new Error("Storage CORS/Ağ engeli nedeniyle 2MB üzeri dosya yüklenemedi. Lütfen 'Harici Link' (Google Drive / GitHub) seçeneğini kullanın.");
-    }
-}
-
 // Modal Fonksiyonları
-window.toggleResourceUploadType = function() {
-    const uploadTypeSelect = document.getElementById("res-upload-type");
-    const uploadType = uploadTypeSelect ? uploadTypeSelect.value : 'file';
-    const fileContainer = document.getElementById("res-file-container");
-    const linkContainer = document.getElementById("res-link-container");
-    const fileInput = document.getElementById("res-file");
-    const linkInput = document.getElementById("res-link");
-
-    if (uploadType === "file") {
-        if (fileContainer) fileContainer.classList.remove("hidden");
-        if (linkContainer) linkContainer.classList.add("hidden");
-        if (fileInput) fileInput.required = true;
-        if (linkInput) linkInput.required = false;
-    } else {
-        if (fileContainer) fileContainer.classList.add("hidden");
-        if (linkContainer) linkContainer.classList.remove("hidden");
-        if (fileInput) fileInput.required = false;
-        if (linkInput) linkInput.required = true;
-    }
-
-    const progressContainer = document.getElementById("res-upload-progress-container");
-    if (progressContainer) progressContainer.classList.add("hidden");
-}
-
 window.openAddResourceModal = function() {
     let user = null;
     if (typeof auth !== 'undefined' && auth) user = auth.currentUser;
@@ -235,7 +212,6 @@ window.openAddResourceModal = function() {
         modal.classList.remove('hidden');
         const form = document.getElementById('add-resource-form');
         if (form) form.reset();
-        if (typeof window.toggleResourceUploadType === 'function') window.toggleResourceUploadType();
     }
 }
 
@@ -260,13 +236,12 @@ window.handleAddResource = async function(event) {
 
     const title = document.getElementById('res-title').value.trim();
     const category = document.getElementById('res-category').value;
+    const link = document.getElementById('res-link').value.trim();
     const description = document.getElementById('res-description').value.trim();
-    const uploadTypeSelect = document.getElementById('res-upload-type');
-    const uploadType = uploadTypeSelect ? uploadTypeSelect.value : 'link';
     const legalConsent = document.getElementById('res-legal-consent');
     const btn = document.getElementById('btn-add-resource');
 
-    if (!title || !category || !description) {
+    if (!title || !category || !link || !description) {
         alert("Lütfen tüm zorunlu alanları doldurun.");
         return;
     }
@@ -277,66 +252,65 @@ window.handleAddResource = async function(event) {
     }
 
     const originalText = btn.innerHTML;
-    btn.innerHTML = `Yükleniyor...`;
+    btn.innerHTML = `Gönderiliyor...`;
     btn.disabled = true;
 
     try {
-        let finalLink = "";
-        let isBase64 = false;
-        let finalVersion = "v1.0";
-
-        if (uploadType === "file") {
-            const fileInput = document.getElementById("res-file");
-            const file = fileInput ? fileInput.files[0] : null;
-            if (!file) {
-                alert("Lütfen bir dosya seçin.");
-                return;
-            }
-
-            const progressContainer = document.getElementById("res-upload-progress-container");
-            const progressBar = document.getElementById("res-upload-progress-bar");
-            const progressText = document.getElementById("res-upload-progress-text");
-            if (progressContainer) progressContainer.classList.remove("hidden");
-
-            const uploadResult = await uploadFileOrFallback(file, 'acik_kaynak_dosyalari', user.uid, (progress) => {
-                if (progressBar) progressBar.style.width = progress + '%';
-                if (progressText) progressText.innerText = progress + '%';
-            });
-
-            finalLink = uploadResult.link;
-            isBase64 = uploadResult.isBase64;
-        } else {
-            finalLink = document.getElementById("res-link").value.trim();
-            if (!finalLink) {
-                alert("Lütfen geçerli bir bağlantı adresi girin.");
-                return;
-            }
-        }
-
         const newResource = {
-            title,
-            category,
-            description,
-            link: finalLink,
-            isBase64: isBase64,
-            version: finalVersion,
+            title: title,
+            category: category,
+            description: description,
+            fileUrl: link,
+            link: link,
+            version: "v1.0",
             authorUid: user.uid,
             authorName: user.displayName || (user.email ? user.email.split('@')[0] : 'Geliştirici'),
+            status: "pending", // Default pending admin approval
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        if (typeof db !== 'undefined' && db && db.collection) {
-            await db.collection("open_source_resources").add(newResource);
-            alert("Kaynak başarıyla eklendi!");
+        const targetDb = typeof db !== 'undefined' ? db : window.db;
+        if (targetDb && targetDb.collection) {
+            await targetDb.collection("open_source_resources").add(newResource);
             closeAddResourceModal();
+
+            if (typeof showToast === 'function') {
+                showToast("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra yayınlanacaktır.", "success");
+            } else {
+                alert("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra yayınlanacaktır.");
+            }
         } else {
             alert("Veritabanı bağlantısı kurulamadı.");
         }
     } catch (error) {
         console.error("Kaynak ekleme hatası:", error);
-        alert("Dosya yükleme hatası: " + error.message);
+        alert("Bir hata oluştu: " + error.message);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
 }
+
+window.approveResource = function(id) {
+    if (!confirm("Bu kaynak bağlantısını onaylayıp yayınlamak istediğinize emin misiniz?")) return;
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("open_source_resources").doc(id).update({ status: 'approved' })
+            .then(() => {
+                if (typeof showToast === 'function') showToast("Kaynak bağlantısı onaylandı ve yayınlandı!", "success");
+            })
+            .catch(err => alert("Hata: " + err.message));
+    }
+};
+
+window.rejectResource = function(id) {
+    if (!confirm("Bu kaynak bağlantısını reddetmek ve silmek istediğinize emin misiniz?")) return;
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("open_source_resources").doc(id).delete()
+            .then(() => {
+                if (typeof showToast === 'function') showToast("Kaynak bağlantısı reddedildi ve silindi.", "info");
+            })
+            .catch(err => alert("Hata: " + err.message));
+    }
+};

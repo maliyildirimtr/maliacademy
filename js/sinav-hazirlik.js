@@ -1,71 +1,8 @@
 // ==========================================
-// SINAV & VİZE HAZIRLIK - DİNAMİK LİSTELEME VE YÜKLEME
+// SINAV & VİZE HAZIRLIK - 100% LINK TABANLI SİSTEM
 // ==========================================
 
 let allExams = [];
-
-function readFileAsBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-    });
-}
-
-async function uploadFileOrFallback(file, folderName, userUid, onProgress) {
-    const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
-
-    if (storageObj) {
-        try {
-            const storageRef = storageObj.ref();
-            const fileRef = storageRef.child(`${folderName}/${userUid}/${Date.now()}_${file.name}`);
-            const uploadTask = fileRef.put(file);
-
-            const uploadPromise = new Promise((resolve, reject) => {
-                let bytesMoved = false;
-                const timeoutId = setTimeout(() => {
-                    if (!bytesMoved) {
-                        try { uploadTask.cancel(); } catch (e) {}
-                        reject(new Error("CORS_TIMEOUT"));
-                    }
-                }, 6000);
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        if (snapshot.bytesTransferred > 0) bytesMoved = true;
-                        if (snapshot.totalBytes > 0 && onProgress) {
-                            onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
-                        }
-                    },
-                    (err) => {
-                        clearTimeout(timeoutId);
-                        reject(err);
-                    },
-                    () => {
-                        clearTimeout(timeoutId);
-                        uploadTask.snapshot.ref.getDownloadURL()
-                            .then(url => resolve(url))
-                            .catch(err => reject(err));
-                    }
-                );
-            });
-
-            const downloadUrl = await uploadPromise;
-            return { link: downloadUrl, isBase64: false };
-        } catch (storageErr) {
-            console.warn("Storage yuklemesi basarisiz (CORS/Ağ). Base64 yedek sistemine geciliyor:", storageErr);
-        }
-    }
-
-    if (file.size <= 2 * 1024 * 1024) {
-        if (onProgress) onProgress(100);
-        const base64 = await readFileAsBase64(file);
-        return { link: base64, isBase64: true };
-    } else {
-        throw new Error("Storage CORS/Ağ engeli nedeniyle 2MB üzeri dosya yüklenemedi. Lütfen 'Harici Link' (Google Drive / GitHub) seçeneğini kullanın.");
-    }
-}
 
 // MODAL İŞLEMLERİ
 window.openAddDocumentModal = function() {
@@ -86,14 +23,6 @@ window.openAddDocumentModal = function() {
     if (modal) {
         modal.classList.remove("hidden");
         document.getElementById("add-doc-form").reset();
-        toggleUploadType();
-        
-        const progressContainer = document.getElementById("upload-progress-container");
-        const progressBar = document.getElementById("upload-progress-bar");
-        const progressText = document.getElementById("upload-progress-text");
-        if (progressContainer) progressContainer.classList.add("hidden");
-        if (progressBar) progressBar.style.width = "0%";
-        if (progressText) progressText.innerText = "0%";
     }
     document.body.style.overflow = 'hidden';
 }
@@ -104,28 +33,7 @@ window.closeAddDocumentModal = function() {
     document.body.style.overflow = 'auto';
 }
 
-window.toggleUploadType = function() {
-    const typeSelect = document.getElementById("doc-upload-type");
-    const type = typeSelect ? typeSelect.value : 'file';
-    const fileContainer = document.getElementById("file-upload-container");
-    const linkContainer = document.getElementById("link-upload-container");
-    const fileInput = document.getElementById("doc-file");
-    const linkInput = document.getElementById("doc-link");
-
-    if (type === "file") {
-        if (fileContainer) fileContainer.classList.remove("hidden");
-        if (linkContainer) linkContainer.classList.add("hidden");
-        if (fileInput) fileInput.required = true;
-        if (linkInput) linkInput.required = false;
-    } else {
-        if (fileContainer) fileContainer.classList.add("hidden");
-        if (linkContainer) linkContainer.classList.remove("hidden");
-        if (fileInput) fileInput.required = false;
-        if (linkInput) linkInput.required = true;
-    }
-}
-
-// FORM GÖNDERİMİ & YÜKLEME
+// FORM GÖNDERİMİ & KAYIT
 window.handleAddDocument = async function(event) {
     event.preventDefault();
     
@@ -140,13 +48,13 @@ window.handleAddDocument = async function(event) {
 
     const title = document.getElementById("doc-title").value.trim();
     const category = document.getElementById("doc-category").value;
+    const link = document.getElementById("doc-link").value.trim();
     const description = document.getElementById("doc-description").value.trim();
-    const uploadType = document.getElementById("doc-upload-type").value;
     const legalConsent = document.getElementById("doc-legal-consent");
     const submitBtn = document.getElementById("btn-add-doc");
 
-    if (!title || !category || !description) {
-        alert("Lütfen zorunlu alanları doldurun.");
+    if (!title || !category || !link || !description) {
+        alert("Lütfen tüm zorunlu alanları doldurun.");
         return;
     }
 
@@ -157,77 +65,38 @@ window.handleAddDocument = async function(event) {
 
     const originalText = submitBtn.innerText;
     submitBtn.disabled = true;
-    submitBtn.innerText = "Ekleniyor...";
+    submitBtn.innerText = "Gönderiliyor...";
 
     try {
-        let finalLink = "";
-        let isBase64 = false;
-        let finalFileInfo = "Link";
+        const newDoc = {
+            title: title,
+            category: category,
+            description: description,
+            fileUrl: link,
+            link: link,
+            fileInfo: "Bağlantı Linki",
+            addedBy: user.displayName || (user.email ? user.email.split('@')[0] : 'Öğrenci'),
+            uid: user.uid,
+            status: "pending", // Default pending admin approval
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
 
-        if (uploadType === "file") {
-            const fileInput = document.getElementById("doc-file");
-            const file = fileInput ? fileInput.files[0] : null;
-            
-            if (!file) {
-                alert("Lütfen bir dosya seçin.");
-                return;
-            }
-
-            const ext = file.name.split('.').pop().toUpperCase();
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-
-            const progressContainer = document.getElementById("upload-progress-container");
-            const progressBar = document.getElementById("upload-progress-bar");
-            const progressText = document.getElementById("upload-progress-text");
-            if (progressContainer) progressContainer.classList.remove("hidden");
-
-            const uploadResult = await uploadFileOrFallback(file, 'sinav_belgeleri', user.uid, (progress) => {
-                if (progressBar) progressBar.style.width = progress + '%';
-                if (progressText) progressText.innerText = progress + '%';
-            });
-
-            finalLink = uploadResult.link;
-            isBase64 = uploadResult.isBase64;
-            finalFileInfo = `${ext} • ${sizeMB} MB ${isBase64 ? '(Yerel Veri)' : ''}`;
-
-        } else {
-            finalLink = document.getElementById("doc-link").value.trim();
-            finalFileInfo = "Harici Link";
-            if (!finalLink) {
-                alert("Lütfen geçerli bir bağlantı adresi girin.");
-                return;
-            }
-        }
-
-        // Firestore'a Kaydetme (status: pending)
-        if (typeof db !== 'undefined' && db && db.collection) {
-            await db.collection("exam_prep_resources").add({
-                title: title,
-                category: category,
-                description: description,
-                fileInfo: finalFileInfo,
-                link: finalLink,
-                isBase64: isBase64,
-                addedBy: user.displayName || (user.email ? user.email.split('@')[0] : 'Öğrenci'),
-                uid: user.uid,
-                status: "pending", // Admin onayı bekliyor
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
+        const targetDb = typeof db !== 'undefined' ? db : window.db;
+        if (targetDb && targetDb.collection) {
+            await targetDb.collection("exam_prep_resources").add(newDoc);
             closeAddDocumentModal();
 
             if (typeof showToast === 'function') {
-                showToast("Belgeniz başarıyla gönderildi! Admin onayladıktan sonra arşivde yayınlanacaktır.", "success");
+                showToast("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra arşivde yayınlanacaktır.", "success");
             } else {
-                alert("Belgeniz başarıyla gönderildi! Admin onayladıktan sonra arşivde yayınlanacaktır.");
+                alert("Bağlantınız başarıyla gönderildi! Admin onayladıktan sonra arşivde yayınlanacaktır.");
             }
         } else {
             alert("Veritabanı bağlantısı bulunamadı.");
         }
-
     } catch (error) {
-        console.error("Belge eklenirken hata oluştu:", error);
-        alert("Dosya yükleme hatası: " + error.message);
+        console.error("Belge kaydı sırasında hata:", error);
+        alert("Bir hata oluştu: " + error.message);
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalText;
@@ -256,17 +125,18 @@ function renderExams() {
     
     const admin = typeof window.isAdmin === 'function' ? window.isAdmin() : false;
 
-    // 1. ADMİN PANELİ YÖNETİMİ
+    // 1. ADMİN ONAY PANELİ (SADECE ADMİN İÇİN)
     const pendingExams = allExams.filter(e => e.status === 'pending');
     if (admin && adminContainer && adminGrid) {
         adminContainer.classList.remove("hidden");
         if (adminCountLabel) adminCountLabel.innerText = `${pendingExams.length} Bekleyen`;
 
         if (pendingExams.length === 0) {
-            adminGrid.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-amber-600 dark:text-amber-400 italic">Onay bekleyen belge bulunmuyor.</div>`;
+            adminGrid.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-amber-600 dark:text-amber-400 italic">Onay bekleyen belge bağlantısı bulunmuyor.</div>`;
         } else {
             pendingExams.forEach(docItem => {
                 const colors = getCategoryColors(docItem.category);
+                const targetUrl = docItem.fileUrl || docItem.link;
                 const html = `
                     <div class="p-5 rounded-2xl border border-amber-500/40 bg-white dark:bg-slate-900 shadow-md flex flex-col justify-between space-y-3">
                         <div class="space-y-2">
@@ -280,11 +150,11 @@ function renderExams() {
                         </div>
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div class="flex items-center justify-between text-xs mb-1">
-                                <span class="text-slate-400 text-[10px]">${docItem.fileInfo}</span>
-                                <a href="${docItem.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi text-[11px] hover:underline">İncele / İndir ↗</a>
+                                <span class="text-slate-400 text-[10px] truncate max-w-[150px]">${targetUrl}</span>
+                                <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi text-[11px] hover:underline">Linki Kontrol Et ↗</a>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="approveResource('${docItem.id}')" class="flex-1 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">✓ Yayınla / Onayla</button>
+                                <button onclick="approveResource('${docItem.id}')" class="flex-1 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">✓ Onayla / Yayınla</button>
                                 <button onclick="rejectResource('${docItem.id}')" class="flex-1 py-1.5 bg-rose-500 text-white rounded-lg text-xs font-bold hover:bg-rose-600 transition-colors shadow-sm">✕ Reddet / Sil</button>
                             </div>
                         </div>
@@ -313,7 +183,8 @@ function renderExams() {
 
     approvedExams.forEach(docItem => {
         const colors = getCategoryColors(docItem.category);
-        
+        const targetUrl = docItem.fileUrl || docItem.link;
+
         let addedByHtml = "";
         if (docItem.addedBy && docItem.addedBy !== "Sistem") {
             addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Ekleyen: ${docItem.addedBy}</div>`;
@@ -333,8 +204,8 @@ function renderExams() {
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-400">${docItem.fileInfo}</span>
-                    <a href="${docItem.link}" ${docItem.link.startsWith('http') || docItem.link.startsWith('data:') ? 'target="_blank" rel="noopener noreferrer"' : ''} class="font-bold text-tsMavi hover:underline">İncele / İndir →</a>
+                    <span class="text-slate-400">${docItem.fileInfo || "Bağlantı Linki"}</span>
+                    <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele ↗</a>
                 </div>
             </div>
         `;
@@ -343,22 +214,24 @@ function renderExams() {
 }
 
 window.approveResource = function(id) {
-    if (!confirm("Bu belgeyi onaylayıp yayınlamak istediğinize emin misiniz?")) return;
-    if (typeof db !== 'undefined' && db) {
-        db.collection("exam_prep_resources").doc(id).update({ status: 'approved' })
+    if (!confirm("Bu belge bağlantısını onaylayıp yayınlamak istediğinize emin misiniz?")) return;
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("exam_prep_resources").doc(id).update({ status: 'approved' })
             .then(() => {
-                if (typeof showToast === 'function') showToast("Belge onaylandı ve yayınlandı!", "success");
+                if (typeof showToast === 'function') showToast("Belge bağlantısı onaylandı ve yayınlandı!", "success");
             })
             .catch(err => alert("Hata: " + err.message));
     }
 };
 
 window.rejectResource = function(id) {
-    if (!confirm("Bu belgeyi reddetmek ve silmek istediğinize emin misiniz?")) return;
-    if (typeof db !== 'undefined' && db) {
-        db.collection("exam_prep_resources").doc(id).delete()
+    if (!confirm("Bu belge bağlantısını reddetmek ve silmek istediğinize emin misiniz?")) return;
+    const targetDb = typeof db !== 'undefined' ? db : window.db;
+    if (targetDb) {
+        targetDb.collection("exam_prep_resources").doc(id).delete()
             .then(() => {
-                if (typeof showToast === 'function') showToast("Belge reddedildi ve silindi.", "info");
+                if (typeof showToast === 'function') showToast("Belge bağlantısı reddedildi ve silindi.", "info");
             })
             .catch(err => alert("Hata: " + err.message));
     }
@@ -384,8 +257,9 @@ function loadResources() {
                     title: data.title,
                     category: data.category,
                     description: data.description,
-                    fileInfo: data.fileInfo || "Belge",
-                    link: data.link,
+                    fileInfo: data.fileInfo || "Bağlantı Linki",
+                    fileUrl: data.fileUrl || data.link,
+                    link: data.link || data.fileUrl,
                     addedBy: data.addedBy,
                     uid: data.uid,
                     status: data.status || 'approved',

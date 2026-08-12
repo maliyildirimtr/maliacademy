@@ -62,9 +62,22 @@
             </div>
         </div>
 
+        <!-- ADMİN ONAY PANELİ (SADECE ADMİN İÇİN) -->
+        <div id="admin-pending-container" class="hidden p-6 rounded-3xl border border-amber-500/30 bg-amber-500/5 space-y-4">
+            <div class="flex items-center justify-between border-b border-amber-500/20 pb-3">
+                <h3 class="font-extrabold text-sm md:text-base text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <span>👑</span> Bekleyen Kaynak Bağlantıları (Admin Onayı)
+                </h3>
+                <span id="admin-pending-count" class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold text-xs">0 Bekleyen</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="admin-pending-grid">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </div>
+
         <!-- KİT KARTLARI GRİDİ -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="kit-cards-grid">
-            <!-- Dynamically populated via js/acik-kaynak.js -->
+            <!-- Dynamically populated via js/acik-kaynak-v2.js -->
         </div>
 
     </main>
@@ -102,21 +115,8 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Yükleme Türü</label>
-                            <select id="res-upload-type" onchange="toggleResourceUploadType()" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors appearance-none">
-                                <option value="file">Dosya Yükle (< 15MB, PDF/Resim/ZIP)</option>
-                                <option value="link">Harici Repo / Drive Linki (> 15MB)</option>
-                            </select>
-                        </div>
-                        
-                        <div id="res-file-container" class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Dosya Seç (Max 15 MB)</label>
-                            <input type="file" id="res-file" accept=".pdf,image/png,image/jpeg,.zip,.rar,.tar.gz" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-tsMavi/10 file:text-tsMavi hover:file:bg-tsMavi/20 transition-colors">
-                        </div>
-
-                        <div id="res-link-container" class="space-y-1.5 hidden">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Proje / Bağlantı Linki (URL)</label>
-                            <input type="url" id="res-link" placeholder="GitHub, Drive veya diğer bağlantı" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Proje / Repo Bağlantı Linki (GitHub, Drive vb.)</label>
+                            <input type="url" id="res-link" required placeholder="https://github.com/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors">
                         </div>
                         
                         <div class="space-y-1.5">
@@ -124,27 +124,19 @@
                             <textarea id="res-description" required rows="3" placeholder="Projeniz ne işe yarıyor?" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-tsMavi transition-colors resize-none"></textarea>
                         </div>
 
-                        <!-- İlerleme Çubuğu -->
-                        <div id="res-upload-progress-container" class="hidden space-y-1">
-                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
-                                <div id="res-upload-progress-bar" class="bg-tsMavi h-2.5 rounded-full" style="width: 0%"></div>
-                            </div>
-                            <p id="res-upload-progress-text" class="text-[10px] text-slate-500 text-right">0%</p>
-                        </div>
-
                         <!-- Yasal Sorumluluk Onayı -->
                         <div class="space-y-1.5 pt-2">
                             <label class="flex items-start gap-2 cursor-pointer">
                                 <input type="checkbox" id="res-legal-consent" required class="mt-0.5 rounded border-slate-300 text-tsMavi focus:ring-tsMavi">
                                 <span class="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">
-                                    Yüklediğim belgenin/kaynağın telif haklarına uygun olduğunu, tüm yasal ve idari sorumluluğun tarafıma ait olduğunu kabul ediyorum.
+                                    Yüklediğim bağlantının telif/içerik sorumluluğunu kabul ediyorum.
                                 </span>
                             </label>
                         </div>
                         
                         <div class="pt-4 flex gap-3">
                             <button type="button" onclick="closeAddResourceModal()" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">İptal</button>
-                            <button type="submit" id="btn-add-resource" class="flex-1 px-4 py-2.5 rounded-xl bg-tsMavi text-white font-bold text-sm hover:bg-blue-600 transition-colors shadow-md">Kaynağı Ekle</button>
+                            <button type="submit" id="btn-add-resource" class="flex-1 px-4 py-2.5 rounded-xl bg-tsMavi text-white font-bold text-sm hover:bg-blue-600 transition-colors shadow-md">Kaynağı Gönder</button>
                         </div>
                     </form>
                 </div>
@@ -155,6 +147,6 @@
     <script src="js/firebase.js?v=3"></script>
     <script src="js/sso.js?v=2"></script>
     <script src="js/main.js?v=2"></script>
-    <script src="js/acik-kaynak-v2.js?v=6"></script>
+    <script src="js/acik-kaynak-v2.js?v=7"></script>
 </body>
 </html>
