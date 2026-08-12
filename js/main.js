@@ -192,7 +192,10 @@ function renderNavbar(activePage, currentUser) {
                         <h4 class="font-bold text-xs flex items-center gap-1.5">
                             <span>🔔</span> Bildirim Panosu
                         </h4>
-                        <span id="notification-dropdown-count" class="text-[10px] text-slate-400 font-mono">0 Okunmamış</span>
+                        <div class="flex items-center gap-2">
+                            <span id="notification-dropdown-count" class="text-[10px] text-slate-400 font-mono">0 Okunmamış</span>
+                            <button onclick="clearAllNotifications()" title="Tümünü Temizle" class="text-xs text-rose-500 hover:text-rose-700 transition-colors p-1" style="line-height: 1;">🗑️</button>
+                        </div>
                     </div>
                     <div id="notification-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
                         <div class="py-6 text-center text-xs text-slate-400">Bildirim bulunmuyor.</div>
@@ -731,6 +734,29 @@ window.markNotificationRead = function(notificationId, groupId, taskId) {
             });
         }
     }
+}
+
+window.clearAllNotifications = function() {
+    const user = window.auth ? window.auth.currentUser : null;
+    if (!user || typeof db === 'undefined' || !db) return;
+    
+    if (!confirm("Tüm bildirimleri temizlemek istediğinize emin misiniz?")) return;
+
+    db.collection("notifications").where("targetUserUid", "==", user.uid).get()
+        .then(snapshot => {
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            return batch.commit();
+        })
+        .then(() => {
+            console.log("Tüm bildirimler temizlendi.");
+        })
+        .catch(err => {
+            console.error("Bildirimler temizlenirken hata oluştu:", err);
+            alert("Bildirimler temizlenirken bir hata oluştu.");
+        });
 }
 
 function handleNotificationResponse(notificationId, announcementId, senderUid, action) {
