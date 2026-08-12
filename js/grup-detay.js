@@ -1784,6 +1784,9 @@ function renderKanbanColumns(tasks) {
     colProgress.innerHTML = '';
     colDone.innerHTML = '';
 
+    const currentUser = getCurrentUser();
+    const currentUserId = currentUser ? currentUser.uid : null;
+
     let todoCount = 0, progressCount = 0, doneCount = 0;
 
     tasks.forEach(t => {
@@ -1799,10 +1802,10 @@ function renderKanbanColumns(tasks) {
             <h5 class="font-bold text-xs text-slate-900 dark:text-slate-100">${t.title}</h5>
             <p class="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2">${t.description || ''}</p>
             <div class="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between gap-1">
-                ${t.status !== 'todo' ? `<button onclick="updateTaskStatus('${t.id}', 'todo')" class="text-[10px] text-slate-500 dark:text-slate-400 hover:text-tsMavi font-semibold">⬅ Yapılacak</button>` : '<span></span>'}
-                ${t.status !== 'in_progress' ? `<button onclick="updateTaskStatus('${t.id}', 'in_progress')" class="text-[10px] text-tsMavi hover:underline font-semibold">Sürüyor ➡</button>` : ''}
-                ${t.status !== 'completed' ? `<button onclick="updateTaskStatus('${t.id}', 'completed')" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline">✓ Bitir</button>` : ''}
-                <button onclick="deleteTask('${t.id}')" title="Görevi Sil" class="text-xs text-rose-500 hover:text-rose-700 px-1">🗑️</button>
+                ${(t.assigneeUid === currentUserId || !t.assigneeUid) && t.status !== 'todo' ? `<button onclick="updateTaskStatus('${t.id}', 'todo')" class="text-[10px] text-slate-500 dark:text-slate-400 hover:text-tsMavi font-semibold">⬅ Yapılacak</button>` : '<span></span>'}
+                ${(t.assigneeUid === currentUserId || !t.assigneeUid) && t.status !== 'in_progress' ? `<button onclick="updateTaskStatus('${t.id}', 'in_progress')" class="text-[10px] text-tsMavi hover:underline font-semibold">Sürüyor ➡</button>` : '<span></span>'}
+                ${(t.assigneeUid === currentUserId || !t.assigneeUid) && t.status !== 'completed' ? `<button onclick="updateTaskStatus('${t.id}', 'completed')" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline">✓ Bitir</button>` : '<span></span>'}
+                ${(t.creatorUid === currentUserId || !t.creatorUid) ? `<button onclick="deleteTask('${t.id}')" title="Görevi Sil" class="text-xs text-rose-500 hover:text-rose-700 px-1 ml-auto">🗑️</button>` : '<span></span>'}
             </div>
         `;
 
@@ -4967,13 +4970,20 @@ function handleSaveTask(e) {
         ? firebase.firestore.FieldValue.serverTimestamp() 
         : new Date().toISOString();
 
+    const currentUser = getCurrentUser();
+    const creatorUid = currentUser ? currentUser.uid : null;
+    const assignedMember = (currentGroup && currentGroup.members) ? currentGroup.members.find(m => m.name === assignee) : null;
+    const assigneeUid = assignedMember ? assignedMember.uid : null;
+
     const newTask = {
         title,
         priority,
         assignee,
         description: desc,
         status: "todo",
-        createdAt: timestamp
+        createdAt: timestamp,
+        creatorUid: creatorUid,
+        assigneeUid: assigneeUid
     };
 
     if (typeof db !== 'undefined' && db && db.collection) {
