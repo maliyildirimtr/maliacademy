@@ -4,6 +4,69 @@
 
 let allExams = [];
 
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function uploadFileOrFallback(file, folderName, userUid, onProgress) {
+    const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
+
+    if (storageObj) {
+        try {
+            const storageRef = storageObj.ref();
+            const fileRef = storageRef.child(`${folderName}/${userUid}/${Date.now()}_${file.name}`);
+            const uploadTask = fileRef.put(file);
+
+            const uploadPromise = new Promise((resolve, reject) => {
+                let bytesMoved = false;
+                const timeoutId = setTimeout(() => {
+                    if (!bytesMoved) {
+                        try { uploadTask.cancel(); } catch (e) {}
+                        reject(new Error("CORS_TIMEOUT"));
+                    }
+                }, 6000);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        if (snapshot.bytesTransferred > 0) bytesMoved = true;
+                        if (snapshot.totalBytes > 0 && onProgress) {
+                            onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
+                        }
+                    },
+                    (err) => {
+                        clearTimeout(timeoutId);
+                        reject(err);
+                    },
+                    () => {
+                        clearTimeout(timeoutId);
+                        uploadTask.snapshot.ref.getDownloadURL()
+                            .then(url => resolve(url))
+                            .catch(err => reject(err));
+                    }
+                );
+            });
+
+            const downloadUrl = await uploadPromise;
+            return { link: downloadUrl, isBase64: false };
+        } catch (storageErr) {
+            console.warn("Storage yuklemesi basarisiz (CORS/Ağ). Base64 yedek sistemine geciliyor:", storageErr);
+        }
+    }
+
+    if (file.size <= 2 * 1024 * 1024) {
+        if (onProgress) onProgress(100);
+        const base64 = await readFileAsBase64(file);
+        return { link: base64, isBase64: true };
+    } else {
+        throw new Error("Storage CORS/Ağ engeli nedeniyle 2MB üzeri dosya yüklenemedi. Lütfen 'Harici Link' (Google Drive / GitHub) seçeneğini kullanın.");
+    }
+}
+
 // MODAL İŞLEMLERİ
 window.openAddDocumentModal = function() {
     let user = null;
@@ -98,6 +161,7 @@ window.handleAddDocument = async function(event) {
 
     try {
         let finalLink = "";
+        let isBase64 = false;
         let finalFileInfo = "Link";
 
         if (uploadType === "file") {
@@ -109,54 +173,22 @@ window.handleAddDocument = async function(event) {
                 return;
             }
 
-            if (file.size > 15 * 1024 * 1024) {
-                alert("Dosya boyutu 15 MB'tan büyük olamaz. Lütfen 'Harici Link' seçeneğini kullanarak Drive vb. bir link ekleyin.");
-                return;
-            }
-
             const ext = file.name.split('.').pop().toUpperCase();
             const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-            finalFileInfo = `${ext} • ${sizeMB} MB`;
 
-            // Firebase Storage Yükleme
-            const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
-            if (!storageObj) {
-                alert("Firebase Storage modülü hazırlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.");
-                return;
-            }
-            const storageRef = storageObj.ref();
-            const fileRef = storageRef.child(`sinav_belgeleri/${user.uid}/${Date.now()}_${file.name}`);
-            
-            const uploadTask = fileRef.put(file);
-            
             const progressContainer = document.getElementById("upload-progress-container");
             const progressBar = document.getElementById("upload-progress-bar");
             const progressText = document.getElementById("upload-progress-text");
             if (progressContainer) progressContainer.classList.remove("hidden");
 
-            await new Promise((resolve, reject) => {
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        if (snapshot.totalBytes > 0) {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            if (progressBar) progressBar.style.width = progress + '%';
-                            if (progressText) progressText.innerText = Math.round(progress) + '%';
-                        }
-                    }, 
-                    (error) => {
-                        console.error("Yükleme Hatası:", error);
-                        reject(error);
-                    }, 
-                    () => {
-                        uploadTask.snapshot.ref.getDownloadURL()
-                            .then(url => {
-                                finalLink = url;
-                                resolve();
-                            })
-                            .catch(err => reject(err));
-                    }
-                );
+            const uploadResult = await uploadFileOrFallback(file, 'sinav_belgeleri', user.uid, (progress) => {
+                if (progressBar) progressBar.style.width = progress + '%';
+                if (progressText) progressText.innerText = progress + '%';
             });
+
+            finalLink = uploadResult.link;
+            isBase64 = uploadResult.isBase64;
+            finalFileInfo = `${ext} • ${sizeMB} MB ${isBase64 ? '(Yerel Veri)' : ''}`;
 
         } else {
             finalLink = document.getElementById("doc-link").value.trim();
@@ -175,6 +207,7 @@ window.handleAddDocument = async function(event) {
                 description: description,
                 fileInfo: finalFileInfo,
                 link: finalLink,
+                isBase64: isBase64,
                 addedBy: user.displayName || (user.email ? user.email.split('@')[0] : 'Öğrenci'),
                 uid: user.uid,
                 status: "pending", // Admin onayı bekliyor
@@ -194,7 +227,7 @@ window.handleAddDocument = async function(event) {
 
     } catch (error) {
         console.error("Belge eklenirken hata oluştu:", error);
-        alert("Bir hata oluştu: " + error.message);
+        alert("Dosya yükleme hatası: " + error.message);
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalText;
@@ -248,7 +281,7 @@ function renderExams() {
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div class="flex items-center justify-between text-xs mb-1">
                                 <span class="text-slate-400 text-[10px]">${docItem.fileInfo}</span>
-                                <a href="${docItem.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi text-[11px] hover:underline">Önizle ↗</a>
+                                <a href="${docItem.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi text-[11px] hover:underline">İncele / İndir ↗</a>
                             </div>
                             <div class="flex gap-2">
                                 <button onclick="approveResource('${docItem.id}')" class="flex-1 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">✓ Yayınla / Onayla</button>
@@ -301,7 +334,7 @@ function renderExams() {
 
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <span class="text-slate-400">${docItem.fileInfo}</span>
-                    <a href="${docItem.link}" ${docItem.link.startsWith('http') ? 'target="_blank" rel="noopener noreferrer"' : ''} class="font-bold text-tsMavi hover:underline">İncele →</a>
+                    <a href="${docItem.link}" ${docItem.link.startsWith('http') || docItem.link.startsWith('data:') ? 'target="_blank" rel="noopener noreferrer"' : ''} class="font-bold text-tsMavi hover:underline">İncele / İndir →</a>
                 </div>
             </div>
         `;
@@ -355,7 +388,7 @@ function loadResources() {
                     link: data.link,
                     addedBy: data.addedBy,
                     uid: data.uid,
-                    status: data.status || 'approved', // Varsayılan onaylı
+                    status: data.status || 'approved',
                     timestamp: data.timestamp ? data.timestamp.toMillis() : Date.now()
                 });
             });

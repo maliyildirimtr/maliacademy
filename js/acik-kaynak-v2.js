@@ -60,12 +60,12 @@ function loadResources() {
 }
 
 function getCategoryColor(category) {
-    const cat = category.toLowerCase();
+    const cat = (category || '').toLowerCase();
     if (cat.includes('yazılım') || cat.includes('software')) return "bg-blue-500/10 text-blue-500 border-blue-500/20";
     if (cat.includes('donanım') || cat.includes('hardware')) return "bg-orange-500/10 text-orange-500 border-orange-500/20";
     if (cat.includes('veri') || cat.includes('data')) return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
     if (cat.includes('yapay zeka') || cat.includes('ai')) return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-    return "bg-slate-500/10 text-slate-500 border-slate-500/20"; // Default
+    return "bg-slate-500/10 text-slate-500 border-slate-500/20";
 }
 
 function renderKits() {
@@ -87,8 +87,8 @@ function renderKits() {
             version: res.version || "v1.0",
             categoryColor: getCategoryColor(res.category),
             description: res.description,
-            command: res.link, // For custom ones we just show the link here if it's clonable or they can copy it
-            license: res.license || "Kullanıcı Kaynağı",
+            command: res.link,
+            license: res.isBase64 ? "Yerel Belge" : (res.license || "Kullanıcı Kaynağı"),
             link: res.link,
             authorName: res.authorName || "Anonim"
         };
@@ -111,7 +111,7 @@ function createKitCard(kit) {
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-3 leading-relaxed">${kit.description}</p>
                 </div>
                 <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 break-all select-all overflow-x-auto whitespace-pre-wrap flex items-center justify-between group cursor-pointer" onclick="navigator.clipboard.writeText('${kit.command}')">
-                    <span>${kit.command}</span>
+                    <span class="truncate max-w-[200px]">${kit.command}</span>
                     <span class="opacity-0 group-hover:opacity-100 transition-opacity text-tsMavi" title="Kopyala">📋</span>
                 </div>
             </div>
@@ -121,15 +121,80 @@ function createKitCard(kit) {
                     <span class="text-slate-400 font-mono">${kit.license}</span>
                     ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">${kit.authorName}</strong></span>` : ''}
                 </div>
-                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">Repoyu İncele ↗</a>
+                <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele / İndir ↗</a>
             </div>
         </div>
     `;
 }
 
+// BASE64 FALLBACK YARDIMCI FONKSİYONU
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function uploadFileOrFallback(file, folderName, userUid, onProgress) {
+    const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
+
+    if (storageObj) {
+        try {
+            const storageRef = storageObj.ref();
+            const fileRef = storageRef.child(`${folderName}/${userUid}/${Date.now()}_${file.name}`);
+            const uploadTask = fileRef.put(file);
+
+            const uploadPromise = new Promise((resolve, reject) => {
+                let bytesMoved = false;
+                const timeoutId = setTimeout(() => {
+                    if (!bytesMoved) {
+                        try { uploadTask.cancel(); } catch (e) {}
+                        reject(new Error("CORS_TIMEOUT"));
+                    }
+                }, 6000);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        if (snapshot.bytesTransferred > 0) bytesMoved = true;
+                        if (snapshot.totalBytes > 0 && onProgress) {
+                            onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
+                        }
+                    },
+                    (err) => {
+                        clearTimeout(timeoutId);
+                        reject(err);
+                    },
+                    () => {
+                        clearTimeout(timeoutId);
+                        uploadTask.snapshot.ref.getDownloadURL()
+                            .then(url => resolve(url))
+                            .catch(err => reject(err));
+                    }
+                );
+            });
+
+            const downloadUrl = await uploadPromise;
+            return { link: downloadUrl, isBase64: false };
+        } catch (storageErr) {
+            console.warn("Storage yuklemesi basarisiz (CORS/Ağ). Base64 yedek sistemine geciliyor:", storageErr);
+        }
+    }
+
+    if (file.size <= 2 * 1024 * 1024) {
+        if (onProgress) onProgress(100);
+        const base64 = await readFileAsBase64(file);
+        return { link: base64, isBase64: true };
+    } else {
+        throw new Error("Storage CORS/Ağ engeli nedeniyle 2MB üzeri dosya yüklenemedi. Lütfen 'Harici Link' (Google Drive / GitHub) seçeneğini kullanın.");
+    }
+}
+
 // Modal Fonksiyonları
 window.toggleResourceUploadType = function() {
-    const uploadType = document.getElementById("res-upload-type") ? document.getElementById("res-upload-type").value : 'file';
+    const uploadTypeSelect = document.getElementById("res-upload-type");
+    const uploadType = uploadTypeSelect ? uploadTypeSelect.value : 'file';
     const fileContainer = document.getElementById("res-file-container");
     const linkContainer = document.getElementById("res-link-container");
     const fileInput = document.getElementById("res-file");
@@ -196,7 +261,8 @@ window.handleAddResource = async function(event) {
     const title = document.getElementById('res-title').value.trim();
     const category = document.getElementById('res-category').value;
     const description = document.getElementById('res-description').value.trim();
-    const uploadType = document.getElementById('res-upload-type') ? document.getElementById('res-upload-type').value : 'link';
+    const uploadTypeSelect = document.getElementById('res-upload-type');
+    const uploadType = uploadTypeSelect ? uploadTypeSelect.value : 'link';
     const legalConsent = document.getElementById('res-legal-consent');
     const btn = document.getElementById('btn-add-resource');
 
@@ -216,6 +282,7 @@ window.handleAddResource = async function(event) {
 
     try {
         let finalLink = "";
+        let isBase64 = false;
         let finalVersion = "v1.0";
 
         if (uploadType === "file") {
@@ -223,55 +290,25 @@ window.handleAddResource = async function(event) {
             const file = fileInput ? fileInput.files[0] : null;
             if (!file) {
                 alert("Lütfen bir dosya seçin.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
                 return;
             }
-
-            if (file.size > 15 * 1024 * 1024) {
-                alert("Dosya boyutu 15 MB'tan büyük olamaz. Lütfen Drive/GitHub linki seçeneğini kullanın.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-
-            const storageObj = (typeof firebase !== 'undefined' && typeof firebase.storage === 'function') ? firebase.storage() : (window.storage || null);
-            if (!storageObj) {
-                alert("Firebase Storage modülü hazırlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.");
-                return;
-            }
-            const storageRef = storageObj.ref();
-            const fileRef = storageRef.child(`acik_kaynak_dosyalari/${user.uid}/${Date.now()}_${file.name}`);
-            const uploadTask = fileRef.put(file);
 
             const progressContainer = document.getElementById("res-upload-progress-container");
             const progressBar = document.getElementById("res-upload-progress-bar");
             const progressText = document.getElementById("res-upload-progress-text");
             if (progressContainer) progressContainer.classList.remove("hidden");
 
-            await new Promise((resolve, reject) => {
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        if (progressBar) progressBar.style.width = progress + '%';
-                        if (progressText) progressText.innerText = Math.round(progress) + '%';
-                    }, 
-                    (error) => {
-                        console.error("Yükleme Hatası:", error);
-                        reject(error);
-                    }, 
-                    async () => {
-                        finalLink = await uploadTask.snapshot.ref.getDownloadURL();
-                        resolve();
-                    }
-                );
+            const uploadResult = await uploadFileOrFallback(file, 'acik_kaynak_dosyalari', user.uid, (progress) => {
+                if (progressBar) progressBar.style.width = progress + '%';
+                if (progressText) progressText.innerText = progress + '%';
             });
+
+            finalLink = uploadResult.link;
+            isBase64 = uploadResult.isBase64;
         } else {
             finalLink = document.getElementById("res-link").value.trim();
             if (!finalLink) {
                 alert("Lütfen geçerli bir bağlantı adresi girin.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
                 return;
             }
         }
@@ -281,6 +318,7 @@ window.handleAddResource = async function(event) {
             category,
             description,
             link: finalLink,
+            isBase64: isBase64,
             version: finalVersion,
             authorUid: user.uid,
             authorName: user.displayName || (user.email ? user.email.split('@')[0] : 'Geliştirici'),
@@ -296,7 +334,7 @@ window.handleAddResource = async function(event) {
         }
     } catch (error) {
         console.error("Kaynak ekleme hatası:", error);
-        alert("Bir hata oluştu: " + error.message);
+        alert("Dosya yükleme hatası: " + error.message);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
