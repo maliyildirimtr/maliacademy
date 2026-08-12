@@ -239,7 +239,7 @@ function renderNavbar(activePage, currentUser) {
 
     const layoutHTML = `
     <!-- ÜST BAR (HEADER BAR) -->
-    <header class="fixed top-0 left-0 right-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-[#0d0f12]/85 glass-card backdrop-blur-md flex items-center justify-between px-4 lg:px-6">
+    <header class="fixed top-0 left-0 right-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-[#090d16]/85 glass-card backdrop-blur-md flex items-center justify-between px-4 lg:px-6">
         
         <!-- SOL ALAN: TOGGLE BUTONU + LOGO -->
         <div class="flex items-center gap-3">
@@ -285,7 +285,7 @@ function renderNavbar(activePage, currentUser) {
     </header>
 
     <!-- SOL YAN MENÜ (SIDEBAR NAVIGATION) -->
-    <aside id="app-sidebar" class="fixed top-16 left-0 bottom-0 z-30 w-64 border-r border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0d0f12]/95 backdrop-blur-md transition-all duration-300 transform -translate-x-full lg:translate-x-0 flex flex-col justify-between p-4 overflow-y-auto">
+    <aside id="app-sidebar" class="fixed top-16 left-0 bottom-0 z-30 w-64 border-r border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md transition-all duration-300 transform -translate-x-full lg:translate-x-0 flex flex-col justify-between p-4 overflow-y-auto">
         <div class="space-y-6">
             
             <div class="px-3 pt-2">

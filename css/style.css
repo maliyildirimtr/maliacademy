@@ -11,7 +11,39 @@
     -webkit-backdrop-filter: blur(12px);
 }
 
-/* Sayfa Geçiş Yumuşaklığı */
+/* Küresel Tema Arka Plan ve Tipografi Standartları */
+:root {
+    --bg-light: #f8fafc;
+    --bg-dark: #090d16;
+    --text-light: #0f172a;
+    --text-dark: #f8fafc;
+}
+
 body {
+    background-color: var(--bg-light);
+    color: var(--text-light);
     transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html.dark body {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+}
+
+/* Koyu Tema Kart ve Panel Renk Uyum Kuralları */
+html.dark .dark\:bg-slate-900 {
+    background-color: #0d121f !important;
+}
+
+html.dark .dark\:bg-slate-900\/60 {
+    background-color: rgba(13, 18, 31, 0.75) !important;
+}
+
+html.dark .dark\:bg-slate-950 {
+    background-color: #060911 !important;
+}
+
+html.dark .dark\:border-slate-800 {
+    border-color: rgba(30, 41, 59, 0.7) !important;
 }
