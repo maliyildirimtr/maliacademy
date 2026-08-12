@@ -47,3 +47,26 @@ html.dark .dark\:bg-slate-950 {
 html.dark .dark\:border-slate-800 {
     border-color: rgba(30, 41, 59, 0.7) !important;
 }
+
+/* Üst Bar (Header / Navbar) Dikey Ortalama ve Boşluk Kuralları */
+header,
+.app-header-navbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px 24px !important;
+    margin-bottom: 24px !important;
+    box-sizing: border-box;
+}
+
+header > div,
+header button,
+header a {
+    display: flex;
+    align-items: center;
+}
+
+/* Sayfa İçerik Alanı Üst Boşluğu (Header + 24px Margin-Bottom Uyumlu) */
+main {
+    padding-top: 100px !important;
+}

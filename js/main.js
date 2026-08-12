@@ -239,7 +239,7 @@ function renderNavbar(activePage, currentUser) {
 
     const layoutHTML = `
     <!-- ÜST BAR (HEADER BAR) -->
-    <header class="fixed top-0 left-0 right-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-[#090d16]/85 glass-card backdrop-blur-md flex items-center justify-between px-4 lg:px-6">
+    <header class="app-header-navbar fixed top-0 left-0 right-0 z-40 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#090d16]/90 glass-card backdrop-blur-md flex items-center justify-between px-6 py-4 mb-6 shadow-sm">
         
         <!-- SOL ALAN: TOGGLE BUTONU + LOGO -->
         <div class="flex items-center gap-3">
@@ -259,8 +259,8 @@ function renderNavbar(activePage, currentUser) {
         </div>
 
         <!-- ORTA ALAN: DİNAMİK ARAMA ÇUBUĞU -->
-        <div class="relative max-w-md w-full hidden md:block mx-4">
-            <input type="text" placeholder="🔍 İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-4 py-2 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all">
+        <div class="relative max-w-md w-full hidden md:flex items-center mx-4">
+            <input type="text" placeholder="🔍 İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-4 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all">
         </div>
 
         <!-- SAĞ ALAN: TEMA + AUTH -->
@@ -285,7 +285,7 @@ function renderNavbar(activePage, currentUser) {
     </header>
 
     <!-- SOL YAN MENÜ (SIDEBAR NAVIGATION) -->
-    <aside id="app-sidebar" class="fixed top-16 left-0 bottom-0 z-30 w-64 border-r border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md transition-all duration-300 transform -translate-x-full lg:translate-x-0 flex flex-col justify-between p-4 overflow-y-auto">
+    <aside id="app-sidebar" class="fixed top-[76px] left-0 bottom-0 z-30 w-64 border-r border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur-md transition-all duration-300 transform -translate-x-full lg:translate-x-0 flex flex-col justify-between p-4 overflow-y-auto">
         <div class="space-y-6">
             
             <div class="px-3 pt-2">
