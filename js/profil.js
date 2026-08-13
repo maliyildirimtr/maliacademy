@@ -130,12 +130,12 @@ function renderProfileHero(data) {
         statsEl.innerHTML = `
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700">
                 <svg class="w-3.5 h-3.5 text-tsMavi" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span class="text-xs font-bold text-slate-200">${uploadCount}</span>
+                <span id="profile-stat-upload" class="text-xs font-bold text-slate-200">${uploadCount}</span>
                 <span class="text-[10px] text-slate-400">Yükleme</span>
             </div>
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700">
                 <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span class="text-xs font-bold text-slate-200">${groupCount}</span>
+                <span id="profile-stat-group" class="text-xs font-bold text-slate-200">${groupCount}</span>
                 <span class="text-[10px] text-slate-400">Grup</span>
             </div>
         `;
@@ -238,6 +238,10 @@ async function loadTabContent(tab) {
         updateBadge('badge-groups', counts.groups);
         updateBadge('badge-ads', counts.ads);
         updateBadge('badge-pending', counts.pending);
+
+        // Update hero stats dynamically
+        updateBadge('profile-stat-upload', counts.all - counts.groups);
+        updateBadge('profile-stat-group', counts.groups);
 
         // 2. Populate items array based on selected tab
         if (tab === 'all') {
