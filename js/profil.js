@@ -516,7 +516,30 @@ async function uploadDataUrlToStorageFallback(dataUrl, storagePath) {
 
     return new Promise((resolve) => {
         const storageRef = targetStorage.ref(storagePath);
-        const uploadTask = storageRef.putString(dataUrl, 'data_url');
+        
+        let isResolved = false;
+        let uploadTask;
+        
+        try {
+            uploadTask = storageRef.putString(dataUrl, 'data_url');
+        } catch (e) {
+            console.warn('Storage putString hatası', e);
+            return resolve(dataUrl);
+        }
+
+        // Firebase Storage SDK retries CORS errors indefinitely (maxUploadRetryTime).
+        // 4 saniye içinde tamamlanmazsa iptal edip Base64 yedeğine (fallback) dönüyoruz.
+        const timeoutId = setTimeout(() => {
+            if (!isResolved) {
+                isResolved = true;
+                console.warn('Storage yüklemesi CORS/Ağ nedeniyle zaman aşımına uğradı. Base64 Fallback devreye giriyor.');
+                if (uploadTask && typeof uploadTask.cancel === 'function') {
+                    uploadTask.cancel();
+                }
+                if (typeof showToast === 'function') showToast("Yükleme yavaş/engelli, görsel optimize edilerek kaydedildi.", "warning");
+                resolve(dataUrl);
+            }
+        }, 4000);
         
         uploadTask.on('state_changed',
             (snapshot) => {
@@ -525,18 +548,25 @@ async function uploadDataUrlToStorageFallback(dataUrl, storagePath) {
                 if (progressPct) progressPct.textContent = pct + '%';
             },
             (error) => {
-                console.warn('Storage yükleme hatası (CORS vb.). Base64 kaydedilecek:', error);
-                if (typeof showToast === 'function') showToast("Storage erişim engeli (CORS) nedeniyle görsel optimize edilerek kaydedildi.", "warning");
-                resolve(dataUrl); // Fallback: return raw base64 string
+                if (!isResolved) {
+                    isResolved = true;
+                    clearTimeout(timeoutId);
+                    console.warn('Storage yükleme hatası (CORS vb.). Base64 kaydedilecek:', error);
+                    resolve(dataUrl);
+                }
             },
             async () => {
-                try {
-                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                    if (progressBar) progressBar.style.width = '100%';
-                    resolve(downloadURL);
-                } catch (e) {
-                    console.warn('Storage URL alma hatası. Base64 kaydedilecek:', e);
-                    resolve(dataUrl); // Fallback
+                if (!isResolved) {
+                    isResolved = true;
+                    clearTimeout(timeoutId);
+                    try {
+                        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                        if (progressBar) progressBar.style.width = '100%';
+                        resolve(downloadURL);
+                    } catch (e) {
+                        console.warn('Storage URL alma hatası. Base64 kaydedilecek:', e);
+                        resolve(dataUrl); // Fallback
+                    }
                 }
             }
         );
