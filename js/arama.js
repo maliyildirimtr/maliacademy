@@ -186,7 +186,14 @@ function renderFilteredResults() {
                 <span class="group-hover:translate-x-1 transition-transform">→</span>
             </div>
         </a>
-    `).join('');
+    `).join('') + `
+        <div class="col-span-full pt-8 pb-4 border-t border-slate-200/60 dark:border-slate-800/80 flex justify-center">
+            <a href="index.html" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs hover:border-tsMavi hover:text-tsMavi transition-all shadow-sm group cursor-pointer">
+                <svg class="w-4 h-4 text-slate-400 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                <span>Ana Sayfaya Dön</span>
+            </a>
+        </div>
+    `;
 }
 
 function renderEmptySearchState(message) {
