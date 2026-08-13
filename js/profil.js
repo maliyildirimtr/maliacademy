@@ -804,11 +804,15 @@ window.handleEditProfile = async function(e) {
         if (currentAuth && currentAuth.currentUser) {
             currentAuth.currentUser.customPhotoURL = photoURL;
             if (updates.displayName) {
-                // Sadece kısa URL'leri Auth profiline yaz (Base64'ler hata verebilir)
-                if (photoURL && !photoURL.startsWith('data:image')) {
-                    await currentAuth.currentUser.updateProfile({ displayName: updates.displayName, photoURL }).catch(()=>console.warn("Auth profile update ignored"));
-                } else {
-                    await currentAuth.currentUser.updateProfile({ displayName: updates.displayName }).catch(()=>console.warn("Auth profile update ignored"));
+                try {
+                    // Sadece kısa URL'leri Auth profiline yaz (Base64'ler hata verebilir)
+                    if (photoURL && !photoURL.startsWith('data:image')) {
+                        await currentAuth.currentUser.updateProfile({ displayName: updates.displayName, photoURL });
+                    } else {
+                        await currentAuth.currentUser.updateProfile({ displayName: updates.displayName });
+                    }
+                } catch (authErr) {
+                    console.warn("Auth profile update ignored:", authErr);
                 }
             }
             if (typeof renderNavbar === 'function') {
