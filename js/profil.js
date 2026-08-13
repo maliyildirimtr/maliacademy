@@ -11,6 +11,8 @@ let _activeTab = 'exams';
 // Seçilen dosyalar (File nesneleri)
 let _selectedAvatarFile = null;
 let _selectedBannerFile = null;
+let _removeAvatar = false;
+let _removeBanner = false;
 
 // Cropper state
 let profilCropperInstance = null;
@@ -451,6 +453,34 @@ window.openProfilCropper = function(imageSrc, type) {
     }, 100);
 };
 
+window.removeAvatarImage = function(e) {
+    if (e) e.stopPropagation();
+    _removeAvatar = true;
+    _croppedAvatarDataUrl = null;
+    document.getElementById('avatar-preview-img').classList.add('hidden');
+    document.getElementById('avatar-preview-img').src = '';
+    const btnRemove = document.getElementById('btn-remove-avatar');
+    if (btnRemove) btnRemove.classList.add('hidden');
+    const overlay = document.getElementById('avatar-change-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    const placeholder = document.getElementById('avatar-upload-placeholder');
+    if (placeholder) placeholder.classList.remove('hidden');
+};
+
+window.removeBannerImage = function(e) {
+    if (e) e.stopPropagation();
+    _removeBanner = true;
+    _croppedBannerDataUrl = null;
+    document.getElementById('banner-preview-img').classList.add('hidden');
+    document.getElementById('banner-preview-img').src = '';
+    const btnRemove = document.getElementById('btn-remove-banner');
+    if (btnRemove) btnRemove.classList.add('hidden');
+    const overlay = document.getElementById('banner-change-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    const placeholder = document.getElementById('banner-upload-placeholder');
+    if (placeholder) placeholder.classList.remove('hidden');
+};
+
 window.closeProfilCropper = function() {
     const modal = document.getElementById('cropper-modal');
     if (modal) modal.classList.add('hidden');
@@ -482,20 +512,26 @@ window.applyProfilCrop = function() {
     
     if (currentCropType === 'avatar') {
         _croppedAvatarDataUrl = dataUrl;
+        _removeAvatar = false;
         const img = document.getElementById('avatar-preview-img');
         const placeholder = document.getElementById('avatar-upload-placeholder');
         const overlay = document.getElementById('avatar-change-overlay');
+        const btnRemove = document.getElementById('btn-remove-avatar');
         if (img) { img.src = dataUrl; img.classList.remove('hidden'); }
         if (placeholder) placeholder.classList.add('hidden');
         if (overlay) overlay.classList.remove('hidden');
+        if (btnRemove) btnRemove.classList.remove('hidden');
     } else {
         _croppedBannerDataUrl = dataUrl;
+        _removeBanner = false;
         const img = document.getElementById('banner-preview-img');
         const placeholder = document.getElementById('banner-upload-placeholder');
         const overlay = document.getElementById('banner-change-overlay');
+        const btnRemove = document.getElementById('btn-remove-banner');
         if (img) { img.src = dataUrl; img.classList.remove('hidden'); }
         if (placeholder) placeholder.classList.add('hidden');
         if (overlay) overlay.classList.remove('hidden');
+        if (btnRemove) btnRemove.classList.remove('hidden');
     }
     
     closeProfilCropper();
@@ -688,6 +724,8 @@ window.openEditProfileModal = function() {
     // Fotoğraf önizlemelerini temizle
     _selectedAvatarFile = null;
     _selectedBannerFile = null;
+    _removeAvatar = false;
+    _removeBanner = false;
     _croppedAvatarDataUrl = null;
     _croppedBannerDataUrl = null;
     const avatarPreviewImg = document.getElementById('avatar-preview-img');
@@ -700,6 +738,8 @@ window.openEditProfileModal = function() {
         if (placeholder) placeholder.classList.toggle('hidden', hasPhoto);
         const overlay = document.getElementById('avatar-change-overlay');
         if (overlay) overlay.classList.toggle('hidden', !hasPhoto);
+        const btnRemove = document.getElementById('btn-remove-avatar');
+        if (btnRemove) btnRemove.classList.toggle('hidden', !hasPhoto);
     }
     if (bannerPreviewImg) {
         bannerPreviewImg.src = d.bannerURL || '';
@@ -709,6 +749,8 @@ window.openEditProfileModal = function() {
         if (placeholder) placeholder.classList.toggle('hidden', hasBanner);
         const overlay = document.getElementById('banner-change-overlay');
         if (overlay) overlay.classList.toggle('hidden', !hasBanner);
+        const btnRemove = document.getElementById('btn-remove-banner');
+        if (btnRemove) btnRemove.classList.toggle('hidden', !hasBanner);
     }
 
     // İlerleme çubuğunu gizle
@@ -727,6 +769,8 @@ window.closeEditProfileModal = function() {
     if (modal) { modal.classList.add('hidden'); document.body.style.overflow = 'auto'; }
     _selectedAvatarFile = null;
     _selectedBannerFile = null;
+    _removeAvatar = false;
+    _removeBanner = false;
     _croppedAvatarDataUrl = null;
     _croppedBannerDataUrl = null;
 };
@@ -775,6 +819,14 @@ window.handleEditProfile = async function(e) {
             if (url) bannerURL = url;
         }
 
+        // Silme İşlemleri
+        if (_removeAvatar) {
+            photoURL = '';
+        }
+        if (_removeBanner) {
+            bannerURL = '';
+        }
+
         // 3. Sosyal linkleri topla
         const socialLinks = getSocialLinksFromForm();
 
@@ -803,18 +855,25 @@ window.handleEditProfile = async function(e) {
         const currentAuth = (typeof auth !== 'undefined' && auth) ? auth : window.auth;
         if (currentAuth && currentAuth.currentUser) {
             currentAuth.currentUser.customPhotoURL = photoURL;
-            if (updates.displayName) {
+            
+            let authUpdates = {};
+            if (updates.displayName) authUpdates.displayName = updates.displayName;
+            
+            if (_removeAvatar) {
+                authUpdates.photoURL = "";
+            } else if (photoURL && !photoURL.startsWith('data:image')) {
+                // Sadece kısa URL'leri Auth profiline yaz (Base64'ler hata verebilir)
+                authUpdates.photoURL = photoURL;
+            }
+            
+            if (Object.keys(authUpdates).length > 0) {
                 try {
-                    // Sadece kısa URL'leri Auth profiline yaz (Base64'ler hata verebilir)
-                    if (photoURL && !photoURL.startsWith('data:image')) {
-                        await currentAuth.currentUser.updateProfile({ displayName: updates.displayName, photoURL });
-                    } else {
-                        await currentAuth.currentUser.updateProfile({ displayName: updates.displayName });
-                    }
+                    await currentAuth.currentUser.updateProfile(authUpdates);
                 } catch (authErr) {
                     console.warn("Auth profile update ignored:", authErr);
                 }
             }
+            
             if (typeof renderNavbar === 'function') {
                 const currentPath = window.location.pathname.split('/').pop() || 'index.html';
                 renderNavbar(currentPath.replace('.html', ''), currentAuth.currentUser);

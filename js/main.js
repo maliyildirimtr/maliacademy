@@ -189,7 +189,7 @@ function getUserAvatarHTML(user, sizeClass = "w-7 h-7 text-xs") {
     if (!user) {
         return `<div class="${sizeClass} rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 font-bold flex items-center justify-center shrink-0">👤</div>`;
     }
-    const photo = user.photoURL || user.customPhotoURL;
+    const photo = user.customPhotoURL || user.photoURL;
     if (photo && (photo.startsWith('http') || photo.startsWith('data:image'))) {
         return `<img src="${photo}" alt="Profil" class="${sizeClass} rounded-full object-cover border border-tsMavi shadow-sm shrink-0">`;
     }

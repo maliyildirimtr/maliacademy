@@ -227,6 +227,9 @@
                         <div class="space-y-2">
                             <div id="avatar-preview-zone" onclick="document.getElementById('input-avatar-file').click()" class="group relative w-full h-28 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-tsMavi transition-all cursor-pointer flex items-center justify-center">
                                 <img id="avatar-preview-img" src="" alt="" class="hidden w-full h-full object-cover">
+                                <button type="button" id="btn-remove-avatar" onclick="removeAvatarImage(event)" class="hidden absolute top-2 right-2 p-1.5 bg-rose-500/90 text-white rounded-lg hover:bg-rose-600 transition-colors shadow-sm z-10" title="Fotoğrafı Kaldır">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
                                 <div id="avatar-upload-placeholder" class="flex flex-col items-center gap-2 text-slate-400 group-hover:text-tsMavi transition-colors select-none">
                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                     <span class="text-[11px] font-semibold text-center leading-tight">Fotoğraf Seç<br><span class="font-normal opacity-70">JPG / PNG</span></span>
@@ -249,6 +252,9 @@
                         <div class="space-y-2">
                             <div id="banner-preview-zone" onclick="document.getElementById('input-banner-file').click()" class="group relative w-full h-28 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-tsMavi transition-all cursor-pointer flex items-center justify-center">
                                 <img id="banner-preview-img" src="" alt="" class="hidden w-full h-full object-cover">
+                                <button type="button" id="btn-remove-banner" onclick="removeBannerImage(event)" class="hidden absolute top-2 right-2 p-1.5 bg-rose-500/90 text-white rounded-lg hover:bg-rose-600 transition-colors shadow-sm z-10" title="Kapağı Kaldır">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
                                 <div id="banner-upload-placeholder" class="flex flex-col items-center gap-2 text-slate-400 group-hover:text-tsMavi transition-colors select-none">
                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                                     <span class="text-[11px] font-semibold text-center leading-tight">Kapak Seç<br><span class="font-normal opacity-70">JPG / PNG</span></span>
