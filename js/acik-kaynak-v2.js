@@ -98,10 +98,26 @@ function renderKits() {
         adminContainer.classList.add("hidden");
     }
 
-    // 2. HERKES İÇİN YAYINDAKİ (APPROVED) KAYNAKLAR
-    const approvedDynamic = dynamicResources.filter(r => r.status === 'approved');
+    // 2. KULLANICI İÇİN KENDİ ONAY BEKLEYEN VE HERKES İÇİN YAYINDAKİ KAYNAKLAR
+    let currentUser = null;
+    if (typeof auth !== 'undefined' && auth) currentUser = auth.currentUser;
+    if (!currentUser && typeof SSO !== 'undefined') currentUser = SSO.getSSOUser();
 
-    if (approvedDynamic.length === 0) {
+    function checkIsOwner(res) {
+        if (!currentUser) return false;
+        return (
+            (res.authorUid && currentUser.uid === res.authorUid) ||
+            (res.uid && currentUser.uid === res.uid) ||
+            (res.authorName && currentUser.displayName === res.authorName) ||
+            (currentUser.email && res.authorName && currentUser.email.startsWith(res.authorName))
+        );
+    }
+
+    const approvedDynamic = dynamicResources.filter(r => r.status === 'approved');
+    const myPendingDynamic = currentUser ? dynamicResources.filter(r => r.status === 'pending' && checkIsOwner(r)) : [];
+    const displayKits = [...myPendingDynamic, ...approvedDynamic];
+
+    if (displayKits.length === 0) {
         mainGrid.innerHTML = `
             <div class="col-span-full py-16 px-6 text-center space-y-3 max-w-md mx-auto">
                 <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center mx-auto text-sky-400 shadow-inner">
@@ -110,7 +126,7 @@ function renderKits() {
                         <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
                     </svg>
                 </div>
-                <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">Henüz onaylanmış bir açık kaynak proje bulunmuyor.</h3>
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">Henüz onaylanmış veya yüklediğiniz bir açık kaynak proje bulunmuyor.</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">İlk projeyi veya kodu siz ekleyin ve topluluğa destek olun!</p>
             </div>
         `;
@@ -118,7 +134,7 @@ function renderKits() {
     }
 
     let html = "";
-    approvedDynamic.forEach(res => {
+    displayKits.forEach(res => {
         const displayType = res.sourceType || res.category;
         const kitData = {
             id: res.id,
@@ -131,7 +147,8 @@ function renderKits() {
             license: "Kullanıcı Kaynağı",
             link: res.link,
             authorName: res.authorName || "Anonim",
-            authorUid: res.authorUid || res.uid
+            authorUid: res.authorUid || res.uid,
+            isPending: res.status === 'pending'
         };
         html += createKitCard(kitData);
     });
@@ -174,15 +191,26 @@ function createKitCard(kit) {
         `;
     }
 
+    const borderStyle = kit.isPending
+        ? 'border-amber-500/50 bg-amber-500/5 dark:bg-amber-500/5 shadow-amber-500/10'
+        : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111b21]';
+
     return `
-        <div data-id="${kit.id}" id="${kit.id}" class="repo-card academy-card group relative p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111b21] shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 overflow-hidden">
-            <!-- Sol Kenar Bordo-Mavi Geçiş Çizgisi -->
-            <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
+        <div data-id="${kit.id}" id="${kit.id}" class="repo-card academy-card group relative p-6 rounded-3xl border ${borderStyle} shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 overflow-hidden">
+            <!-- Sol Kenar Bordo-Mavi Veya Amber Geçiş Çizgisi -->
+            <div class="absolute top-0 left-0 w-1.5 h-full ${kit.isPending ? 'bg-gradient-to-b from-amber-500 to-amber-600' : 'bg-gradient-to-b from-tsBordo to-tsMavi'} opacity-80 group-hover:opacity-100 transition-opacity"></div>
             <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="px-2.5 py-1 rounded-lg ${kit.categoryColor} border text-xs font-bold">${kit.category}</span>
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    ${kit.isPending ? `
+                        <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/30 font-bold text-[10px] flex items-center gap-1.5 shrink-0">
+                            <svg class="w-3 h-3 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span>🟡 Onay Bekliyor (Sadece Siz Görebilirsiniz)</span>
+                        </span>
+                    ` : `
+                        <span class="px-2.5 py-1 rounded-lg ${kit.categoryColor} border text-xs font-bold">${kit.category}</span>
+                    `}
                     <div class="flex items-center gap-1.5">
-                        ${isOwner ? `<span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold">Kaynağınız</span>` : ''}
+                        ${!kit.isPending && isOwner ? `<span class="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold">Kaynağınız</span>` : ''}
                         <span class="text-xs text-slate-400 font-mono">${kit.version}</span>
                     </div>
                 </div>
@@ -421,6 +449,9 @@ window.handleEditResource = async function(event) {
     try {
         const targetDb = typeof db !== 'undefined' ? db : window.db;
         if (targetDb && targetDb.collection) {
+            const existingItem = dynamicResources.find(r => r.id === id);
+            const isAlreadyPending = existingItem && existingItem.status === 'pending';
+
             await targetDb.collection("open_source_resources").doc(id).update({
                 title: title,
                 category: category,
@@ -434,10 +465,14 @@ window.handleEditResource = async function(event) {
 
             closeEditResourceModal();
 
+            const toastMessage = isAlreadyPending
+                ? "Yüklemeniz güncellendi, değişikliğiniz Admin onayına sunulmuştur."
+                : "İçeriğiniz güncellendi. Yapılan değişikliklerin kontrol edilmesi amacıyla belgeniz geçici olarak yayından kaldırılmış ve Admin onayına sunulmuştur.";
+
             if (typeof showToast === 'function') {
-                showToast("Değişiklikleriniz kaydedildi, tekrar admin onayı bekleniyor.", "info");
+                showToast(toastMessage, "info");
             } else {
-                alert("Değişiklikleriniz kaydedildi, tekrar admin onayı bekleniyor.");
+                alert(toastMessage);
             }
         }
     } catch (error) {
