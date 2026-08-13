@@ -246,17 +246,29 @@ async function loadTabContent(tab) {
         
         counts.all = counts.exams + counts.openSource + counts.groups + counts.ads;
         
-        // Update badges
-        const updateBadge = (id, count) => {
+        // Update badges & Hide empty tabs
+        const updateBadge = (id, count, tabId) => {
             const el = document.getElementById(id);
             if (el) el.textContent = count;
+            
+            if (tabId) {
+                const btn = document.getElementById(tabId);
+                if (btn) {
+                    if (count === 0) {
+                        btn.style.display = 'none';
+                    } else {
+                        btn.style.display = 'flex';
+                    }
+                }
+            }
         };
-        updateBadge('badge-all', counts.all);
-        updateBadge('badge-exams', counts.exams);
-        updateBadge('badge-openSource', counts.openSource);
-        updateBadge('badge-groups', counts.groups);
-        updateBadge('badge-ads', counts.ads);
-        updateBadge('badge-pending', counts.pending);
+        
+        updateBadge('badge-all', counts.all); // Tüm sonuçlar asla gizlenmez
+        updateBadge('badge-exams', counts.exams, 'tab-btn-exams');
+        updateBadge('badge-openSource', counts.openSource, 'tab-btn-openSource');
+        updateBadge('badge-groups', counts.groups, 'tab-btn-groups');
+        updateBadge('badge-ads', counts.ads, 'tab-btn-ads');
+        updateBadge('badge-pending', counts.pending || 0, 'tab-btn-pending');
 
         // Update hero stats dynamically
         updateBadge('profile-stat-upload', counts.all - counts.groups);

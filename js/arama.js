@@ -105,23 +105,29 @@ function updateTabCountsAndRender() {
     if (totalDisplay) totalDisplay.textContent = total;
 
     // Update Tab Count Badges
+    const setBadgeAndTab = (badgeId, count, tabBtnId) => {
+        const badgeEl = document.getElementById(badgeId);
+        if (badgeEl) badgeEl.textContent = count;
+        if (tabBtnId) {
+            const btnEl = document.getElementById(tabBtnId);
+            if (btnEl) {
+                if (count === 0) {
+                    btnEl.style.display = 'none';
+                } else {
+                    btnEl.style.display = 'flex';
+                }
+            }
+        }
+    };
+
     const countAll = document.getElementById('count-all');
-    if (countAll) countAll.textContent = total;
+    if (countAll) countAll.textContent = total; // Tüm Sonuçlar tabı hep görünür (tabBtnId geçmiyoruz)
 
-    const countCourses = document.getElementById('count-courses');
-    if (countCourses) countCourses.textContent = cCount;
-
-    const countExams = document.getElementById('count-exams');
-    if (countExams) countExams.textContent = eCount;
-
-    const countOpenSource = document.getElementById('count-openSource');
-    if (countOpenSource) countOpenSource.textContent = oCount;
-
-    const countGroups = document.getElementById('count-groups');
-    if (countGroups) countGroups.textContent = gCount;
-
-    const countAds = document.getElementById('count-ads');
-    if (countAds) countAds.textContent = aCount;
+    setBadgeAndTab('count-courses', cCount, 'tab-btn-courses');
+    setBadgeAndTab('count-exams', eCount, 'tab-btn-exams');
+    setBadgeAndTab('count-openSource', oCount, 'tab-btn-openSource');
+    setBadgeAndTab('count-groups', gCount, 'tab-btn-groups');
+    setBadgeAndTab('count-ads', aCount, 'tab-btn-ads');
 
     renderFilteredResults();
 }
