@@ -189,7 +189,7 @@ const SSO = {
             iframe.style.display = 'none';
             
             const currentHost = window.location.hostname;
-            let bridgeUrl = 'https://maliyildirimtr.github.io/sso-bridge.html';
+            let bridgeUrl = 'https://maliyildirimtr.com/sso-bridge.html';
             if (currentHost.includes('maliyildirimtr.github.io') || currentHost === 'maliyildirimtr.com') {
                 bridgeUrl = 'https://academy.maliyildirimtr.com/sso-bridge.html';
             }

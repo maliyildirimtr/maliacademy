@@ -528,7 +528,7 @@ async function uploadDataUrlToStorageFallback(dataUrl, storagePath) {
         }
 
         // Firebase Storage SDK retries CORS errors indefinitely (maxUploadRetryTime).
-        // 4 saniye içinde tamamlanmazsa iptal edip Base64 yedeğine (fallback) dönüyoruz.
+        // 1.5 saniye içinde tamamlanmazsa iptal edip Base64 yedeğine (fallback) dönüyoruz.
         const timeoutId = setTimeout(() => {
             if (!isResolved) {
                 isResolved = true;
@@ -536,10 +536,9 @@ async function uploadDataUrlToStorageFallback(dataUrl, storagePath) {
                 if (uploadTask && typeof uploadTask.cancel === 'function') {
                     uploadTask.cancel();
                 }
-                if (typeof showToast === 'function') showToast("Yükleme yavaş/engelli, görsel optimize edilerek kaydedildi.", "warning");
                 resolve(dataUrl);
             }
-        }, 4000);
+        }, 1500);
         
         uploadTask.on('state_changed',
             (snapshot) => {
