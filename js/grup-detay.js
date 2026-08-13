@@ -202,6 +202,7 @@ function renderWorkspaceUI() {
 
         const isMember = isCurrentUserMember();
         const roleText = getCurrentUserRole();
+        const isAuth = isUserAuthorized();
         const targetBudget = currentGroup.targetBudget || 0;
 
         let lookingRolesBadges = "";
