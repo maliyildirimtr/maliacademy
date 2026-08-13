@@ -1976,18 +1976,17 @@ function handleGlobalSearchInput(query) {
     }, 220);
 }
 
-async function executeGlobalSearch(searchTerm) {
-    const dropdown = document.getElementById('global-search-results');
-    if (!dropdown) return;
+async function runCoreGlobalSearch(searchTerm) {
+    const termTrimmed = (searchTerm || '').trim();
+    if (!termTrimmed) return { courses: [], exams: [], openSource: [], groups: [], ads: [] };
 
-    const termLower = searchTerm.toLowerCase();
-
+    const termLower = termTrimmed.toLowerCase();
     const results = {
-        courses: [],        // 📚 Dersler & Notlar
-        exams: [],          // ✍️ Sınav Belgeleri
-        openSource: [],     // 📦 Açık Kaynak Kitler
-        groups: [],         // 👥 Proje Grupları
-        ads: []             // 📌 İlanlar & Duyurular
+        courses: [],
+        exams: [],
+        openSource: [],
+        groups: [],
+        ads: []
     };
 
     const targetDb = (typeof db !== 'undefined' && db && db.collection) ? db : (window.db || null);
@@ -2008,10 +2007,16 @@ async function executeGlobalSearch(searchTerm) {
                         const desc = (data.description || '').toLowerCase();
                         if ((title.includes(termLower) || code.includes(termLower) || desc.includes(termLower)) && !results.courses.some(x => x.id === doc.id)) {
                             results.courses.push({
+                                type: 'courses',
+                                typeLabel: 'Ders & Not',
+                                typeBadgeClass: 'bg-tsMavi/10 text-tsMavi border-tsMavi/20',
                                 id: doc.id,
                                 title: data.title || "Ders Notu",
+                                code: data.code || "Akademik Ders",
                                 subtitle: data.code || "Akademik Ders",
-                                url: `dersler.html?highlight=${doc.id}`
+                                description: data.description || "Ders içeriği ve notları.",
+                                url: `dersler.html?highlight=${doc.id}`,
+                                iconSvg: `<svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`
                             });
                         }
                     });
@@ -2024,12 +2029,19 @@ async function executeGlobalSearch(searchTerm) {
     if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined') {
         const title = (SYSTEMVERILOG_COURSE_DATA.title || '').toLowerCase();
         const desc = (SYSTEMVERILOG_COURSE_DATA.description || '').toLowerCase();
-        if ((title.includes(termLower) || desc.includes(termLower)) && !results.courses.some(x => x.id === SYSTEMVERILOG_COURSE_DATA.id)) {
+        const code = (SYSTEMVERILOG_COURSE_DATA.code || '').toLowerCase();
+        if ((title.includes(termLower) || desc.includes(termLower) || code.includes(termLower)) && !results.courses.some(x => x.id === SYSTEMVERILOG_COURSE_DATA.id)) {
             results.courses.push({
+                type: 'courses',
+                typeLabel: 'Ders & Not',
+                typeBadgeClass: 'bg-tsMavi/10 text-tsMavi border-tsMavi/20',
                 id: SYSTEMVERILOG_COURSE_DATA.id || 'systemverilog-kursu',
                 title: SYSTEMVERILOG_COURSE_DATA.title,
+                code: SYSTEMVERILOG_COURSE_DATA.code || 'FPGA & Verilog',
                 subtitle: SYSTEMVERILOG_COURSE_DATA.code || 'FPGA & Verilog',
-                url: `dersler.html?highlight=${SYSTEMVERILOG_COURSE_DATA.id || 'systemverilog-kursu'}`
+                description: SYSTEMVERILOG_COURSE_DATA.description,
+                url: `dersler.html?highlight=${SYSTEMVERILOG_COURSE_DATA.id || 'systemverilog-kursu'}`,
+                iconSvg: `<svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 1 3-3h7z"/></svg>`
             });
         }
     }
@@ -2046,10 +2058,16 @@ async function executeGlobalSearch(searchTerm) {
                     const desc = (data.description || '').toLowerCase();
                     if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.exams.some(x => x.id === doc.id)) {
                         results.exams.push({
+                            type: 'exams',
+                            typeLabel: 'Sınav Belgesi',
+                            typeBadgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
                             id: doc.id,
                             title: data.title || "Sınav Belgesi",
+                            code: data.category || data.documentType || "Sınav Notu",
                             subtitle: data.category || data.documentType || "Sınav Notu",
-                            url: `sinav-hazirlik.html?highlight=${doc.id}`
+                            description: data.description || "Çözümlü çalışma kağıdı veya vize/final hazırlık notu.",
+                            url: `sinav-hazirlik.html?highlight=${doc.id}`,
+                            iconSvg: `<svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`
                         });
                     }
                 });
@@ -2069,10 +2087,16 @@ async function executeGlobalSearch(searchTerm) {
                     const desc = (data.description || '').toLowerCase();
                     if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.openSource.some(x => x.id === doc.id)) {
                         results.openSource.push({
+                            type: 'openSource',
+                            typeLabel: 'Açık Kaynak Kit',
+                            typeBadgeClass: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
                             id: doc.id,
                             title: data.title || "Açık Kaynak Proje",
+                            code: data.category || data.sourceType || "Repo",
                             subtitle: data.category || data.sourceType || "Repo",
-                            url: `acik-kaynak.html?highlight=${doc.id}`
+                            description: data.description || "Tasarım dosyaları, Verilog/FPGA kitleri ve kod kütüphaneleri.",
+                            url: `acik-kaynak.html?highlight=${doc.id}`,
+                            iconSvg: `<svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>`
                         });
                     }
                 });
@@ -2093,10 +2117,16 @@ async function executeGlobalSearch(searchTerm) {
                     const roles = (typeof data.lookingRoles === 'string' ? data.lookingRoles : '').toLowerCase();
                     if ((name.includes(termLower) || category.includes(termLower) || desc.includes(termLower) || roles.includes(termLower)) && !results.groups.some(x => x.id === doc.id)) {
                         results.groups.push({
+                            type: 'groups',
+                            typeLabel: 'Proje Grubu',
+                            typeBadgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                             id: doc.id,
                             title: data.name || "Proje Grubu",
+                            code: data.category || "Çalışma Grubu",
                             subtitle: data.category || "Çalışma Grubu",
-                            url: `grup-detay.html?id=${doc.id}`
+                            description: data.description || "Mühendislik ve çalışma takımı.",
+                            url: `grup-detay.html?id=${doc.id}`,
+                            iconSvg: `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
                         });
                     }
                 });
@@ -2118,10 +2148,16 @@ async function executeGlobalSearch(searchTerm) {
         const desc = (g.description || '').toLowerCase();
         if ((name.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.groups.some(x => x.id === g.id)) {
             results.groups.push({
+                type: 'groups',
+                typeLabel: 'Proje Grubu',
+                typeBadgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                 id: g.id,
                 title: g.name || "Proje Grubu",
+                code: g.category || "Çalışma Grubu",
                 subtitle: g.category || "Çalışma Grubu",
-                url: `grup-detay.html?id=${g.id}`
+                description: g.description || "Mühendislik ve çalışma takımı.",
+                url: `grup-detay.html?id=${g.id}`,
+                iconSvg: `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
             });
         }
     });
@@ -2138,10 +2174,16 @@ async function executeGlobalSearch(searchTerm) {
                     const desc = (data.description || '').toLowerCase();
                     if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.ads.some(x => x.id === doc.id)) {
                         results.ads.push({
+                            type: 'ads',
+                            typeLabel: 'Akademik İlan',
+                            typeBadgeClass: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
                             id: doc.id,
                             title: data.title || "İlan / Duyuru",
+                            code: data.category || "İlan Panosu",
                             subtitle: data.category || "İlan Panosu",
-                            url: `ilan-panosu.html?highlight=${doc.id}`
+                            description: data.description || "Ekip arkadaşı ve bitirme projesi ilanı.",
+                            url: `ilan-panosu.html?highlight=${doc.id}`,
+                            iconSvg: `<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>`
                         });
                     }
                 });
@@ -2149,6 +2191,14 @@ async function executeGlobalSearch(searchTerm) {
         }
     } catch(e) {}
 
+    return results;
+}
+
+async function executeGlobalSearch(searchTerm) {
+    const dropdown = document.getElementById('global-search-results');
+    if (!dropdown) return;
+
+    const results = await runCoreGlobalSearch(searchTerm);
     renderGlobalSearchResults(results, searchTerm);
 }
 
