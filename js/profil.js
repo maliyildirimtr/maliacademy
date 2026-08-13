@@ -158,27 +158,40 @@ window.switchProfileTab = function(tab) {
     _activeTab = tab;
     document.querySelectorAll('.profile-tab-btn').forEach(btn => {
         const isActive = btn.dataset.tab === tab;
-        btn.classList.toggle('active-tab', isActive);
         
         // Active styles
-        btn.classList.toggle('bg-[#38bdf8]', isActive);
+        btn.classList.toggle('bg-tsMavi', isActive);
         btn.classList.toggle('text-white', isActive);
         btn.classList.toggle('shadow-md', isActive);
         
         // Inactive styles
         if (btn.dataset.tab !== 'pending') {
-            btn.classList.toggle('bg-slate-200/50', !isActive);
-            btn.classList.toggle('dark:bg-white/5', !isActive);
-            btn.classList.toggle('hover:bg-slate-300/50', !isActive);
-            btn.classList.toggle('dark:hover:bg-white/10', !isActive);
-            btn.classList.toggle('text-slate-400', !isActive);
-            btn.classList.toggle('hover:text-slate-200', !isActive);
+            btn.classList.toggle('bg-[#1e293b]/60', !isActive);
+            btn.classList.toggle('border-[rgba(255,255,255,0.08)]', !isActive);
+            btn.classList.toggle('hover:bg-slate-800', !isActive);
+            btn.classList.toggle('text-slate-300', !isActive);
+            btn.classList.toggle('hover:text-white', !isActive);
+            
+            const badge = btn.querySelector('span[id^="badge-"]');
+            if (badge) {
+                badge.className = isActive 
+                    ? 'ml-1 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-mono font-bold text-white'
+                    : 'ml-1 px-2 py-0.5 rounded-full bg-slate-700/80 text-[10px] font-mono font-bold text-slate-300';
+            }
         } else {
             // Pending inactive styles
             btn.classList.toggle('bg-amber-500/10', !isActive);
+            btn.classList.toggle('border-amber-500/20', !isActive);
             btn.classList.toggle('hover:bg-amber-500/20', !isActive);
             btn.classList.toggle('text-amber-500', !isActive);
             btn.classList.toggle('hover:text-amber-400', !isActive);
+            
+            const badge = btn.querySelector('span[id^="badge-"]');
+            if (badge) {
+                badge.className = isActive
+                    ? 'ml-1 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-mono font-bold text-white'
+                    : 'ml-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-mono font-bold text-amber-500';
+            }
         }
     });
     loadTabContent(tab);
