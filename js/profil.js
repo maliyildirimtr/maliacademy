@@ -215,7 +215,25 @@ async function loadTabContent(tab) {
         const counts = { exams: 0, openSource: 0, groups: 0, ads: 0, pending: 0, all: 0 };
         const pExams = targetDb.collection('exam_prep_resources').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
         const pKits = targetDb.collection('open_source_resources').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
-        const pGroups = targetDb.collection('groups').where('memberUids', 'array-contains', _profileUid).get();
+        const pGroups = targetDb.collection('groups').get().then(snap => {
+            const userGroups = [];
+            snap.forEach(doc => {
+                const g = doc.data();
+                let isMember = false;
+                if (g.adminUid === _profileUid || g.creatorUid === _profileUid) {
+                    isMember = true;
+                } else if (g.members && Array.isArray(g.members)) {
+                    isMember = g.members.some(m => m.uid === _profileUid);
+                }
+                if (isMember) {
+                    userGroups.push(doc);
+                }
+            });
+            return {
+                size: userGroups.length,
+                forEach: (cb) => userGroups.forEach(cb)
+            };
+        });
         const pAds = targetDb.collection('ads').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
         
         let pendingExams, pendingKits;
