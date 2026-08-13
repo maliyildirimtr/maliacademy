@@ -12,6 +12,12 @@ let _activeTab = 'exams';
 let _selectedAvatarFile = null;
 let _selectedBannerFile = null;
 
+// Cropper state
+let profilCropperInstance = null;
+let currentCropType = null; // 'avatar' or 'banner'
+let _croppedAvatarDataUrl = null;
+let _croppedBannerDataUrl = null;
+
 // --- HELPERS ---
 function formatJoinDate(ts) {
     if (!ts) return '';
@@ -341,57 +347,134 @@ function renderProfileCard(item) {
 }
 
 // ======================================================
-// DOSYA YÜKLEME: ANLIK ÖNİZLEME
+// DOSYA YÜKLEME: CROPPER (KIRPMA) SİSTEMİ
 // ======================================================
 window.handleAvatarFileSelect = function(input) {
     const file = input.files[0];
     if (!file) return;
-    _selectedAvatarFile = file;
-
-    const img = document.getElementById('avatar-preview-img');
-    const placeholder = document.getElementById('avatar-upload-placeholder');
-    const overlay = document.getElementById('avatar-change-overlay');
-
-    const url = URL.createObjectURL(file);
-    if (img) { img.src = url; img.classList.remove('hidden'); }
-    if (placeholder) placeholder.classList.add('hidden');
-    if (overlay) overlay.classList.remove('hidden');
+    if (!file.type.startsWith('image/')) {
+        if (typeof showToast === 'function') showToast("Lütfen geçerli bir görsel seçin.", "warning");
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => openProfilCropper(e.target.result, 'avatar');
+    reader.readAsDataURL(file);
+    input.value = ''; // Seçimi sıfırla ki aynı dosya tekrar seçilebilsin
 };
 
 window.handleBannerFileSelect = function(input) {
     const file = input.files[0];
     if (!file) return;
-    _selectedBannerFile = file;
+    if (!file.type.startsWith('image/')) {
+        if (typeof showToast === 'function') showToast("Lütfen geçerli bir görsel seçin.", "warning");
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => openProfilCropper(e.target.result, 'banner');
+    reader.readAsDataURL(file);
+    input.value = ''; 
+};
 
-    const img = document.getElementById('banner-preview-img');
-    const placeholder = document.getElementById('banner-upload-placeholder');
-    const overlay = document.getElementById('banner-change-overlay');
+window.openProfilCropper = function(imageSrc, type) {
+    currentCropType = type;
+    const modal = document.getElementById('cropper-modal');
+    const imageEl = document.getElementById('cropper-image-target');
+    const titleEl = document.getElementById('cropper-modal-title');
+    if (!modal || !imageEl) return;
 
-    const url = URL.createObjectURL(file);
-    if (img) { img.src = url; img.classList.remove('hidden'); }
-    if (placeholder) placeholder.classList.add('hidden');
-    if (overlay) overlay.classList.remove('hidden');
+    if (titleEl) titleEl.textContent = type === 'avatar' ? 'Profil Fotoğrafını Kırp' : 'Kapak Fotoğrafını Kırp';
+
+    if (profilCropperInstance) {
+        profilCropperInstance.destroy();
+        profilCropperInstance = null;
+    }
+    
+    imageEl.src = imageSrc;
+    modal.classList.remove('hidden');
+
+    setTimeout(() => {
+        profilCropperInstance = new Cropper(imageEl, {
+            aspectRatio: type === 'avatar' ? 1 : (16 / 5), // Kapak fotoğrafı için yatay oran
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.9,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false
+        });
+    }, 100);
+};
+
+window.closeProfilCropper = function() {
+    const modal = document.getElementById('cropper-modal');
+    if (modal) modal.classList.add('hidden');
+    if (profilCropperInstance) {
+        profilCropperInstance.destroy();
+        profilCropperInstance = null;
+    }
+    currentCropType = null;
+};
+
+window.applyProfilCrop = function() {
+    if (!profilCropperInstance) return;
+    
+    // Yüksek kaliteli kırpma sonucu al (Kapak için daha geniş, Avatar için 400x400)
+    const canvas = profilCropperInstance.getCroppedCanvas({
+        width: currentCropType === 'avatar' ? 400 : 1200,
+        height: currentCropType === 'avatar' ? 400 : 375,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+    });
+    
+    if (!canvas) {
+        if (typeof showToast === 'function') showToast("Kırpma başarısız oldu.", "error");
+        return;
+    }
+    
+    // Küçük boyutlu JPEG base64'e çevir (Quality 0.82)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+    
+    if (currentCropType === 'avatar') {
+        _croppedAvatarDataUrl = dataUrl;
+        const img = document.getElementById('avatar-preview-img');
+        const placeholder = document.getElementById('avatar-upload-placeholder');
+        const overlay = document.getElementById('avatar-change-overlay');
+        if (img) { img.src = dataUrl; img.classList.remove('hidden'); }
+        if (placeholder) placeholder.classList.add('hidden');
+        if (overlay) overlay.classList.remove('hidden');
+    } else {
+        _croppedBannerDataUrl = dataUrl;
+        const img = document.getElementById('banner-preview-img');
+        const placeholder = document.getElementById('banner-upload-placeholder');
+        const overlay = document.getElementById('banner-change-overlay');
+        if (img) { img.src = dataUrl; img.classList.remove('hidden'); }
+        if (placeholder) placeholder.classList.add('hidden');
+        if (overlay) overlay.classList.remove('hidden');
+    }
+    
+    closeProfilCropper();
 };
 
 // ======================================================
-// FIREBASE STORAGE YÜKLEME YARDIMCISI
+// FIREBASE STORAGE YÜKLEME YARDIMCISI (CORS & Base64 Fallback ile)
 // ======================================================
-async function uploadFileToStorage(file, storagePath, progressLabel) {
+async function uploadDataUrlToStorageFallback(dataUrl, storagePath) {
     const targetStorage = (typeof storage !== 'undefined' && storage) ? storage : window.storage;
-    if (!targetStorage || !file) return null;
+    if (!targetStorage || !dataUrl) return dataUrl;
 
     const progressWrap = document.getElementById('upload-progress-wrap');
     const progressBar = document.getElementById('upload-progress-bar');
     const progressPct = document.getElementById('upload-progress-pct');
-    const progressLabelEl = document.getElementById('upload-progress-label');
 
     if (progressWrap) progressWrap.classList.remove('hidden');
-    if (progressLabelEl) progressLabelEl.textContent = progressLabel || 'Yükleniyor...';
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const storageRef = targetStorage.ref(storagePath);
-        const uploadTask = storageRef.put(file, { contentType: file.type });
-
+        const uploadTask = storageRef.putString(dataUrl, 'data_url');
+        
         uploadTask.on('state_changed',
             (snapshot) => {
                 const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
@@ -399,8 +482,9 @@ async function uploadFileToStorage(file, storagePath, progressLabel) {
                 if (progressPct) progressPct.textContent = pct + '%';
             },
             (error) => {
-                console.error('Storage yükleme hatası:', error);
-                reject(error);
+                console.warn('Storage yükleme hatası (CORS vb.). Base64 kaydedilecek:', error);
+                if (typeof showToast === 'function') showToast("Storage erişim engeli (CORS) nedeniyle görsel optimize edilerek kaydedildi.", "warning");
+                resolve(dataUrl); // Fallback: return raw base64 string
             },
             async () => {
                 try {
@@ -408,7 +492,8 @@ async function uploadFileToStorage(file, storagePath, progressLabel) {
                     if (progressBar) progressBar.style.width = '100%';
                     resolve(downloadURL);
                 } catch (e) {
-                    reject(e);
+                    console.warn('Storage URL alma hatası. Base64 kaydedilecek:', e);
+                    resolve(dataUrl); // Fallback
                 }
             }
         );
@@ -531,6 +616,8 @@ window.openEditProfileModal = function() {
     // Fotoğraf önizlemelerini temizle
     _selectedAvatarFile = null;
     _selectedBannerFile = null;
+    _croppedAvatarDataUrl = null;
+    _croppedBannerDataUrl = null;
     const avatarPreviewImg = document.getElementById('avatar-preview-img');
     const bannerPreviewImg = document.getElementById('banner-preview-img');
     if (avatarPreviewImg) {
@@ -568,6 +655,8 @@ window.closeEditProfileModal = function() {
     if (modal) { modal.classList.add('hidden'); document.body.style.overflow = 'auto'; }
     _selectedAvatarFile = null;
     _selectedBannerFile = null;
+    _croppedAvatarDataUrl = null;
+    _croppedBannerDataUrl = null;
 };
 
 // ======================================================
@@ -591,29 +680,25 @@ window.handleEditProfile = async function(e) {
         let bannerURL = _profileData.bannerURL || '';
 
         // 1. Profil fotoğrafı yükle
-        if (_selectedAvatarFile) {
+        if (_croppedAvatarDataUrl) {
             const label = document.getElementById('upload-progress-label');
             if (label) label.textContent = 'Profil fotoğrafı yükleniyor...';
-            const ext = _selectedAvatarFile.name.split('.').pop() || 'jpg';
-            const url = await uploadFileToStorage(
-                _selectedAvatarFile,
-                `profile_pictures/${_profileUid}.${ext}`,
-                'Profil fotoğrafı yükleniyor...'
+            const url = await uploadDataUrlToStorageFallback(
+                _croppedAvatarDataUrl,
+                `profile_pictures/${_profileUid}.jpg`
             );
             if (url) photoURL = url;
         }
 
         // 2. Kapak fotoğrafı yükle
-        if (_selectedBannerFile) {
+        if (_croppedBannerDataUrl) {
             const label = document.getElementById('upload-progress-label');
             if (label) label.textContent = 'Kapak fotoğrafı yükleniyor...';
             if (progressBar) progressBar.style.width = '0%';
             if (progressPct) progressPct.textContent = '0%';
-            const ext = _selectedBannerFile.name.split('.').pop() || 'jpg';
-            const url = await uploadFileToStorage(
-                _selectedBannerFile,
-                `cover_pictures/${_profileUid}.${ext}`,
-                'Kapak fotoğrafı yükleniyor...'
+            const url = await uploadDataUrlToStorageFallback(
+                _croppedBannerDataUrl,
+                `cover_pictures/${_profileUid}.jpg`
             );
             if (url) bannerURL = url;
         }

@@ -9,6 +9,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/tailwind-config.js"></script>
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -296,6 +300,30 @@
                 </div>
             </form>
 
+        </div>
+    </div>
+
+    <!-- CROPPER MODAL (Profil & Kapak) -->
+    <div id="cropper-modal" class="hidden fixed inset-0 z-[99999] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeProfilCropper()"></div>
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-2xl bg-[#111b21] rounded-2xl border border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 id="cropper-modal-title" class="text-sm font-bold text-white">Fotoğrafı Kırp</h3>
+                <button onclick="closeProfilCropper()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <!-- Image Area -->
+            <div class="p-4 bg-black flex items-center justify-center min-h-[300px] max-h-[60vh] w-full relative">
+                <img id="cropper-image-target" src="" class="max-w-full max-h-full block">
+            </div>
+            <!-- Actions -->
+            <div class="p-4 border-t border-slate-800 flex justify-end gap-3 bg-[#090d16]">
+                <button type="button" onclick="closeProfilCropper()" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">İptal</button>
+                <button id="btn-apply-crop" type="button" onclick="applyProfilCrop()" class="px-6 py-2.5 rounded-xl text-xs font-bold bg-tsMavi text-white shadow-md hover:bg-sky-400 transition-colors">Kırpmayı Onayla</button>
+            </div>
         </div>
     </div>
 
