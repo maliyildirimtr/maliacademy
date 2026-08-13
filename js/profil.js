@@ -95,7 +95,7 @@ function renderProfileHero(data) {
 
     if (avatarEl) avatarEl.innerHTML = buildAvatarHtml(data.photoURL, data.displayName);
     if (nameEl) nameEl.textContent = data.displayName || 'Kullanıcı';
-    if (handleEl) handleEl.textContent = '@' + (data.handle || (data.email ? data.email.split('@')[0] : 'kullanici'));
+    if (handleEl) handleEl.textContent = '@' + (data.username || data.handle || (data.email ? data.email.split('@')[0] : 'kullanici'));
     if (joinEl) joinEl.textContent = data.joinedAt ? `Katılım: ${formatJoinDate(data.joinedAt)}` : '';
     if (bioEl) bioEl.textContent = data.bio || 'Henüz biyografi eklenmemiş.';
     if (badgeContEl) badgeContEl.innerHTML = getRoleBadge(data.role, data.isAdmin);
@@ -153,22 +153,26 @@ window.switchProfileTab = function(tab) {
     document.querySelectorAll('.profile-tab-btn').forEach(btn => {
         const isActive = btn.dataset.tab === tab;
         btn.classList.toggle('active-tab', isActive);
-        btn.classList.toggle('bg-gradient-to-r', isActive);
-        btn.classList.toggle('from-tsBordo', isActive);
-        btn.classList.toggle('to-tsMavi', isActive);
+        
+        // Active styles
+        btn.classList.toggle('bg-[#38bdf8]', isActive);
         btn.classList.toggle('text-white', isActive);
-        btn.classList.toggle('font-bold', isActive);
         btn.classList.toggle('shadow-md', isActive);
-        btn.classList.toggle('text-slate-500', !isActive);
-        btn.classList.toggle('dark:text-slate-400', !isActive);
-        btn.classList.toggle('hover:bg-slate-100', !isActive);
-        btn.classList.toggle('dark:hover:bg-slate-800', !isActive);
-        if (isActive) {
-            btn.style.background = 'linear-gradient(135deg, #800020, #1a8fd1)';
-            btn.style.color = 'white';
+        
+        // Inactive styles
+        if (btn.dataset.tab !== 'pending') {
+            btn.classList.toggle('bg-slate-200/50', !isActive);
+            btn.classList.toggle('dark:bg-white/5', !isActive);
+            btn.classList.toggle('hover:bg-slate-300/50', !isActive);
+            btn.classList.toggle('dark:hover:bg-white/10', !isActive);
+            btn.classList.toggle('text-slate-400', !isActive);
+            btn.classList.toggle('hover:text-slate-200', !isActive);
         } else {
-            btn.style.background = '';
-            btn.style.color = '';
+            // Pending inactive styles
+            btn.classList.toggle('bg-amber-500/10', !isActive);
+            btn.classList.toggle('hover:bg-amber-500/20', !isActive);
+            btn.classList.toggle('text-amber-500', !isActive);
+            btn.classList.toggle('hover:text-amber-400', !isActive);
         }
     });
     loadTabContent(tab);
@@ -177,7 +181,7 @@ window.switchProfileTab = function(tab) {
 async function loadTabContent(tab) {
     const grid = document.getElementById('profile-content-grid');
     if (!grid) return;
-    grid.innerHTML = `<div class="col-span-full flex justify-center py-12"><div class="w-8 h-8 border-4 border-tsMavi border-t-transparent rounded-full animate-spin"></div></div>`;
+    grid.innerHTML = `<div class="col-span-full flex justify-center py-12"><div class="w-8 h-8 border-4 border-[#38bdf8] border-t-transparent rounded-full animate-spin"></div></div>`;
 
     const targetDb = (typeof db !== 'undefined' && db) ? db : window.db;
     if (!targetDb || !_profileUid) {
@@ -187,25 +191,76 @@ async function loadTabContent(tab) {
 
     try {
         let items = [];
-        if (tab === 'exams') {
-            const snap = await targetDb.collection('exam_prep_resources').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
-            snap.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'exam' }));
+        
+        // 1. Fetch counts in parallel and populate badges
+        const counts = { exams: 0, openSource: 0, groups: 0, ads: 0, pending: 0, all: 0 };
+        const pExams = targetDb.collection('exam_prep_resources').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
+        const pKits = targetDb.collection('open_source_resources').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
+        const pGroups = targetDb.collection('groups').where('memberUids', 'array-contains', _profileUid).get();
+        const pAds = targetDb.collection('ads').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
+        
+        let pendingExams, pendingKits;
+        if (_isSelfProfile) {
+            pendingExams = targetDb.collection('exam_prep_resources').where('uid', '==', _profileUid).where('status', '==', 'pending').get();
+            pendingKits = targetDb.collection('open_source_resources').where('uid', '==', _profileUid).where('status', '==', 'pending').get();
+        }
+
+        const responses = await Promise.all([pExams, pKits, pGroups, pAds, pendingExams, pendingKits]);
+        
+        const snaps = {
+            exams: responses[0],
+            openSource: responses[1],
+            groups: responses[2],
+            ads: responses[3],
+            pendingE: responses[4],
+            pendingK: responses[5]
+        };
+        
+        counts.exams = snaps.exams.size;
+        counts.openSource = snaps.openSource.size;
+        counts.groups = snaps.groups.size;
+        counts.ads = snaps.ads.size;
+        
+        if (_isSelfProfile && snaps.pendingE && snaps.pendingK) {
+            counts.pending = snaps.pendingE.size + snaps.pendingK.size;
+        }
+        
+        counts.all = counts.exams + counts.openSource + counts.groups + counts.ads;
+        
+        // Update badges
+        const updateBadge = (id, count) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = count;
+        };
+        updateBadge('badge-all', counts.all);
+        updateBadge('badge-exams', counts.exams);
+        updateBadge('badge-openSource', counts.openSource);
+        updateBadge('badge-groups', counts.groups);
+        updateBadge('badge-ads', counts.ads);
+        updateBadge('badge-pending', counts.pending);
+
+        // 2. Populate items array based on selected tab
+        if (tab === 'all') {
+            snaps.exams.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'exam' }));
+            snaps.openSource.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'kit' }));
+            snaps.groups.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'group' }));
+            snaps.ads.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'ad' }));
+            items.sort((a, b) => {
+                const ta = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt) : 0;
+                const tb = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt) : 0;
+                return tb - ta;
+            });
+        } else if (tab === 'exams') {
+            snaps.exams.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'exam' }));
         } else if (tab === 'openSource') {
-            const snap = await targetDb.collection('open_source_resources').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
-            snap.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'kit' }));
+            snaps.openSource.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'kit' }));
         } else if (tab === 'groups') {
-            const snap = await targetDb.collection('groups').where('memberUids', 'array-contains', _profileUid).get();
-            snap.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'group' }));
+            snaps.groups.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'group' }));
         } else if (tab === 'ads') {
-            const snap = await targetDb.collection('ads').where('uid', '==', _profileUid).where('status', '==', 'approved').get();
-            snap.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'ad' }));
+            snaps.ads.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'ad' }));
         } else if (tab === 'pending' && _isSelfProfile) {
-            const [s1, s2] = await Promise.all([
-                targetDb.collection('exam_prep_resources').where('uid', '==', _profileUid).where('status', '==', 'pending').get(),
-                targetDb.collection('open_source_resources').where('uid', '==', _profileUid).where('status', '==', 'pending').get()
-            ]);
-            s1.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'exam', _pending: true }));
-            s2.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'kit', _pending: true }));
+            if (snaps.pendingE) snaps.pendingE.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'exam', _pending: true }));
+            if (snaps.pendingK) snaps.pendingK.forEach(doc => items.push({ id: doc.id, ...doc.data(), _type: 'kit', _pending: true }));
         }
 
         if (items.length === 0) {
@@ -467,6 +522,7 @@ window.openEditProfileModal = function() {
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     setVal('edit-profile-displayname', d.displayName);
     setVal('edit-profile-bio', d.bio);
+    setVal('edit-profile-username', d.username || d.handle || (d.email ? d.email.split('@')[0] : ''));
 
     // Fotoğraf önizlemelerini temizle
     _selectedAvatarFile = null;
@@ -561,9 +617,16 @@ window.handleEditProfile = async function(e) {
         // 3. Sosyal linkleri topla
         const socialLinks = getSocialLinksFromForm();
 
-        // 4. Firestore'a kaydet
+        // 4. Kullanıcı Adı Validasyonu
+        let usernameVal = getVal('edit-profile-username').toLowerCase();
+        if (usernameVal && !/^[a-z0-9_\.]{3,20}$/.test(usernameVal)) {
+            throw new Error("Kullanıcı adı geçersiz. Sadece küçük harf, rakam, alt çizgi ve nokta kullanılabilir (En az 3 karakter).");
+        }
+
+        // 5. Firestore'a kaydet
         const updates = {
             displayName: getVal('edit-profile-displayname') || _profileData.displayName,
+            username: usernameVal || _profileData.username || _profileData.handle || '',
             bio: getVal('edit-profile-bio'),
             photoURL,
             bannerURL,
@@ -575,13 +638,13 @@ window.handleEditProfile = async function(e) {
         await targetDb.collection('users').doc(_profileUid).set(updates, { merge: true });
         _profileData = { ..._profileData, ...updates };
 
-        // 5. Firebase Auth displayName güncelle
+        // 6. Firebase Auth displayName güncelle
         const currentAuth = (typeof auth !== 'undefined' && auth) ? auth : window.auth;
         if (currentAuth && currentAuth.currentUser && updates.displayName) {
             await currentAuth.currentUser.updateProfile({ displayName: updates.displayName, photoURL });
         }
 
-        // 6. Hero'yu güncelle
+        // 7. Hero'yu güncelle
         renderProfileHero(_profileData);
         closeEditProfileModal();
         if (typeof showToast === 'function') showToast('Profiliniz başarıyla güncellendi! ✅', 'success');
@@ -624,9 +687,11 @@ async function initProfilePage() {
         let docSnap = await docRef.get();
 
         if (!docSnap.exists && _isSelfProfile) {
+            let defaultUsername = currentUser && currentUser.email ? currentUser.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_\.]/g, '') : '';
             const autoData = {
                 uid: _profileUid,
                 displayName: currentUser ? (currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Kullanıcı')) : 'Kullanıcı',
+                username: defaultUsername,
                 email: currentUser ? currentUser.email : '',
                 photoURL: currentUser ? (currentUser.photoURL || '') : '',
                 bio: '', bannerURL: '',
@@ -655,7 +720,7 @@ async function initProfilePage() {
             else pendingTabBtn.classList.add('hidden');
         }
 
-        switchProfileTab('exams');
+        switchProfileTab('all');
 
     } catch (err) {
         console.error('Profil yükleme hatası:', err);

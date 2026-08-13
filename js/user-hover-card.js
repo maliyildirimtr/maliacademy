@@ -121,7 +121,7 @@
         }
 
         if (nameEl) nameEl.textContent = data.displayName || 'Kullanıcı';
-        if (handleEl) handleEl.textContent = '@' + (data.handle || (data.email ? data.email.split('@')[0] : uid.slice(0, 8)));
+        if (handleEl) handleEl.textContent = '@' + (data.username || data.handle || (data.email ? data.email.split('@')[0] : uid.slice(0, 8)));
 
         if (badgeEl) {
             if (data.role === 'admin' || data.isAdmin) {
