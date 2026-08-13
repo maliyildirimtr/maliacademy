@@ -799,10 +799,22 @@ window.handleEditProfile = async function(e) {
         await targetDb.collection('users').doc(_profileUid).set(updates, { merge: true });
         _profileData = { ..._profileData, ...updates };
 
-        // 6. Firebase Auth displayName güncelle
+        // 6. Firebase Auth displayName güncelle ve Navbar'ı anında yenile
         const currentAuth = (typeof auth !== 'undefined' && auth) ? auth : window.auth;
-        if (currentAuth && currentAuth.currentUser && updates.displayName) {
-            await currentAuth.currentUser.updateProfile({ displayName: updates.displayName, photoURL });
+        if (currentAuth && currentAuth.currentUser) {
+            currentAuth.currentUser.customPhotoURL = photoURL;
+            if (updates.displayName) {
+                // Sadece kısa URL'leri Auth profiline yaz (Base64'ler hata verebilir)
+                if (photoURL && !photoURL.startsWith('data:image')) {
+                    await currentAuth.currentUser.updateProfile({ displayName: updates.displayName, photoURL }).catch(()=>console.warn("Auth profile update ignored"));
+                } else {
+                    await currentAuth.currentUser.updateProfile({ displayName: updates.displayName }).catch(()=>console.warn("Auth profile update ignored"));
+                }
+            }
+            if (typeof renderNavbar === 'function') {
+                const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+                renderNavbar(currentPath.replace('.html', ''), currentAuth.currentUser);
+            }
         }
 
         // 7. Hero'yu güncelle
