@@ -455,10 +455,14 @@ function renderExams() {
 
         let addedByHtml = "";
         if (docItem.addedBy && docItem.addedBy !== "Sistem") {
-            addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Ekleyen: ${docItem.addedBy}${formattedDateStr ? ` • <span class="text-slate-400 dark:text-slate-500 font-normal">${formattedDateStr}</span>` : ''}</div>`;
+            const uploaderUidAttr = docItem.uid ? ` data-user-uid="${docItem.uid}"` : '';
+            const uploaderHref = docItem.uid ? `profil.html?uid=${docItem.uid}` : '#';
+            const uploaderLink = `<a href="${uploaderHref}"${uploaderUidAttr} class="text-sky-400 hover:text-sky-300 transition-colors hover:underline cursor-pointer">${docItem.addedBy}</a>`;
+            addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Ekleyen: ${uploaderLink}${formattedDateStr ? ` • <span class="text-slate-400 dark:text-slate-500 font-normal">${formattedDateStr}</span>` : ''}</div>`;
         } else if (formattedDateStr) {
             addedByHtml = `<div class="mt-2 text-[10px] text-slate-400 font-medium">Tarih: ${formattedDateStr}</div>`;
         }
+
 
         // Ownership & Admin Checks
         const isOwner = currentUser && (

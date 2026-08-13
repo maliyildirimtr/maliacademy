@@ -77,7 +77,7 @@ function renderKits() {
                             </div>
                             <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100">${kit.title}</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${kit.description}</p>
-                            <div class="text-[10px] text-slate-400">Ekleyen: <strong>${kit.authorName}</strong></div>
+                            <div class="text-[10px] text-slate-400">Ekleyen: <strong><a href="${kit.uid ? `profil.html?uid=${kit.uid}` : '#'}" ${kit.uid ? `data-user-uid="${kit.uid}"` : ''} class="text-sky-400 hover:text-sky-300 transition-colors hover:underline">${kit.authorName}</a></strong></div>
                         </div>
                         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div class="flex items-center justify-between text-xs mb-1">
@@ -228,7 +228,7 @@ function createKitCard(kit) {
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <div class="flex flex-col">
                         <span class="text-slate-400 font-mono">${kit.license}</span>
-                        ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <strong class="text-slate-700 dark:text-slate-300">${kit.authorName}</strong></span>` : ''}
+                        ${kit.authorName ? `<span class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Ekleyen: <a href="${kit.uid ? `profil.html?uid=${kit.uid}` : '#'}" ${kit.uid ? `data-user-uid="${kit.uid}"` : ''} class="text-sky-400 hover:text-sky-300 transition-colors hover:underline font-semibold">${kit.authorName}</a></span>` : ''}
                     </div>
                     <a href="${kit.link}" target="_blank" rel="noopener noreferrer" class="font-bold text-tsMavi hover:underline">İncele ↗</a>
                 </div>
