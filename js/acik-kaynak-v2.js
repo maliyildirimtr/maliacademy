@@ -103,10 +103,15 @@ function renderKits() {
 
     if (approvedDynamic.length === 0) {
         mainGrid.innerHTML = `
-            <div class="col-span-full py-12 text-center text-slate-500">
-                <div class="text-4xl mb-3">📦</div>
-                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300">Henüz onaylanmış bir açık kaynak proje bulunmuyor</h3>
-                <p class="text-sm mt-1">İlk projeyi veya kodu siz ekleyin ve topluluğa destek olun!</p>
+            <div class="col-span-full py-16 px-6 text-center space-y-3 max-w-md mx-auto">
+                <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center mx-auto text-sky-400 shadow-inner">
+                    <svg class="w-7 h-7 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m7.5 4.27 9 5.15"/>
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">Henüz onaylanmış bir açık kaynak proje bulunmuyor.</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">İlk projeyi veya kodu siz ekleyin ve topluluğa destek olun!</p>
             </div>
         `;
         return;
@@ -170,7 +175,9 @@ function createKitCard(kit) {
     }
 
     return `
-        <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
+        <div data-id="${kit.id}" id="${kit.id}" class="repo-card academy-card group relative p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111b21] shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 overflow-hidden">
+            <!-- Sol Kenar Bordo-Mavi Geçiş Çizgisi -->
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
                     <span class="px-2.5 py-1 rounded-lg ${kit.categoryColor} border text-xs font-bold">${kit.category}</span>

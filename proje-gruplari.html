@@ -47,7 +47,7 @@
         <!-- ADMIN ERİŞİM KONTROL UYARISI (EĞER ADMIN DEĞİLSE) -->
         <div id="admin-access-guard" class="hidden py-16 text-center space-y-4">
             <div class="w-20 h-20 mx-auto rounded-3xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-4xl border border-amber-500/20">
-                🔒
+                <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
             <h2 class="text-2xl font-extrabold text-slate-100">Özel Yönetici Modülü</h2>
             <p class="text-slate-400 text-sm max-w-md mx-auto">
@@ -55,7 +55,8 @@
             </p>
             <div class="flex justify-center items-center gap-3 pt-2">
                 <button onclick="openLoginModal()" class="px-6 py-3 rounded-xl ts-gradient-btn text-white text-xs font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
-                    🔑 Yönetici Girişi Yap
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-1.5 1.5L16 4.5M16 4.5 14.5 3m1.5 1.5-6 6a3 3 0 1 0 4.2 4.2l6-6Z"/><circle cx="7.5" cy="16.5" r="1.5"/></svg>
+                    <span>Yönetici Girişi Yap</span>
                 </button>
                 <a href="index.html" class="px-5 py-3 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition-colors">
                     ← Ana Sayfaya Dön
@@ -80,7 +81,13 @@
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
-                            👥 Takım Çalışması & İş Birliği
+                            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            <span>Takım Çalışması & İş Birliği</span>
                         </div>
 
                         <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-slate-100">
@@ -97,7 +104,8 @@
                                 <span class="group-hover:translate-x-0.5 transition-transform">→</span>
                             </button>
                             <button onclick="openJoinModal()" class="px-5 py-3.5 rounded-2xl bg-slate-800 text-slate-300 text-xs sm:text-sm font-semibold hover:bg-slate-700 transition-all border border-slate-700 flex items-center gap-2">
-                                🔑 Davet Kodu Gir
+                                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-1.5 1.5L16 4.5M16 4.5 14.5 3m1.5 1.5-6 6a3 3 0 1 0 4.2 4.2l6-6Z"/><circle cx="7.5" cy="16.5" r="1.5"/></svg>
+                                <span>Davet Kodu Gir</span>
                             </button>
                         </div>
                     </div>
@@ -111,10 +119,10 @@
                             </div>
                             <div class="space-y-2 text-xs text-slate-300">
                                 <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                                    <span class="font-medium text-slate-200">🚀 TEKNOFEST İHA Projesi</span>
+                                    <span class="font-medium text-slate-200">TEKNOFEST İHA Projesi</span>
                                 </div>
                                 <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                                    <span class="font-medium text-slate-200">⚙️ FPGA Görüntü İşleme</span>
+                                    <span class="font-medium text-slate-200">FPGA Görüntü İşleme</span>
                                 </div>
                             </div>
                         </div>
@@ -128,14 +136,14 @@
                             <p class="text-xs font-medium text-slate-400">Aktif Proje Grupları</p>
                             <p class="text-2xl font-extrabold mt-1 text-sky-400" id="stat-group-count">0</p>
                         </div>
-                        <span class="text-3xl">👥</span>
+                        <svg class="w-8 h-8 text-sky-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
                     <div class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/60 flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-slate-400">Toplam Üye Sayısı</p>
                             <p class="text-2xl font-extrabold mt-1 text-emerald-400" id="stat-member-count">0</p>
                         </div>
-                        <span class="text-3xl">⚡</span>
+                        <svg class="w-8 h-8 text-emerald-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     </div>
                 </div>
             </div>
@@ -155,8 +163,8 @@
                 </div>
 
                 <div class="relative min-w-[260px]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <input type="text" id="search-groups-input" onkeyup="searchGroups()" placeholder="Grup veya konu ara..." class="w-full px-4 py-2.5 pl-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-tsMavi transition-colors">
-                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
                 </div>
             </div>
 
@@ -173,7 +181,10 @@
     <div id="create-group-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h3 class="text-base font-bold flex items-center gap-2"><span>🚀</span> Yeni Proje Grubu Oluştur</h3>
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                    <span>Yeni Proje Grubu Oluştur</span>
+                </h3>
                 <button onclick="closeCreateGroupModal()" class="text-slate-400 hover:text-white">✕</button>
             </div>
 
@@ -195,7 +206,7 @@
                             <option value="Siber Güvenlik">Siber Güvenlik</option>
                             <option value="Veri Bilimi">Veri Bilimi</option>
                             <option value="IoT (Nesnelerin İnterneti)">IoT (Nesnelerin İnterneti)</option>
-                            <option value="other">✨ Diğer (Özel Kategori)</option>
+                            <option value="other">Diğer (Özel Kategori)</option>
                         </select>
                     </div>
                     <div>
@@ -206,7 +217,7 @@
 
                 <!-- DİNAMİK "DİĞER" ÖZEL KATEGORİ ALANI (CONDITIONAL INPUT) -->
                 <div id="custom-category-container" class="hidden transition-all duration-300 transform scale-95 opacity-0">
-                    <label class="block text-xs font-semibold mb-1 text-amber-400">✨ Özel Kategori Adını Yazın *</label>
+                    <label class="block text-xs font-semibold mb-1 text-amber-400">Özel Kategori Adını Yazın *</label>
                     <input type="text" id="custom-category-input" placeholder="Örn: Biyomedikal / Genetik Teknolojileri" class="w-full px-3.5 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5 text-xs focus:outline-none focus:border-amber-400">
                 </div>
 
@@ -216,7 +227,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-slate-400">🎯 Aranan Takım Arkadaşı / Rol İhtiyacı (Talent Match)</label>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Aranan Takım Arkadaşı / Rol İhtiyacı (Talent Match)</label>
                     <input type="text" id="group-looking-roles" placeholder="Örn: Verilog / FPGA Uzmanı, PCB Tasarımcısı, Frontend Dev" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:border-tsMavi">
                 </div>
 
@@ -232,7 +243,10 @@
     <div id="apply-group-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100"><span>📩</span> Gruba Başvuru Yap</h3>
+                <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <span>Gruba Başvuru Yap</span>
+                </h3>
                 <button onclick="closeApplyGroupModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">✕</button>
             </div>
 
@@ -272,7 +286,10 @@
     <div id="join-group-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100"><span>🔑</span> Davet Kodu Girin</h3>
+                <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-1.5 1.5L16 4.5M16 4.5 14.5 3m1.5 1.5-6 6a3 3 0 1 0 4.2 4.2l6-6Z"/><circle cx="7.5" cy="16.5" r="1.5"/></svg>
+                    <span>Davet Kodu Girin</span>
+                </h3>
                 <button onclick="closeJoinModal()" class="text-slate-400 hover:text-white">✕</button>
             </div>
 

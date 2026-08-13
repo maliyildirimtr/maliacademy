@@ -73,9 +73,53 @@ function toggleTheme() {
 })();
 
 // ==========================================
-// 3. SIDEBAR & HEADER LAYOUT TOGGLES
+// 3. SIDEBAR & HEADER LAYOUT TOGGLES (WITH SESSION STORAGE MEMORY)
 // ==========================================
 let isSidebarCollapsed = false;
+
+function applySidebarState(state) {
+    const sidebar = document.getElementById('app-sidebar');
+    const mainContent = document.querySelector('main');
+    const submenu = document.getElementById('tools-submenu');
+    if (!sidebar) return;
+
+    if (window.innerWidth >= 1024) {
+        if (state === 'collapsed') {
+            isSidebarCollapsed = true;
+            sidebar.classList.add('lg:w-20');
+            sidebar.classList.remove('lg:w-64');
+            sidebar.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('lg:hidden'));
+            if (submenu) submenu.classList.add('lg:hidden', 'hidden');
+            if (mainContent) {
+                mainContent.classList.remove('lg:pl-64');
+                mainContent.classList.add('lg:pl-20');
+            }
+        } else {
+            isSidebarCollapsed = false;
+            sidebar.classList.remove('lg:w-20');
+            sidebar.classList.add('lg:w-64');
+            sidebar.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('lg:hidden'));
+            if (submenu) submenu.classList.remove('lg:hidden');
+            if (mainContent) {
+                mainContent.classList.remove('lg:pl-20');
+                mainContent.classList.add('lg:pl-64');
+            }
+        }
+    }
+}
+
+function initSidebarState() {
+    try {
+        const savedState = sessionStorage.getItem('sidebarState');
+        if (savedState === 'collapsed') {
+            applySidebarState('collapsed');
+        } else {
+            applySidebarState('expanded');
+        }
+    } catch(e) {
+        applySidebarState('expanded');
+    }
+}
 
 function toggleSidebar() {
     const sidebar = document.getElementById('app-sidebar');
@@ -89,24 +133,11 @@ function toggleSidebar() {
     } else {
         // Masaüstü Daraltma / Genişletme Toggle
         isSidebarCollapsed = !isSidebarCollapsed;
-        const mainContent = document.querySelector('main');
-        if (isSidebarCollapsed) {
-            sidebar.classList.add('lg:w-20');
-            sidebar.classList.remove('lg:w-64');
-            sidebar.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('lg:hidden'));
-            if (mainContent) {
-                mainContent.classList.remove('lg:pl-64');
-                mainContent.classList.add('lg:pl-20');
-            }
-        } else {
-            sidebar.classList.remove('lg:w-20');
-            sidebar.classList.add('lg:w-64');
-            sidebar.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('lg:hidden'));
-            if (mainContent) {
-                mainContent.classList.remove('lg:pl-20');
-                mainContent.classList.add('lg:pl-64');
-            }
-        }
+        const newState = isSidebarCollapsed ? 'collapsed' : 'expanded';
+        try {
+            sessionStorage.setItem('sidebarState', newState);
+        } catch(e) {}
+        applySidebarState(newState);
     }
 }
 
@@ -217,14 +248,14 @@ function renderNavbar(activePage, currentUser) {
                         <p class="text-[10px] text-slate-500 truncate">${user.email}</p>
                     </div>
                     <button onclick="openProfileModal()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors">
-                        <span>👤</span> Profilim & Düzenle
+                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profilim & Düzenle
                     </button>
                     <button onclick="openProfileModal()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors">
-                        <span>⚙️</span> Hesap Ayarları
+                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> Hesap Ayarları
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-800 pt-1">
                         <button onclick="logoutUser()" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2 transition-colors">
-                            <span>🚪</span> Çıkış Yap
+                            <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Çıkış Yap
                         </button>
                     </div>
                 </div>
@@ -233,7 +264,8 @@ function renderNavbar(activePage, currentUser) {
     } else {
         authHeaderRightHTML = `
             <button onclick="openAuthModal()" class="px-4 py-2 rounded-full bg-gradient-to-r from-tsBordo to-tsMavi text-white text-xs font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-1.5">
-                <span>🔑</span> Giriş Yap / Kayıt Ol
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-1.5 1.5L16 4.5M16 4.5 14.5 3m1.5 1.5-6 6a3 3 0 1 0 4.2 4.2l6-6Z"/><circle cx="7.5" cy="16.5" r="1.5"/></svg>
+                <span>Giriş Yap / Kayıt Ol</span>
             </button>
         `;
     }
@@ -259,16 +291,21 @@ function renderNavbar(activePage, currentUser) {
             </a>
         </div>
 
-        <!-- ORTA ALAN: DİNAMİK ARAMA ÇUBUĞU -->
+        <!-- ORTA ALAN: DİNAMİK CANLI ARAMA ÇUBUĞU -->
         <div class="relative max-w-md w-full hidden md:flex items-center mx-4">
-            <input type="text" placeholder="🔍 İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-4 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="global-search-input" type="text" oninput="handleGlobalSearchInput(this.value)" onfocus="handleGlobalSearchInput(this.value)" placeholder="İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-4 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all">
+            
+            <!-- CANLI ARAMA SONUÇ PANELİ (DROPDOWN) -->
+            <div id="global-search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[460px] overflow-y-auto backdrop-blur-xl"></div>
         </div>
 
         <!-- SAĞ ALAN: TEMA + AUTH -->
         <div class="flex items-center gap-3">
             ${adminActive ? `
                 <button onclick="logoutAdmin()" class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-1">
-                    <span>👑</span> Yönetici (Çıkış)
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>Yönetici (Çıkış)</span>
                 </button>
             ` : ''}
 
@@ -293,57 +330,86 @@ function renderNavbar(activePage, currentUser) {
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block sidebar-text">Akademik Gezinti</span>
             </div>
 
-            <!-- İKONLU MENÜ ÖGELERİ -->
+            <!-- İKONLU MENÜ ÖGELERİ (LUCIDE / MINIMALIST SVG) -->
             <nav class="space-y-1 text-xs font-semibold">
-                <a href="index.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'index' || page === 'home' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
-                    <span class="text-base">🏠</span>
+                <a href="index.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'index' || page === 'home' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'index' || page === 'home' ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
                     <span class="sidebar-text">Ana Sayfa</span>
                 </a>
 
-                <a href="dersler.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
-                    <span class="text-base">📚</span>
+                <a href="dersler.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'dersler' || page === 'ders-detay' || page === 'konu-detay' || page === 'ders-ekle' ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
                     <span class="sidebar-text">Dersler & Notlar</span>
                 </a>
 
-                <a href="sinav-hazirlik.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'sinav-hazirlik' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
-                    <span class="text-base">📝</span>
+                <a href="sinav-hazirlik.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'sinav-hazirlik' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'sinav-hazirlik' ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <line x1="10" y1="9" x2="8" y2="9"/>
+                    </svg>
                     <span class="sidebar-text">Sınav & Vize Hazırlık</span>
                 </a>
 
-                <a href="proje-gruplari.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'proje-gruplari' || page === 'gruplar' || page === 'grup-detay' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
-                    <span class="text-base">👥</span>
+                <a href="proje-gruplari.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'proje-gruplari' || page === 'gruplar' || page === 'grup-detay' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'proje-gruplari' || page === 'gruplar' || page === 'grup-detay' ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
                     <span class="sidebar-text">Proje Grupları</span>
                 </a>
 
-                <a href="ilan-panosu.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'ilan-panosu' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
-                    <span class="text-base">📌</span>
+                <a href="ilan-panosu.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'ilan-panosu' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'ilan-panosu' ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 11 18-5v12L3 13v-2z"/>
+                        <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                    </svg>
                     <span class="sidebar-text">İlan Panosu</span>
                 </a>
 
-                <a href="acik-kaynak.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${page === 'acik-kaynak' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
-                    <span class="text-base">🧰</span>
+                <a href="acik-kaynak.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'acik-kaynak' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'acik-kaynak' ? 'text-white' : 'text-slate-400 group-hover:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m7.5 4.27 9 5.15"/>
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                        <path d="M12 22V12"/>
+                    </svg>
                     <span class="sidebar-text">Açık Kaynak Kit</span>
                 </a>
 
                 <!-- MÜHENDİSLİK ARAÇLARI (HOVER İLE AÇILAN SUBMENU & DİREKT TIKLANINCA SAYFAYA GİDEN LİNK) -->
                 <div class="group/tools relative">
-                    <a href="araclar.html" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all ${page === 'araclar' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
+                    <a href="araclar.html" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all group ${page === 'araclar' ? 'bg-tsMavi text-white font-bold shadow-md shadow-tsMavi/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'}">
                         <div class="flex items-center gap-3">
-                            <span class="text-base">🧮</span>
+                            <svg class="w-5 h-5 shrink-0 transition-colors ${page === 'araclar' ? 'text-white' : 'text-slate-400 group-hover/tools:text-sky-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                <rect x="9" y="9" width="6" height="6"/>
+                                <path d="M15 2v2M9 2v2M15 20v2M9 20v2M20 15h2M20 9h2M2 15h2M2 9h2"/>
+                            </svg>
                             <span class="sidebar-text">Mühendislik Araçları</span>
                         </div>
                         <span class="sidebar-text text-[10px] group-hover/tools:rotate-180 transition-transform duration-200">▾</span>
                     </a>
                     
-                    <div id="tools-submenu" class="mt-1 pl-9 space-y-1 ${page === 'araclar' ? 'block' : 'hidden group-hover/tools:block'}">
+                    <div id="tools-submenu" class="sidebar-text mt-1 pl-9 space-y-1 ${page === 'araclar' ? 'block' : 'hidden group-hover/tools:block'}">
                         <a href="araclar.html#gano" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
-                            📊 AGNO / GANO Ortalama
+                            AGNO / GANO Ortalama
                         </a>
                         <a href="araclar.html#hesap-makinesi" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
-                            🧮 Bilimsel Hesap Makinesi
+                            Bilimsel Hesap Makinesi
                         </a>
                         <a href="araclar.html#direnc-hesaplayici" class="block py-1.5 text-[11px] text-slate-500 dark:text-slate-400 hover:text-tsMavi dark:hover:text-sky-400 transition-colors">
-                            ⚡ Direnç / Devre Hesaplama
+                            Direnç / Devre Hesaplama
                         </a>
                     </div>
                 </div>
@@ -353,7 +419,11 @@ function renderNavbar(activePage, currentUser) {
         <!-- SIDEBAR ALT DIŞ LİNK -->
         <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
             <a href="https://maliyildirimtr.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity">
-                <span>⚡</span>
+                <svg class="w-5 h-5 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
                 <span class="sidebar-text">Kişisel Site ↗</span>
             </a>
         </div>
@@ -562,6 +632,7 @@ function renderNavbar(activePage, currentUser) {
     if (navContainer) {
         navContainer.innerHTML = layoutHTML;
         initThemeIcons();
+        initSidebarState();
         if (typeof setupAddCourseFormListener === 'function') setupAddCourseFormListener();
     }
 
@@ -1871,4 +1942,397 @@ function setupAddCourseFormListener() {
 
 document.addEventListener('DOMContentLoaded', () => {
     setupAddCourseFormListener();
+    initSidebarState();
+    checkAndHighlightTargetCard();
 });
+
+// ==========================================
+// CANLI KÜRESEL ARAMA MOTORU (GLOBAL LIVE SEARCH ENGINE)
+// ==========================================
+let _globalSearchTimeout = null;
+
+function handleGlobalSearchInput(query) {
+    const dropdown = document.getElementById('global-search-results');
+    if (!dropdown) return;
+
+    const trimmed = (query || '').trim();
+    if (trimmed.length < 2) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        return;
+    }
+
+    // Loader Göster
+    dropdown.classList.remove('hidden');
+    dropdown.innerHTML = `
+        <div class="p-4 text-center text-xs text-slate-400 font-semibold animate-pulse flex items-center justify-center gap-2">
+            <span>⏳</span> Aranıyor...
+        </div>
+    `;
+
+    if (_globalSearchTimeout) clearTimeout(_globalSearchTimeout);
+    _globalSearchTimeout = setTimeout(() => {
+        executeGlobalSearch(trimmed);
+    }, 220);
+}
+
+async function executeGlobalSearch(searchTerm) {
+    const dropdown = document.getElementById('global-search-results');
+    if (!dropdown) return;
+
+    const termLower = searchTerm.toLowerCase();
+
+    const results = {
+        courses: [],        // 📚 Dersler & Notlar
+        exams: [],          // ✍️ Sınav Belgeleri
+        openSource: [],     // 📦 Açık Kaynak Kitler
+        groups: [],         // 👥 Proje Grupları
+        ads: []             // 📌 İlanlar & Duyurular
+    };
+
+    const targetDb = (typeof db !== 'undefined' && db && db.collection) ? db : (window.db || null);
+
+    // 1. DERSLER & NOTLAR ARAMASI
+    try {
+        if (targetDb) {
+            const snaps = await Promise.all([
+                targetDb.collection("academy_courses").get().catch(() => null),
+                targetDb.collection("courses").get().catch(() => null)
+            ]);
+            snaps.forEach(snap => {
+                if (snap && !snap.empty) {
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const title = (data.title || '').toLowerCase();
+                        const code = (data.code || '').toLowerCase();
+                        const desc = (data.description || '').toLowerCase();
+                        if ((title.includes(termLower) || code.includes(termLower) || desc.includes(termLower)) && !results.courses.some(x => x.id === doc.id)) {
+                            results.courses.push({
+                                id: doc.id,
+                                title: data.title || "Ders Notu",
+                                subtitle: data.code || "Akademik Ders",
+                                url: `dersler.html?highlight=${doc.id}`
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    } catch(e) {}
+
+    // Fallback demo ders
+    if (typeof SYSTEMVERILOG_COURSE_DATA !== 'undefined') {
+        const title = (SYSTEMVERILOG_COURSE_DATA.title || '').toLowerCase();
+        const desc = (SYSTEMVERILOG_COURSE_DATA.description || '').toLowerCase();
+        if ((title.includes(termLower) || desc.includes(termLower)) && !results.courses.some(x => x.id === SYSTEMVERILOG_COURSE_DATA.id)) {
+            results.courses.push({
+                id: SYSTEMVERILOG_COURSE_DATA.id || 'systemverilog-kursu',
+                title: SYSTEMVERILOG_COURSE_DATA.title,
+                subtitle: SYSTEMVERILOG_COURSE_DATA.code || 'FPGA & Verilog',
+                url: `dersler.html?highlight=${SYSTEMVERILOG_COURSE_DATA.id || 'systemverilog-kursu'}`
+            });
+        }
+    }
+
+    // 2. SINAV BELGELERİ ARAMASI
+    try {
+        if (targetDb) {
+            const snap = await targetDb.collection("exam_prep_resources").get().catch(() => null);
+            if (snap && !snap.empty) {
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const title = (data.title || '').toLowerCase();
+                    const category = (data.category || data.documentType || '').toLowerCase();
+                    const desc = (data.description || '').toLowerCase();
+                    if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.exams.some(x => x.id === doc.id)) {
+                        results.exams.push({
+                            id: doc.id,
+                            title: data.title || "Sınav Belgesi",
+                            subtitle: data.category || data.documentType || "Sınav Notu",
+                            url: `sinav-hazirlik.html?highlight=${doc.id}`
+                        });
+                    }
+                });
+            }
+        }
+    } catch(e) {}
+
+    // 3. AÇIK KAYNAK KİTLER ARAMASI
+    try {
+        if (targetDb) {
+            const snap = await targetDb.collection("open_source_resources").get().catch(() => null);
+            if (snap && !snap.empty) {
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const title = (data.title || '').toLowerCase();
+                    const category = (data.category || data.sourceType || '').toLowerCase();
+                    const desc = (data.description || '').toLowerCase();
+                    if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.openSource.some(x => x.id === doc.id)) {
+                        results.openSource.push({
+                            id: doc.id,
+                            title: data.title || "Açık Kaynak Proje",
+                            subtitle: data.category || data.sourceType || "Repo",
+                            url: `acik-kaynak.html?highlight=${doc.id}`
+                        });
+                    }
+                });
+            }
+        }
+    } catch(e) {}
+
+    // 4. PROJE GRUPLARI ARAMASI
+    try {
+        if (targetDb) {
+            const snap = await targetDb.collection("groups").get().catch(() => null);
+            if (snap && !snap.empty) {
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const name = (data.name || '').toLowerCase();
+                    const category = (data.category || '').toLowerCase();
+                    const desc = (data.description || '').toLowerCase();
+                    const roles = (typeof data.lookingRoles === 'string' ? data.lookingRoles : '').toLowerCase();
+                    if ((name.includes(termLower) || category.includes(termLower) || desc.includes(termLower) || roles.includes(termLower)) && !results.groups.some(x => x.id === doc.id)) {
+                        results.groups.push({
+                            id: doc.id,
+                            title: data.name || "Proje Grubu",
+                            subtitle: data.category || "Çalışma Grubu",
+                            url: `grup-detay.html?id=${doc.id}`
+                        });
+                    }
+                });
+            }
+        }
+    } catch(e) {}
+
+    let localGroups = [];
+    try {
+        const stored = localStorage.getItem('mali_created_groups');
+        if (stored) localGroups = JSON.parse(stored);
+    } catch(e) {}
+    if (typeof DEMO_GROUPS !== 'undefined' && Array.isArray(DEMO_GROUPS)) {
+        DEMO_GROUPS.forEach(g => { if (!localGroups.some(x => x.id === g.id)) localGroups.push(g); });
+    }
+    localGroups.forEach(g => {
+        const name = (g.name || '').toLowerCase();
+        const category = (g.category || '').toLowerCase();
+        const desc = (g.description || '').toLowerCase();
+        if ((name.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.groups.some(x => x.id === g.id)) {
+            results.groups.push({
+                id: g.id,
+                title: g.name || "Proje Grubu",
+                subtitle: g.category || "Çalışma Grubu",
+                url: `grup-detay.html?id=${g.id}`
+            });
+        }
+    });
+
+    // 5. İLANLAR & DUYURULAR ARAMASI
+    try {
+        if (targetDb) {
+            const snap = await targetDb.collection("ads").get().catch(() => null);
+            if (snap && !snap.empty) {
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const title = (data.title || '').toLowerCase();
+                    const category = (data.category || '').toLowerCase();
+                    const desc = (data.description || '').toLowerCase();
+                    if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.ads.some(x => x.id === doc.id)) {
+                        results.ads.push({
+                            id: doc.id,
+                            title: data.title || "İlan / Duyuru",
+                            subtitle: data.category || "İlan Panosu",
+                            url: `ilan-panosu.html?highlight=${doc.id}`
+                        });
+                    }
+                });
+            }
+        }
+    } catch(e) {}
+
+    renderGlobalSearchResults(results, searchTerm);
+}
+
+function renderGlobalSearchResults(results, searchTerm) {
+    const dropdown = document.getElementById('global-search-results');
+    if (!dropdown) return;
+
+    const totalCount = results.courses.length + results.exams.length + results.openSource.length + results.groups.length + results.ads.length;
+
+    if (totalCount === 0) {
+        dropdown.innerHTML = `
+            <div class="p-5 text-center text-xs text-slate-400 space-y-1">
+                <p class="font-bold text-slate-700 dark:text-slate-300">🔍 Aramanızla eşleşen bir içerik bulunamadı.</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">"${searchTerm}" için sonuç bulunamadı.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `<div class="p-2.5 space-y-3">`;
+
+    // 📚 DERSLER & NOTLAR
+    if (results.courses.length > 0) {
+        html += `
+            <div>
+                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-tsMavi flex items-center gap-1.5">
+                    <span>📚</span> Dersler & Notlar (${results.courses.length})
+                </div>
+                <div class="space-y-1 mt-1">
+                    ${results.courses.map(r => `
+                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
+                            <div class="min-w-0 flex-1 mr-2">
+                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi truncate transition-colors">${r.title}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
+                            </div>
+                            <span class="text-xs text-tsMavi font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Git →</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // ✍️ SINAV BELGELERİ
+    if (results.exams.length > 0) {
+        html += `
+            <div>
+                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-500 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                    <span>✍️</span> Sınav & Vize Belgeleri (${results.exams.length})
+                </div>
+                <div class="space-y-1 mt-1">
+                    ${results.exams.map(r => `
+                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
+                            <div class="min-w-0 flex-1 mr-2">
+                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-amber-500 truncate transition-colors">${r.title}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
+                            </div>
+                            <span class="text-xs text-amber-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">İncele →</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // 📦 AÇIK KAYNAK KİTLER
+    if (results.openSource.length > 0) {
+        html += `
+            <div>
+                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-purple-400 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                    <span>📦</span> Açık Kaynak Kitler (${results.openSource.length})
+                </div>
+                <div class="space-y-1 mt-1">
+                    ${results.openSource.map(r => `
+                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
+                            <div class="min-w-0 flex-1 mr-2">
+                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-purple-400 truncate transition-colors">${r.title}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
+                            </div>
+                            <span class="text-xs text-purple-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">İncele →</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // 👥 PROJE GRUPLARI
+    if (results.groups.length > 0) {
+        html += `
+            <div>
+                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                    <span>👥</span> Proje Grupları (${results.groups.length})
+                </div>
+                <div class="space-y-1 mt-1">
+                    ${results.groups.map(r => `
+                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
+                            <div class="min-w-0 flex-1 mr-2">
+                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 truncate transition-colors">${r.title}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
+                            </div>
+                            <span class="text-xs text-emerald-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Çalışma Alanı →</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // 📌 İLANLAR & DUYURULAR
+    if (results.ads.length > 0) {
+        html += `
+            <div>
+                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-rose-400 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                    <span>📌</span> İlanlar & Duyurular (${results.ads.length})
+                </div>
+                <div class="space-y-1 mt-1">
+                    ${results.ads.map(r => `
+                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
+                            <div class="min-w-0 flex-1 mr-2">
+                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-400 truncate transition-colors">${r.title}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
+                            </div>
+                            <span class="text-xs text-rose-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Görüntüle →</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    dropdown.innerHTML = html;
+}
+
+function closeGlobalSearchDropdown() {
+    const dropdown = document.getElementById('global-search-results');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+}
+
+// OUTSIDE CLICK & ESCAPE KEY LISTENERS
+document.addEventListener('click', (event) => {
+    const input = document.getElementById('global-search-input');
+    const dropdown = document.getElementById('global-search-results');
+    if (dropdown && input && !dropdown.contains(event.target) && !input.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeGlobalSearchDropdown();
+    }
+});
+
+// AUTO-SCROLL & HIGHLIGHT LOGIC ON TARGET PAGE
+function checkAndHighlightTargetCard() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get('highlight');
+    if (!highlightId) return;
+
+    let attempts = 0;
+    const maxAttempts = 25;
+
+    const findAndHighlight = () => {
+        attempts++;
+        const elem = document.getElementById(highlightId) || 
+                     document.querySelector(`[data-id="${highlightId}"]`) ||
+                     document.querySelector(`[onclick*="${highlightId}"]`);
+
+        if (elem) {
+            setTimeout(() => {
+                elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                elem.classList.add('global-search-highlight');
+                setTimeout(() => {
+                    elem.classList.remove('global-search-highlight');
+                }, 3000);
+            }, 300);
+        } else if (attempts < maxAttempts) {
+            setTimeout(findAndHighlight, 300);
+        }
+    };
+
+    findAndHighlight();
+}

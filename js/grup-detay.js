@@ -103,33 +103,35 @@ function checkAuthOrPrompt() {
 
 // GRUP ÇALIŞMA ALANINI YÜKLEME
 function loadGroupWorkspace() {
+    // 1. Önce sayfanın takılmaması için yerel/önbellek verisini anında yükle ve render et
+    fallbackLoadWorkspace();
+    renderWorkspaceUI();
+
+    // 2. Arka planda Firestore snapshot dinleyicisini çalıştır
     if (typeof db !== 'undefined' && db && db.collection) {
-        db.collection("groups").doc(groupId).onSnapshot((doc) => {
-            if (doc && doc.exists) {
-                const data = doc.data() || {};
-                currentGroup = { 
-                    id: doc.id, 
-                    name: data.name || "Proje Çalışma Alanı",
-                    category: data.category || "Mühendislik & YZ",
-                    inviteCode: data.inviteCode || ("MP-" + Math.floor(1000 + Math.random() * 9000)),
-                    description: data.description || "Proje grup açıklaması.",
-                    lookingRoles: data.lookingRoles || "",
-                    members: Array.isArray(data.members) ? data.members : [],
-                    milestones: Array.isArray(data.milestones) ? data.milestones : [],
-                    ...data 
-                };
-            } else {
-                fallbackLoadWorkspace();
-            }
-            renderWorkspaceUI();
-        }, (err) => {
-            console.warn("Firestore grup yükleme uyarısı:", err);
-            fallbackLoadWorkspace();
-            renderWorkspaceUI();
-        });
-    } else {
-        fallbackLoadWorkspace();
-        renderWorkspaceUI();
+        try {
+            db.collection("groups").doc(groupId).onSnapshot((doc) => {
+                if (doc && doc.exists) {
+                    const data = doc.data() || {};
+                    currentGroup = { 
+                        id: doc.id, 
+                        name: data.name || "Proje Çalışma Alanı",
+                        category: data.category || "Mühendislik & YZ",
+                        inviteCode: data.inviteCode || ("MP-" + Math.floor(1000 + Math.random() * 9000)),
+                        description: data.description || "Proje grup açıklaması.",
+                        lookingRoles: data.lookingRoles || "",
+                        members: Array.isArray(data.members) ? data.members : [],
+                        milestones: Array.isArray(data.milestones) ? data.milestones : [],
+                        ...data 
+                    };
+                    renderWorkspaceUI();
+                }
+            }, (err) => {
+                console.warn("Firestore grup yükleme uyarısı:", err);
+            });
+        } catch (e) {
+            console.warn("Firestore dinleyici hatası:", e);
+        }
     }
 }
 
@@ -220,122 +222,172 @@ function renderWorkspaceUI() {
             }
         }
 
-        container.innerHTML = `
-            <!-- HEADER BÖLÜMÜ (UÇTAN UCA GENİŞLETİLMİŞ DÜZEN) -->
-            <div class="w-full rounded-3xl p-5 md:p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111b21] shadow-xl backdrop-blur-md">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full">
-                    <!-- SOL ALAN: Grup PP + Kategori + Davet Kodu + Proje Adı -->
-                    <div class="flex items-center gap-4 min-w-0">
+        const members = currentGroup.members || [];
+        let membersHTML = "";
+        if (members.length === 0) {
+            membersHTML = `<div class="py-4 text-center text-xs text-slate-400 italic">Henüz grupta üye bulunmuyor.</div>`;
+        } else {
+            members.forEach((m) => {
+                const roleColor = m.role === 'Yönetici' || m.role === 'Lider' 
+                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' 
+                    : m.role === 'Yönetici Yardımcısı' 
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
 
-                        <!-- YUVARLAK GRUP PP (TIKLANINCA ONIZLEME AÇILIR) -->
-                        <div class="relative shrink-0 cursor-pointer group" onclick="openGroupPPPreview()" title="Grup profil fotoğrafını büyüt">
-                            <div id="group-pp-avatar"
-                                style="width:60px;height:60px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#6e0d25,#1e7fcb);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;border:3px solid rgba(255,255,255,0.12);box-shadow:0 4px 16px rgba(0,0,0,0.3);transition:opacity 0.2s;">
-                                ${currentGroup.photoURL
-                                    ? `<img src="${currentGroup.photoURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='${(currentGroup.name||'G').slice(0,2).toUpperCase()}'">`
-                                    : (currentGroup.name||'G').slice(0,2).toUpperCase()
-                                }
+                const canEdit = isUserAdmin() && m.role !== 'Yönetici' && m.role !== 'Lider';
+
+                membersHTML += `
+                    <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
+                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gradient-to-tr from-tsBordo to-tsMavi text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                                ${(m.name || 'Üye').substring(0, 2).toUpperCase()}
                             </div>
-                            <!-- Büyüteç ikonu hover'da görünür -->
-                            <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <svg style="width:22px;height:22px;color:white;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/>
-                                </svg>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate" title="${m.name}">${m.name}</p>
+                                ${m.email ? `<p class="text-[10px] text-slate-500 dark:text-slate-400 truncate" title="${m.email}">${m.email}</p>` : ''}
                             </div>
                         </div>
 
-                        <!-- METİN ALANI -->
-                        <div class="space-y-1.5 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            ${canEdit ? `
+                                <div class="relative group">
+                                    <select onchange="changeMemberRole('${m.uid}', this.value)" class="appearance-none text-[10px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-tsMavi cursor-pointer">
+                                        <option value="Yönetici Yardımcısı" ${m.role === 'Yönetici Yardımcısı' ? 'selected' : ''}>Yönetici Yrd.</option>
+                                        <option value="Üye" ${m.role === 'Üye' ? 'selected' : ''}>Üye</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-slate-400">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                </div>
+                                <button onclick="removeMember('${m.uid}', '${m.name}')" title="Gruptan Çıkar" class="text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-1 rounded-lg transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            ` : `
+                                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold border ${roleColor} whitespace-nowrap">
+                                    ${m.role || 'Üye'}
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        container.innerHTML = `
+            <!-- 1. ÜST BİLGİ ALANI (HEADER SECTION) -->
+            <div class="w-full rounded-3xl p-5 md:p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111b21] shadow-xl backdrop-blur-md space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+                    <!-- SOL ALAN: Proje PP + Proje Adı + Kategori Rozeti -->
+                    <div class="flex items-center gap-4 min-w-0">
+                        <div class="relative shrink-0 cursor-pointer group" onclick="openGroupPPPreview()" title="Grup profil fotoğrafını büyüt">
+                            <div id="group-pp-avatar"
+                                class="w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-gradient-to-tr from-tsBordo to-tsMavi flex items-center justify-center text-xl font-extrabold text-white border-2 border-white/20 shadow-md transition-transform group-hover:scale-105">
+                                ${currentGroup.photoURL
+                                    ? `<img src="${currentGroup.photoURL}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='${(currentGroup.name||'G').slice(0,2).toUpperCase()}'">`
+                                    : (currentGroup.name||'G').slice(0,2).toUpperCase()
+                                }
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="px-3 py-1 rounded-full bg-tsMavi/10 text-tsMavi font-bold text-xs border border-tsMavi/20">
-                                    ${currentGroup.category || 'Genel'}
+                                    ${currentGroup.category || 'Mühendislik & YZ'}
                                 </span>
+                                ${!isMember ? '' : `
+                                    <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                                        ✓ Grubun Üyesisiniz (${roleText})
+                                    </span>
+                                `}
                             </div>
                             <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 truncate">${currentGroup.name || 'Proje Çalışma Alanı'}</h1>
                             ${lookingRolesBadges}
                         </div>
                     </div>
 
-                    <!-- SAĞ ALAN: Yönetim Butonları -->
-                    <div class="flex flex-wrap items-center justify-start lg:justify-end gap-2.5 shrink-0">
-                        <button onclick="openJitsiMeeting()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
-                            📹 Görüntülü Toplantı Başlat (Virtual Lab)
+                    <!-- SAĞ ALAN: Sade Aksiyon Butonları -->
+                    <div class="flex flex-wrap items-center justify-start md:justify-end gap-2.5 shrink-0">
+                        <button onclick="openJitsiMeeting()" class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2 cursor-pointer">
+                            <span>🎥</span> Görüntülü Toplantı
                         </button>
+
                         ${!isMember ? `
-                            <button onclick="joinCurrentGroup()" class="px-4 py-2.5 rounded-xl ts-gradient-btn text-white text-xs font-bold shadow-md hover:opacity-90 transition-all flex items-center gap-1.5">
+                            <button onclick="joinCurrentGroup()" class="px-4 py-2.5 rounded-2xl ts-gradient-btn text-white text-xs font-bold shadow-md hover:opacity-90 transition-all flex items-center gap-1.5 cursor-pointer">
                                 <span>➕</span> Gruba Üye Ol
                             </button>
-                        ` : `
-                            <span class="px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20 flex items-center gap-1">
-                                ✓ Grubun Üyesisiniz (${roleText})
-                            </span>
-                        `}
-                        <!-- ⚙️ GRUP AYARLARI BUTONU (Grubu Sil'in yerini aldı) -->
-                        <button type="button" onclick="openGroupSettingsModal()" title="Grup ayarları ve yönetimi"
-                            class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#1c2830] text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 shadow-sm">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Grup Ayarları
-                        </button>
-                        <a href="gruplar.html" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#1c2830] text-slate-800 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700">
+                        ` : ''}
+
+                        ${isAuth ? `
+                            <button type="button" onclick="openGroupSettingsModal()" title="Grup ayarları"
+                                class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                <span>⚙️</span> Grup Ayarları
+                            </button>
+                        ` : ''}
+
+                        <a href="gruplar.html" class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700">
                             ← Gruplara Dön
                         </a>
                     </div>
                 </div>
+
+                <!-- 2. YATAY SEKMELER (HORIZONTAL TAB BAR) -->
+                <div class="w-full border-t border-slate-100 dark:border-slate-800/80 pt-4 flex items-center gap-2 overflow-x-auto scrollbar-none">
+                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer">
+                        <span>📌</span> Genel Bakış
+                    </button>
+                    <button onclick="switchTab('kanban')" id="tab-btn-kanban" class="tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer">
+                        <span>🎯</span> Hedefler & Görevler
+                    </button>
+                    <button onclick="switchTab('applications')" id="tab-btn-applications" class="tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border relative cursor-pointer">
+                        <span>📥</span> Başvurular (Talent Match)
+                    </button>
+                    <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border relative cursor-pointer">
+                        <span>💬</span> Grup Sohbeti
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </button>
+                    <button onclick="switchTab('archive')" id="tab-btn-archive" class="tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer">
+                        <span>📂</span> Dokümanlar & Bütçe
+                    </button>
+                </div>
             </div>
 
-            <!-- DİKEY MİMARİ: SOL SIDEBAR (İNCE ŞERİT) + SAĞ İÇERİK YAN YANA -->
-            <div class="flex flex-row gap-4 w-full items-start">
+            <!-- 3. 2-SÜTUNLU ÇALIŞMA ALANI GRIDI (SOL %70 / SAĞ %30) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
 
-                <!-- SOL SIDEBAR: Varsayılan = İNCE ŞERİT (sadece ikonlar) -->
-                <aside id="workspace-sidebar"
-                    style="width:64px; min-width:64px; transition: width 0.28s cubic-bezier(.4,0,.2,1), min-width 0.28s cubic-bezier(.4,0,.2,1);"
-                    class="shrink-0 bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 rounded-2xl py-3 px-2 shadow-xl backdrop-blur-md sticky top-6 flex flex-col gap-1 overflow-hidden">
+                <!-- SOL SÜTUN (%70 Genişlik / lg:col-span-8): DİNAMİK SEKME İÇERİĞİ -->
+                <main id="tab-content-area" class="lg:col-span-8 space-y-6 min-w-0 w-full"></main>
 
-                    <!-- 3 ÇİZGİ HAMBURGER BUTONU -->
-                    <button type="button" onclick="toggleSidebarCollapse()"
-                        title="Menüyü Genişlet / Daralt"
-                        class="w-10 h-10 rounded-xl flex items-center justify-center text-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all mb-2 shrink-0 mx-auto">
-                        ☰
-                    </button>
+                <!-- SAĞ SÜTUN (%30 Genişlik / lg:col-span-4): TAKIM VE HIZLI AKSİYON SIDEBARI -->
+                <aside id="team-sidebar-panel" class="lg:col-span-4 space-y-6 sticky top-6">
+                    <div class="academy-card space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 class="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                <span>👥</span> Takım Üyeleri
+                            </h3>
+                            <span class="text-[11px] font-mono font-bold bg-tsMavi/10 text-tsMavi px-2.5 py-0.5 rounded-full border border-tsMavi/20">
+                                ${members.length} Üye
+                            </span>
+                        </div>
 
-                    <nav id="workspace-sidebar-nav" class="flex flex-col gap-1 w-full">
+                        <!-- ÜYE LİSTESİ -->
+                        <div class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                            ${membersHTML}
+                        </div>
 
-                        <button onclick="switchTab('overview')" id="tab-btn-overview" title="Genel Bakış & Üyeler"
-                            class="tab-btn group flex items-center gap-3 w-full px-2 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent overflow-hidden whitespace-nowrap">
-                            <span class="text-lg shrink-0 mx-auto group-[.expanded]:mx-0">📌</span>
-                            <span class="sidebar-label hidden">Genel Bakış & Üyeler</span>
-                        </button>
-
-                        <button onclick="switchTab('archive')" id="tab-btn-archive" title="Arşiv & Dokümanlar"
-                            class="tab-btn group flex items-center gap-3 w-full px-2 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent overflow-hidden whitespace-nowrap">
-                            <span class="text-lg shrink-0 mx-auto group-[.expanded]:mx-0">📂</span>
-                            <span class="sidebar-label hidden">Arşiv & Dokümanlar</span>
-                        </button>
-
-                        <button onclick="switchTab('kanban')" id="tab-btn-kanban" title="Görev Panosu"
-                            class="tab-btn group flex items-center gap-3 w-full px-2 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent overflow-hidden whitespace-nowrap">
-                            <span class="text-lg shrink-0 mx-auto group-[.expanded]:mx-0">📋</span>
-                            <span class="sidebar-label hidden">Görev Panosu (Kanban)</span>
-                        </button>
-
-                        <button onclick="switchTab('budget')" id="tab-btn-budget" title="Ortak Kasa & Bütçe"
-                            class="tab-btn group flex items-center gap-3 w-full px-2 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent overflow-hidden whitespace-nowrap">
-                            <span class="text-lg shrink-0 mx-auto group-[.expanded]:mx-0">💳</span>
-                            <span class="sidebar-label hidden">Ortak Kasa & Bütçe</span>
-                        </button>
-
-                        <button onclick="switchTab('chat')" id="tab-btn-chat" title="Grup İçi Sohbet"
-                            class="tab-btn group flex items-center gap-3 w-full px-2 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent overflow-hidden whitespace-nowrap relative">
-                            <span class="text-lg shrink-0 mx-auto group-[.expanded]:mx-0">💬</span>
-                            <span class="sidebar-label hidden">Grup İçi Sohbet</span>
-                            <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 animate-pulse sidebar-badge"></span>
-                        </button>
-
-                    </nav>
+                        <!-- EN ALTA SABİTLENMİŞ AKSİYON BUTONLARI -->
+                        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5 mt-auto">
+                            ${isAuth ? `
+                                <button onclick="openAddParticipantModal()" class="w-full py-2.5 px-4 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-xs border border-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                                    <span>➕</span> Yeni Katılımcı Ekle
+                                </button>
+                                <a href="ilan-panosu.html?groupId=${groupId}&autoOpen=true" class="w-full py-2.5 px-4 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs border border-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                                    <span>📌</span> İlan Ver (Talent Match)
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
                 </aside>
 
-                <!-- SAĞ İÇERİK ALANI -->
-                <main id="tab-content-area" class="flex-grow min-w-0 space-y-6"></main>
             </div>
         `;
 
@@ -613,14 +665,14 @@ function applySidebarState() {
 function switchTab(tabName) {
     currentTab = tabName;
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('bg-tsMavi/10', 'text-tsMavi', 'border-tsMavi/30', 'dark:bg-tsMavi/15', 'shadow-sm', 'font-extrabold');
-        btn.classList.add('bg-transparent', 'text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-800/60', 'border-transparent', 'font-semibold');
+        btn.classList.remove('bg-tsMavi', 'text-white', 'border-tsMavi', 'shadow-md', 'font-extrabold');
+        btn.classList.add('bg-white', 'dark:bg-slate-900/60', 'text-slate-600', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-800', 'hover:bg-slate-100', 'dark:hover:bg-slate-800', 'font-semibold');
     });
 
     const activeBtn = document.getElementById(`tab-btn-${tabName}`);
     if (activeBtn) {
-        activeBtn.classList.remove('bg-transparent', 'text-slate-600', 'dark:text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-800/60', 'border-transparent', 'font-semibold');
-        activeBtn.classList.add('bg-tsMavi/10', 'text-tsMavi', 'border-tsMavi/30', 'dark:bg-tsMavi/15', 'shadow-sm', 'font-extrabold');
+        activeBtn.classList.remove('bg-white', 'dark:bg-slate-900/60', 'text-slate-600', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-800', 'hover:bg-slate-100', 'dark:hover:bg-slate-800', 'font-semibold');
+        activeBtn.classList.add('bg-tsMavi', 'text-white', 'border-tsMavi', 'shadow-md', 'font-extrabold');
     }
 
     const contentArea = document.getElementById('tab-content-area');
@@ -628,75 +680,29 @@ function switchTab(tabName) {
 
     if (tabName === 'overview') {
         renderOverviewTab(contentArea);
-    } else if (tabName === 'archive') {
-        renderArchiveTab(contentArea);
     } else if (tabName === 'kanban') {
         renderKanbanTab(contentArea);
-    } else if (tabName === 'budget') {
-        renderBudgetTab(contentArea);
+    } else if (tabName === 'applications') {
+        renderApplicationsTab(contentArea);
     } else if (tabName === 'chat') {
         renderChatTab(contentArea);
+    } else if (tabName === 'archive') {
+        renderArchiveTab(contentArea);
+    } else if (tabName === 'budget') {
+        renderBudgetTab(contentArea);
     }
 }
 
-// 1. GENEL BAKIŞ & ÜYELER TABI
+// 1. GENEL BAKIŞ TABI (SOL SÜTUN İÇERİĞİ)
 function renderOverviewTab(container) {
     const isAuth = isUserAuthorized();
-    const isAdminUser = isUserAdmin();
-    const members = currentGroup.members || [];
     const milestones = currentGroup.milestones || [];
-
-    let membersHTML = "";
-    members.forEach((m, idx) => {
-        const roleColor = m.role === 'Yönetici' || m.role === 'Lider' 
-            ? 'bg-tsBordo/10 text-tsBordo dark:text-rose-400 border-tsBordo/20' 
-            : m.role === 'Yönetici Yardımcısı' 
-            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
-            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
-
-        const canEdit = isAdminUser && m.role !== 'Yönetici' && m.role !== 'Lider';
-
-        membersHTML += `
-            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
-                <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
-                    <div class="w-9 h-9 flex-shrink-0 rounded-full bg-gradient-to-tr from-tsBordo to-tsMavi text-white font-bold text-xs flex items-center justify-center shadow-sm">
-                        ${(m.name || 'Üye').substring(0, 2).toUpperCase()}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="font-bold text-xs text-slate-900 dark:text-slate-100 truncate" title="${m.name}">${m.name}</p>
-                        ${m.email ? `<p class="text-[10px] text-slate-500 dark:text-slate-400 truncate" title="${m.email}">${m.email}</p>` : ''}
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 flex-shrink-0">
-                    ${canEdit ? `
-                        <div class="relative group">
-                            <select onchange="changeMemberRole('${m.uid}', this.value)" class="appearance-none text-[10px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-lg pl-2.5 pr-6 py-1 focus:outline-none focus:border-tsMavi cursor-pointer transition-colors shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800">
-                                <option value="Yönetici Yardımcısı" ${m.role === 'Yönetici Yardımcısı' ? 'selected' : ''}>Yönetici Yrd.</option>
-                                <option value="Üye" ${m.role === 'Üye' ? 'selected' : ''}>Üye</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-400">
-                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                        </div>
-                        <button onclick="removeMember('${m.uid}', '${m.name}')" title="Gruptan Çıkar" class="text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-1.5 rounded-lg transition-colors flex items-center justify-center">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    ` : `
-                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border ${roleColor} whitespace-nowrap shadow-sm">
-                            ${m.role || 'Üye'}
-                        </span>
-                    `}
-                </div>
-            </div>
-        `;
-    });
 
     let milestonesHTML = "";
     if (milestones.length === 0) {
-        milestonesHTML = `<div class="py-6 text-center text-slate-500 text-xs italic">Henüz belirlenmiş hedef/dönüm noktası bulunmuyor.</div>`;
+        milestonesHTML = `<div class="py-6 text-center text-slate-400 dark:text-slate-500 text-xs italic">Henüz belirlenmiş hedef/dönüm noktası bulunmuyor.</div>`;
     } else {
-        milestones.forEach((ms, i) => {
+        milestones.forEach((ms) => {
             const icon = ms.status === 'completed' ? '✓' : ms.status === 'in_progress' ? '⏳' : '⭕';
             const color = ms.status === 'completed' ? 'text-emerald-500' : ms.status === 'in_progress' ? 'text-tsMavi' : 'text-slate-400';
 
@@ -708,7 +714,7 @@ function renderOverviewTab(container) {
                     </div>
                     ${isAuth ? `
                         <div class="flex items-center gap-1">
-                            <button onclick="openEditMilestoneModal('${ms.id}', '${(ms.text||'').replace(/'/g, "\\'")}', '${ms.status||'planned'}')" class="text-xs text-amber-500 hover:text-amber-600 px-1">✏️</button>
+                            <button onclick="openEditMilestoneModal('${ms.id}')" class="text-xs text-amber-500 hover:text-amber-600 px-1">✏️</button>
                             <button onclick="deleteMilestone('${ms.id}')" class="text-xs text-rose-500 hover:text-rose-600 px-1">🗑️</button>
                         </div>
                     ` : ''}
@@ -718,81 +724,94 @@ function renderOverviewTab(container) {
     }
 
     container.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 space-y-6">
-                <!-- PROJE HAKKINDA -->
-                <div class="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">📖 Proje Hakkında</h3>
-                        ${isAuth ? `
-                            <button onclick="openEditDescModal()" class="text-xs font-semibold text-tsMavi hover:underline flex items-center gap-1">
-                                ✏️ Açıklamayı Düzenle
-                            </button>
-                        ` : ''}
-                    </div>
-                    <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${currentGroup.description || 'Henüz proje açıklaması girilmedi.'}</p>
+        <div class="space-y-6">
+            <!-- PROJE HAKKINDA -->
+            <div class="academy-card space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <span>📖</span> Proje Hakkında
+                    </h3>
+                    ${isAuth ? `
+                        <button onclick="openEditDescModal()" class="text-xs font-semibold text-tsMavi hover:underline flex items-center gap-1">
+                            ✏️ Açıklamayı Düzenle
+                        </button>
+                    ` : ''}
                 </div>
-
-                <!-- PROJE HEDEFLERİ & DÖNÜM NOKTALARI -->
-                <div class="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">🎯 Proje Hedefleri & Dönüm Noktaları</h3>
-                        ${isAuth ? `
-                            <button onclick="openAddMilestoneModal()" class="px-3 py-1.5 rounded-xl bg-tsMavi/10 text-tsMavi text-xs font-bold hover:bg-tsMavi/20 border border-tsMavi/20 transition-all">
-                                ＋ Hedef Ekle
-                            </button>
-                        ` : ''}
-                    </div>
-                    <div class="space-y-3">
-                        ${milestonesHTML}
-                    </div>
-                </div>
-
-                <!-- GELEN KATILMA BAŞVURULARI (TALENT MATCH APPLICATIONS) -->
-                ${isAuth ? `
-                    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
-                        <div class="flex items-center justify-between">
-                            <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">📩 Gelen Katılma Başvuruları (Talent Match)</h3>
-                            <span class="text-[10px] bg-amber-500/10 text-amber-500 font-bold px-2.5 py-0.5 rounded-full border border-amber-500/20">Yönetici Paneli</span>
-                        </div>
-                        <div id="applications-list-container" class="space-y-3">
-                            <div class="text-slate-500 text-xs py-4 text-center">Başvurular yükleniyor...</div>
-                        </div>
-                    </div>
-                ` : ''}
+                <p class="text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">${currentGroup.description || 'Henüz proje açıklaması girilmedi.'}</p>
             </div>
 
-            <!-- SAĞ ÜYE LİSTESİ -->
-            <div class="space-y-6">
-                <div class="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                        <span>👥 Takım Üyeleri</span>
-                        <span class="text-xs font-mono bg-tsMavi/10 text-tsMavi px-2.5 py-0.5 rounded-full font-bold">${members.length} Üye</span>
+            <!-- PROJE HEDEFLERİ & DÖNÜM NOKTALARI -->
+            <div class="academy-card space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <span>🎯</span> Proje Hedefleri & Dönüm Noktaları
                     </h3>
-
-                    <div class="space-y-3">
-                        ${membersHTML}
-                    </div>
-
-                    <!-- KATILIMCI EKLE & İLAN VER BUTONLARI -->
                     ${isAuth ? `
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
-                        <button onclick="openAddParticipantModal()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5">
-                            <span>＋</span> Yeni Katılımcı Ekle
+                        <button onclick="openAddMilestoneModal()" class="px-3 py-1.5 rounded-xl bg-tsMavi/10 text-tsMavi text-xs font-bold hover:bg-tsMavi/20 border border-tsMavi/20 transition-all">
+                            ＋ Hedef Ekle
                         </button>
-                        <a href="ilan-panosu.html?groupId=${groupId}&autoOpen=true" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-xs hover:border-tsMavi transition-colors flex items-center justify-center gap-1.5">
-                            <span>📌</span> İlan Ver
-                        </a>
-                    </div>
                     ` : ''}
+                </div>
+                <div class="space-y-3">
+                    ${milestonesHTML}
                 </div>
             </div>
         </div>
     `;
+}
 
-    if (isAuth) {
-        loadApplications();
+function openEditDescModal() {
+    const desc = prompt("Proje açıklamasını düzenleyin:", currentGroup ? (currentGroup.description || '') : '');
+    if (desc !== null) {
+        currentGroup.description = desc.trim();
+        if (typeof db !== 'undefined' && db && db.collection) {
+            db.collection("groups").doc(groupId).update({ description: desc.trim() }).catch(console.error);
+        }
+        renderWorkspaceUI();
     }
+}
+
+function openEditMilestoneModal(id) {
+    if (!currentGroup || !currentGroup.milestones) return;
+    const m = currentGroup.milestones.find(x => x.id === id);
+    if (!m) return;
+    const newText = prompt("Hedef metnini düzenleyin:", m.text || '');
+    if (newText !== null && newText.trim()) {
+        m.text = newText.trim();
+        if (typeof db !== 'undefined' && db && db.collection) {
+            db.collection("groups").doc(groupId).update({ milestones: currentGroup.milestones }).catch(console.error);
+        }
+        renderWorkspaceUI();
+    }
+}
+
+function deleteMilestone(id) {
+    if (!confirm("Bu hedefi silmek istediğinizden emin misiniz?")) return;
+    if (currentGroup && currentGroup.milestones) {
+        currentGroup.milestones = currentGroup.milestones.filter(x => x.id !== id);
+        if (typeof db !== 'undefined' && db && db.collection) {
+            db.collection("groups").doc(groupId).update({ milestones: currentGroup.milestones }).catch(console.error);
+        }
+        renderWorkspaceUI();
+    }
+}
+
+// 2. BAŞVURULAR TABI (TALENT MATCH)
+function renderApplicationsTab(container) {
+    container.innerHTML = `
+        <div class="academy-card space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <span>📥</span> Gelen Katılma Başvuruları (Talent Match)
+                </h3>
+                <span class="text-xs bg-amber-500/10 text-amber-500 font-bold px-2.5 py-0.5 rounded-full border border-amber-500/20">Talent Match</span>
+            </div>
+            <div id="applications-list-container" class="space-y-3">
+                <div class="text-slate-500 text-xs py-4 text-center">Başvurular yükleniyor...</div>
+            </div>
+        </div>
+    `;
+    loadApplications();
 }
 
 // TALENT MATCH BAŞVURULARI YÜKLEME VE İŞLEMLERİ

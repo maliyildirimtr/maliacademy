@@ -22,15 +22,17 @@ function renderAcademyUserPanel() {
                     <span>${displayName}</span>
                 </button>
 
-                <button type="button" onclick="logoutUser()" title="Çıkış Yap" class="text-xs px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 font-semibold transition-colors">
-                    🚪 Çıkış
+                <button type="button" onclick="logoutUser()" title="Çıkış Yap" class="text-xs px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 font-semibold transition-colors flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Çıkış
                 </button>
             </div>
         `;
     } else {
         panel.innerHTML = `
             <button type="button" onclick="openAuthModal()" class="px-4 py-2 rounded-2xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-2">
-                🔑 Öğrenci Girişi / Kayıt
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-1.5 1.5L16 4.5M16 4.5 14.5 3m1.5 1.5-6 6a3 3 0 1 0 4.2 4.2l6-6Z"/><circle cx="7.5" cy="16.5" r="1.5"/></svg>
+                <span>Giriş Yap / Kayıt Ol</span>
             </button>
         `;
     }
@@ -69,7 +71,7 @@ function loadCourses() {
             const isExternal = course.contentUrl && (course.contentUrl.startsWith('http://') || course.contentUrl.startsWith('https://'));
 
             html += `
-                <div onclick="window.open('${targetUrl}', '${isExternal ? '_blank' : '_self'}')" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+                <div data-id="${courseId}" id="${courseId}" onclick="window.open('${targetUrl}', '${isExternal ? '_blank' : '_self'}')" class="course-card academy-card group relative rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111b21] p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
                     
                     <!-- Sol Kenar Bordo-Mavi Geçiş Çizgisi -->
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>

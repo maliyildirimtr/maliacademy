@@ -204,9 +204,9 @@ function renderGroupsUI(groups) {
         const lookingRolesHTML = g.lookingRoles ? `
             <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 space-y-1.5">
                 <div class="flex items-center justify-between gap-1">
-                    <span class="text-[10px] font-bold text-amber-500 flex items-center gap-1">🎯 Aranan Yetenekler:</span>
+                    <span class="text-[10px] font-bold text-amber-500 flex items-center gap-1">Aranan Yetenekler:</span>
                     <button onclick="event.stopPropagation(); openApplyGroupModal('${g.id}', '${(g.name||'').replace(/'/g, "\\'")}')" class="text-[10px] font-bold text-tsMavi hover:underline flex items-center gap-0.5">
-                        📩 Başvur ↗
+                        Başvur ↗
                     </button>
                 </div>
                 <div class="flex flex-wrap gap-1">
@@ -216,7 +216,7 @@ function renderGroupsUI(groups) {
         ` : '';
 
         html += `
-            <div onclick="handleGroupCardClick(event, '${g.id}')" class="group relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
+            <div data-id="${g.id}" id="${g.id}" onclick="handleGroupCardClick(event, '${g.id}')" class="group-card academy-card group relative rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111b21] p-6 hover:border-tsMavi transition-all shadow-sm flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md">
                 
                 <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
@@ -232,12 +232,13 @@ function renderGroupsUI(groups) {
                                 </span>
                             ` : `
                                 <span class="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold">
-                                    🔒 Davet Kodu Gerekli
+                                    Davet Kodu Gerekli
                                 </span>
                             `}
                             ${canDelete ? `
-                                <button onclick="event.stopPropagation(); deleteGroup('${g.id}', '${(g.name||'').replace(/'/g, "\\'")}')" title="Grubu Sil" class="px-2 py-0.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 text-[10px] font-bold transition-all">
-                                    🗑️ Sil
+                                <button onclick="event.stopPropagation(); deleteGroup('${g.id}', '${(g.name||'').replace(/'/g, "\\'")}')" title="Grubu Sil" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 text-[10px] font-bold transition-all flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    Sil
                                 </button>
                             ` : ''}
                         </div>

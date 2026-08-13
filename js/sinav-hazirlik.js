@@ -475,7 +475,9 @@ function renderExams() {
         }
 
         const html = `
-            <div class="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4">
+            <div data-id="${docItem.id}" id="${docItem.id}" class="doc-card academy-card group relative p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111b21] shadow-lg hover:border-tsMavi transition-all flex flex-col justify-between space-y-4 overflow-hidden">
+                <!-- Sol Kenar Bordo-Mavi Geçiş Çizgisi -->
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-tsBordo to-tsMavi opacity-80 group-hover:opacity-100 transition-opacity"></div>
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="px-2.5 py-1 rounded-lg ${colors} border text-xs font-bold">${docTypeLabel}</span>

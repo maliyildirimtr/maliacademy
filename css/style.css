@@ -76,16 +76,23 @@ main {
    ========================================== */
 
 /* 1. KUTU (CARD) YAPISI VE İÇ BOŞLUKLAR (PADDING, GLASSMORPHISM & BORDER) */
+/* 1. KUTU (CARD) YAPISI VE İÇ BOŞLUKLAR (PADDING, GLASSMORPHISM & BORDER) */
 .academy-card,
 .module-card,
+.content-card,
 .card-modern,
 .announcement-card,
-.course-card {
+.course-card,
+.doc-card,
+.repo-card,
+.group-card,
+.ad-card,
+.tool-card {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
     padding: 20px !important;
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(226, 232, 240, 0.9) !important;
@@ -97,24 +104,79 @@ main {
     overflow: hidden !important;
 }
 
+/* Sol Kenar Bordo-Mavi Dikey Geçiş Çizgisi (Gradient Strip) */
+.academy-card::before,
+.module-card::before,
+.content-card::before,
+.card-modern::before,
+.announcement-card::before,
+.course-card::before,
+.doc-card::before,
+.repo-card::before,
+.group-card::before,
+.ad-card::before,
+.tool-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 6px !important;
+    height: 100% !important;
+    background: linear-gradient(180deg, #800020 0%, #00a8e8 100%) !important;
+    border-top-left-radius: 16px !important;
+    border-bottom-left-radius: 16px !important;
+    opacity: 0.85 !important;
+    transition: opacity 0.3s ease !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
+}
+
+.academy-card:hover::before,
+.module-card:hover::before,
+.content-card:hover::before,
+.card-modern:hover::before,
+.announcement-card:hover::before,
+.course-card:hover::before,
+.doc-card:hover::before,
+.repo-card:hover::before,
+.group-card:hover::before,
+.ad-card:hover::before,
+.tool-card:hover::before {
+    opacity: 1 !important;
+}
+
 @media (min-width: 640px) {
     .academy-card,
     .module-card,
+    .content-card,
     .card-modern,
     .announcement-card,
-    .course-card {
+    .course-card,
+    .doc-card,
+    .repo-card,
+    .group-card,
+    .ad-card,
+    .tool-card {
         padding: 24px !important;
     }
 }
 
 html.dark .academy-card,
 html.dark .module-card,
+html.dark .content-card,
 html.dark .card-modern,
 html.dark .stats-card,
 html.dark .announcement-card,
-html.dark .course-card {
-    background: rgba(30, 41, 59, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+html.dark .course-card,
+html.dark .doc-card,
+html.dark .repo-card,
+html.dark .group-card,
+html.dark .ad-card,
+html.dark .tool-card {
+    background: #111b21 !important;
+    background-color: #111b21 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 16px !important;
     box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3) !important;
 }
 
@@ -165,10 +227,13 @@ html.dark .course-card {
 /* 2. ETKİLEŞİM VE HOVER (FARETLE ÜZERİNE GELME) EFEKTLERİ */
 .academy-card:hover,
 .module-card:hover,
+.content-card:hover,
 .card-modern:hover,
 .stats-card:hover,
 .announcement-card:hover,
-.course-card:hover {
+.course-card:hover,
+.doc-card:hover,
+.repo-card:hover {
     transform: translateY(-6px) !important;
     box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.25) !important;
     border-color: rgba(37, 99, 235, 0.4) !important;
@@ -191,6 +256,22 @@ html.dark .course-card {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+/* SADE VE ORANTILI BAŞLIK İKONU KURALLARI */
+h1 svg, h2 svg, h3 svg, .header-icon {
+    width: 22px !important;
+    height: 22px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+}
+
+.card-icon-box svg {
+    width: 24px !important;
+    height: 24px !important;
+}
+
 html.dark .card-icon-box {
     color: #38bdf8 !important;
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.25) 0%, rgba(14, 165, 233, 0.25) 100%) !important;
@@ -210,4 +291,42 @@ html.dark .card-icon-box {
 .module-card > div:last-child,
 .course-card > div:last-child {
     margin-top: auto !important;
+}
+
+/* ==========================================
+   CANLI KÜRESEL ARAMA HEDEF KART VURGU (HIGHLIGHT) EFEKTLERİ
+   ========================================== */
+@keyframes globalSearchHighlightPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 168, 232, 0.8);
+        border-color: #00a8e8 !important;
+    }
+    30% {
+        transform: scale(1.02);
+        box-shadow: 0 0 30px 8px rgba(0, 168, 232, 0.6);
+        border-color: #800020 !important;
+    }
+    70% {
+        transform: scale(1.01);
+        box-shadow: 0 0 20px 4px rgba(0, 168, 232, 0.4);
+        border-color: #00a8e8 !important;
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 168, 232, 0);
+    }
+}
+
+.global-search-highlight {
+    animation: globalSearchHighlightPulse 2.8s ease-in-out forwards !important;
+    z-index: 30 !important;
+}
+
+/* ==========================================
+   KAPALI SİDEBAR (COLLAPSED STATE) ALT MENÜ GİZLEME
+   ========================================== */
+#app-sidebar.lg\:w-20 #tools-submenu,
+#app-sidebar.lg\:w-20 .sidebar-text {
+    display: none !important;
 }
