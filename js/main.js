@@ -288,13 +288,17 @@ function renderNavbar(activePage, currentUser) {
             </a>
         </div>
 
-        <!-- ORTA ALAN: DİNAMİK CANLI ARAMA ÇUBUĞU -->
-        <div class="relative max-w-md w-full hidden md:flex items-center mx-4">
+        <!-- ORTA ALAN: DİNAMİK ARAMA ÇUBUĞU -->
+        <div class="relative max-w-md w-full hidden md:flex items-center mx-4 group/search">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input id="global-search-input" type="search" name="search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-autocomplete="none" oninput="handleGlobalSearchInput(this.value)" onfocus="handleGlobalSearchInput(this.value)" placeholder="İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-4 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all">
+            <input id="global-search-input" type="search" name="search_query_no_autofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-autocomplete="none" oninput="handleGlobalSearchInput(this.value)" onkeydown="handleGlobalSearchKeydown(event)" onfocus="handleGlobalSearchInput(this.value)" onblur="setTimeout(() => { document.getElementById('global-search-results')?.classList.add('hidden'); }, 200)" placeholder="İçerik, ders veya mühendislik aracı ara..." class="w-full pl-9 pr-14 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-xs outline-none focus:border-tsMavi text-slate-900 dark:text-slate-100 transition-all peer">
             
-            <!-- CANLI ARAMA SONUÇ PANELİ (DROPDOWN) -->
-            <div id="global-search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[460px] overflow-y-auto backdrop-blur-xl"></div>
+            <button id="global-search-btn" onclick="triggerGlobalSearch()" class="absolute right-1.5 hidden px-3 py-1.5 bg-tsMavi text-white text-[10px] font-bold rounded-full hover:bg-tsBordo transition-colors z-10 cursor-pointer shadow-sm">Ara</button>
+            
+            <!-- BİLGİ PANELİ (DROPDOWN) -->
+            <div id="global-search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 p-4 backdrop-blur-xl">
+                <p class="text-xs text-slate-500 dark:text-slate-400 text-center font-semibold">Arama yapmak için <span class="text-tsMavi">Ara</span> butonuna veya <span class="text-tsMavi">Enter</span> tuşuna basın.</p>
+            </div>
         </div>
 
         <!-- SAĞ ALAN: TEMA + AUTH -->
@@ -1946,31 +1950,70 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 // CANLI KÜRESEL ARAMA MOTORU (GLOBAL LIVE SEARCH ENGINE)
 // ==========================================
-let _globalSearchTimeout = null;
-
 function handleGlobalSearchInput(query) {
     const dropdown = document.getElementById('global-search-results');
+    const btn = document.getElementById('global-search-btn');
     if (!dropdown) return;
 
     const trimmed = (query || '').trim();
-    if (trimmed.length < 2) {
+    if (trimmed.length > 0) {
+        if (btn) btn.classList.remove('hidden');
+        dropdown.classList.remove('hidden');
+        dropdown.innerHTML = `
+            <p class="text-xs text-slate-500 dark:text-slate-400 text-center font-semibold p-2">Arama yapmak için <span class="text-tsMavi">Ara</span> butonuna veya <span class="text-tsMavi">Enter</span> tuşuna basın.</p>
+        `;
+    } else {
+        if (btn) btn.classList.add('hidden');
         dropdown.classList.add('hidden');
         dropdown.innerHTML = '';
-        return;
+    }
+}
+
+function handleGlobalSearchKeydown(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerGlobalSearch();
+    }
+}
+
+function triggerGlobalSearch() {
+    const input = document.getElementById('global-search-input');
+    if (!input) return;
+    const trimmed = input.value.trim();
+    if (trimmed.length > 0) {
+        window.location.href = 'arama.html?q=' + encodeURIComponent(trimmed);
+    }
+}
+
+// Levenshtein Distance Algoritması (Fuzzy Search için)
+function levenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
+    for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
     }
 
-    // Loader Göster
-    dropdown.classList.remove('hidden');
-    dropdown.innerHTML = `
-        <div class="p-4 text-center text-xs text-slate-400 font-semibold animate-pulse flex items-center justify-center gap-2">
-            <span>⏳</span> Aranıyor...
-        </div>
-    `;
-
-    if (_globalSearchTimeout) clearTimeout(_globalSearchTimeout);
-    _globalSearchTimeout = setTimeout(() => {
-        executeGlobalSearch(trimmed);
-    }, 220);
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, // substitution
+                    Math.min(
+                        matrix[i][j - 1] + 1, // insertion
+                        matrix[i - 1][j] + 1  // deletion
+                    )
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
 }
 
 async function runCoreGlobalSearch(searchTerm) {
@@ -1983,8 +2026,26 @@ async function runCoreGlobalSearch(searchTerm) {
         exams: [],
         openSource: [],
         groups: [],
-        ads: []
+        ads: [],
+        didYouMean: null
     };
+
+    let closestDistance = Infinity;
+    function checkFuzzy(titleStr) {
+        if (!titleStr) return;
+        const words = titleStr.toLowerCase().split(/\s+/);
+        for (const word of words) {
+            const cleanWord = word.replace(/[^a-z0-9ğüşöçı]/gi, '');
+            if (cleanWord.length < 3) continue;
+            // Eğer tam eşleşmiyorsa ve sadece 1-2 harf hatası varsa kontrol et
+            const dist = levenshteinDistance(cleanWord, termLower);
+            if (dist > 0 && dist <= 2 && dist < closestDistance && cleanWord.length >= (termLower.length - 2)) {
+                closestDistance = dist;
+                // Orijinal harf kılıfını (Büyük/Küçük) olabildiğince koruyarak didYouMean ata
+                results.didYouMean = cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1);
+            }
+        }
+    }
 
     const targetDb = (typeof db !== 'undefined' && db && db.collection) ? db : (window.db || null);
 
@@ -2002,6 +2063,7 @@ async function runCoreGlobalSearch(searchTerm) {
                         const title = (data.title || '').toLowerCase();
                         const code = (data.code || '').toLowerCase();
                         const desc = (data.description || '').toLowerCase();
+                        checkFuzzy(data.title);
                         if ((title.includes(termLower) || code.includes(termLower) || desc.includes(termLower)) && !results.courses.some(x => x.id === doc.id)) {
                             results.courses.push({
                                 type: 'courses',
@@ -2027,6 +2089,7 @@ async function runCoreGlobalSearch(searchTerm) {
         const title = (SYSTEMVERILOG_COURSE_DATA.title || '').toLowerCase();
         const desc = (SYSTEMVERILOG_COURSE_DATA.description || '').toLowerCase();
         const code = (SYSTEMVERILOG_COURSE_DATA.code || '').toLowerCase();
+        checkFuzzy(SYSTEMVERILOG_COURSE_DATA.title);
         if ((title.includes(termLower) || desc.includes(termLower) || code.includes(termLower)) && !results.courses.some(x => x.id === SYSTEMVERILOG_COURSE_DATA.id)) {
             results.courses.push({
                 type: 'courses',
@@ -2053,6 +2116,7 @@ async function runCoreGlobalSearch(searchTerm) {
                     const title = (data.title || '').toLowerCase();
                     const category = (data.category || data.documentType || '').toLowerCase();
                     const desc = (data.description || '').toLowerCase();
+                    checkFuzzy(data.title);
                     if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.exams.some(x => x.id === doc.id)) {
                         results.exams.push({
                             type: 'exams',
@@ -2080,17 +2144,18 @@ async function runCoreGlobalSearch(searchTerm) {
                 snap.forEach(doc => {
                     const data = doc.data();
                     const title = (data.title || '').toLowerCase();
-                    const category = (data.category || data.sourceType || '').toLowerCase();
+                    const tag = (data.tags || '').toLowerCase();
                     const desc = (data.description || '').toLowerCase();
-                    if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.openSource.some(x => x.id === doc.id)) {
+                    checkFuzzy(data.title);
+                    if ((title.includes(termLower) || tag.includes(termLower) || desc.includes(termLower)) && !results.openSource.some(x => x.id === doc.id)) {
                         results.openSource.push({
                             type: 'openSource',
                             typeLabel: 'Açık Kaynak Kit',
                             typeBadgeClass: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
                             id: doc.id,
                             title: data.title || "Açık Kaynak Proje",
-                            code: data.category || data.sourceType || "Repo",
-                            subtitle: data.category || data.sourceType || "Repo",
+                            code: data.tags || "Repo",
+                            subtitle: data.tags || "Repo",
                             description: data.description || "Tasarım dosyaları, Verilog/FPGA kitleri ve kod kütüphaneleri.",
                             url: `acik-kaynak.html?highlight=${doc.id}`,
                             iconSvg: `<svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>`
@@ -2112,6 +2177,7 @@ async function runCoreGlobalSearch(searchTerm) {
                     const category = (data.category || '').toLowerCase();
                     const desc = (data.description || '').toLowerCase();
                     const roles = (typeof data.lookingRoles === 'string' ? data.lookingRoles : '').toLowerCase();
+                    checkFuzzy(data.name);
                     if ((name.includes(termLower) || category.includes(termLower) || desc.includes(termLower) || roles.includes(termLower)) && !results.groups.some(x => x.id === doc.id)) {
                         results.groups.push({
                             type: 'groups',
@@ -2143,6 +2209,7 @@ async function runCoreGlobalSearch(searchTerm) {
         const name = (g.name || '').toLowerCase();
         const category = (g.category || '').toLowerCase();
         const desc = (g.description || '').toLowerCase();
+        checkFuzzy(g.name);
         if ((name.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.groups.some(x => x.id === g.id)) {
             results.groups.push({
                 type: 'groups',
@@ -2169,6 +2236,7 @@ async function runCoreGlobalSearch(searchTerm) {
                     const title = (data.title || '').toLowerCase();
                     const category = (data.category || '').toLowerCase();
                     const desc = (data.description || '').toLowerCase();
+                    checkFuzzy(data.title);
                     if ((title.includes(termLower) || category.includes(termLower) || desc.includes(termLower)) && !results.ads.some(x => x.id === doc.id)) {
                         results.ads.push({
                             type: 'ads',
@@ -2188,184 +2256,16 @@ async function runCoreGlobalSearch(searchTerm) {
         }
     } catch(e) {}
 
+    // Eğer exact match bulunduysa (totalCount > 0), didYouMean'e gerek yok.
+    const totalCount = results.courses.length + results.exams.length + results.openSource.length + results.groups.length + results.ads.length;
+    if (totalCount > 0) {
+        results.didYouMean = null;
+    }
+
     return results;
 }
 
-async function executeGlobalSearch(searchTerm) {
-    const dropdown = document.getElementById('global-search-results');
-    if (!dropdown) return;
-
-    const results = await runCoreGlobalSearch(searchTerm);
-    renderGlobalSearchResults(results, searchTerm);
-}
-
-function navigateToSearchPage(query) {
-    const trimmed = (query || '').trim();
-    if (!trimmed) return;
-    closeGlobalSearchDropdown();
-    window.location.href = 'arama.html?q=' + encodeURIComponent(trimmed);
-}
-
-function renderGlobalSearchResults(results, searchTerm) {
-    const dropdown = document.getElementById('global-search-results');
-    if (!dropdown) return;
-
-    const totalCount = results.courses.length + results.exams.length + results.openSource.length + results.groups.length + results.ads.length;
-
-    if (totalCount === 0) {
-        dropdown.innerHTML = `
-            <div class="p-5 text-center text-xs text-slate-400 space-y-1">
-                <p class="font-bold text-slate-700 dark:text-slate-300">Aramanızla eşleşen bir içerik bulunamadı.</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">"${searchTerm}" için sonuç bulunamadı.</p>
-            </div>
-        `;
-        return;
-    }
-
-    let html = `<div class="p-2.5 space-y-3">`;
-
-    // 📚 DERSLER & NOTLAR (MAX 3)
-    if (results.courses.length > 0) {
-        const topCourses = results.courses.slice(0, 3);
-        html += `
-            <div>
-                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-tsMavi flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-tsMavi" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                    <span>Dersler & Notlar (${results.courses.length})</span>
-                </div>
-                <div class="space-y-1 mt-1">
-                    ${topCourses.map(r => `
-                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
-                            <div class="min-w-0 flex-1 mr-2">
-                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-tsMavi truncate transition-colors">${r.title}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
-                            </div>
-                            <span class="text-xs text-tsMavi font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Git →</span>
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // ✍️ SINAV BELGELERİ (MAX 3)
-    if (results.exams.length > 0) {
-        const topExams = results.exams.slice(0, 3);
-        html += `
-            <div>
-                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-500 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
-                    <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    <span>Sınav & Vize Belgeleri (${results.exams.length})</span>
-                </div>
-                <div class="space-y-1 mt-1">
-                    ${topExams.map(r => `
-                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
-                            <div class="min-w-0 flex-1 mr-2">
-                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-amber-500 truncate transition-colors">${r.title}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
-                            </div>
-                            <span class="text-xs text-amber-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">İncele →</span>
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // 📦 AÇIK KAYNAK KİTLER (MAX 3)
-    if (results.openSource.length > 0) {
-        const topOpenSource = results.openSource.slice(0, 3);
-        html += `
-            <div>
-                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-purple-400 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
-                    <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
-                    <span>Açık Kaynak Kitler (${results.openSource.length})</span>
-                </div>
-                <div class="space-y-1 mt-1">
-                    ${topOpenSource.map(r => `
-                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
-                            <div class="min-w-0 flex-1 mr-2">
-                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-purple-400 truncate transition-colors">${r.title}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
-                            </div>
-                            <span class="text-xs text-purple-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">İncele →</span>
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // 👥 PROJE GRUPLARI (MAX 3)
-    if (results.groups.length > 0) {
-        const topGroups = results.groups.slice(0, 3);
-        html += `
-            <div>
-                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
-                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    <span>Proje Grupları (${results.groups.length})</span>
-                </div>
-                <div class="space-y-1 mt-1">
-                    ${topGroups.map(r => `
-                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
-                            <div class="min-w-0 flex-1 mr-2">
-                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 truncate transition-colors">${r.title}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
-                            </div>
-                            <span class="text-xs text-emerald-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Çalışma Alanı →</span>
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // 📌 İLANLAR & DUYURULAR (MAX 3)
-    if (results.ads.length > 0) {
-        const topAds = results.ads.slice(0, 3);
-        html += `
-            <div>
-                <div class="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-rose-400 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
-                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-                    <span>İlanlar & Duyurular (${results.ads.length})</span>
-                </div>
-                <div class="space-y-1 mt-1">
-                    ${topAds.map(r => `
-                        <a href="${r.url}" onclick="closeGlobalSearchDropdown()" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group">
-                            <div class="min-w-0 flex-1 mr-2">
-                                <p class="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-400 truncate transition-colors">${r.title}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</p>
-                            </div>
-                            <span class="text-xs text-rose-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Görüntüle →</span>
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    html += `</div>`;
-
-    // ALL RESULTS BUTTON AT THE BOTTOM OF DROPDOWN
-    const escapedTerm = (searchTerm || '').replace(/'/g, "\\'");
-    html += `
-        <div class="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-            <button onclick="navigateToSearchPage('${escapedTerm}')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-tsBordo to-tsMavi text-white font-bold text-xs shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-2 group cursor-pointer">
-                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>"${searchTerm}" için tüm sonuçları gör →</span>
-            </button>
-        </div>
-    `;
-
-    dropdown.innerHTML = html;
-}
-
-function closeGlobalSearchDropdown() {
-    const dropdown = document.getElementById('global-search-results');
-    if (dropdown) {
-        dropdown.classList.add('hidden');
-    }
-}
+// Eski canlı arama render fonksiyonları kaldırıldı.
 
 // OUTSIDE CLICK & ESCAPE & ENTER KEY LISTENERS
 document.addEventListener('click', (event) => {
@@ -2378,12 +2278,13 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        closeGlobalSearchDropdown();
+        const dropdown = document.getElementById('global-search-results');
+        if (dropdown) dropdown.classList.add('hidden');
     } else if (event.key === 'Enter') {
         const input = document.getElementById('global-search-input');
         if (input && document.activeElement === input) {
             event.preventDefault();
-            navigateToSearchPage(input.value);
+            triggerGlobalSearch();
         }
     }
 });

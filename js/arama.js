@@ -150,12 +150,28 @@ function renderFilteredResults() {
         itemsToRender = _allSearchResults[_activeSearchTab] || [];
     }
 
-    if (itemsToRender.length === 0) {
+    let html = '';
+
+    if (_allSearchResults.didYouMean) {
+        html += `
+            <div class="col-span-full mb-2 p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 flex items-center shadow-sm">
+                <div class="flex items-center gap-3 w-full">
+                    <svg class="w-6 h-6 text-sky-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                    <p class="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                        <span class="font-bold opacity-70 line-through">"${_searchPageQuery}"</span> için tam eşleşme bulunamadı. Bunu mu demek istediniz: 
+                        <a href="arama.html?q=${encodeURIComponent(_allSearchResults.didYouMean)}" class="text-tsMavi font-extrabold hover:text-tsBordo underline underline-offset-4 decoration-sky-300/50 hover:decoration-tsBordo transition-all ml-1">${_allSearchResults.didYouMean}</a>
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    if (itemsToRender.length === 0 && !_allSearchResults.didYouMean) {
         renderEmptySearchState("Aramanızla eşleşen hiçbir içerik bulunamadı. Farklı kelimelerle tekrar deneyebilirsiniz.");
         return;
     }
 
-    grid.innerHTML = itemsToRender.map(item => `
+    html += itemsToRender.map(item => `
         <a href="${item.url}" class="group relative overflow-hidden rounded-2xl bg-white dark:bg-[#111b21] border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between space-y-4">
             
             <!-- LEFT BORDO-MAVI GRADIENT STRIP -->
@@ -200,6 +216,8 @@ function renderFilteredResults() {
             </a>
         </div>
     `;
+
+    grid.innerHTML = html;
 }
 
 function renderEmptySearchState(message) {
